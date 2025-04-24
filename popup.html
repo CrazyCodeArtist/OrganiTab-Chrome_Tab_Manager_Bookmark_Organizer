@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tab Saver</title>
+  <link rel="stylesheet" href="popup.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div id="app">
+    <div class="header">
+      <h1>Tab Saver</h1>
+      <div class="header-buttons">
+        <button class="add-button" id="addButton"><i class="fas fa-plus"></i> Save Open Tabs</button>
+      </div>
+    </div>
+    
+    <div class="status-card">
+      <div class="status-info">
+        <div class="status-label">Open tabs</div>
+        <div class="status-value" id="tabCountLabel">0</div>
+      </div>
+      <div class="status-info">
+        <div class="status-label">Saved items</div>
+        <div class="status-value" id="savedItemsLabel">0</div>
+      </div>
+    </div>
+    
+    <div class="search-container">
+      <div class="search-input">
+        <i class="fas fa-search search-icon"></i>
+        <input type="text" id="searchInput" placeholder="Search saved items...">
+        <button id="clearSearchBtn" class="clear-search"><i class="fas fa-times"></i></button>
+      </div>
+    </div>
+
+    <div id="saveDropdown" class="dropdown-panel">
+      <div class="dropdown-header">
+        <h3>Save tabs</h3>
+        <button id="closeDropdownBtn"><i class="fas fa-times"></i></button>
+      </div>
+      <input type="text" id="groupNameInput" placeholder="Group name..." />
+      <div class="tabs-checklist" id="tabsChecklist">
+        <!-- Tabs will be inserted here by JS -->
+      </div>
+      <div class="dropdown-footer">
+        <button id="selectAllBtn">Select All</button>
+        <button id="saveTabsButton">Save Group</button>
+      </div>
+    </div>
+    
+    <!-- Edit Folder Dialog -->
+    <div id="editFolderDialog" class="dropdown-panel">
+      <div class="dropdown-header">
+        <h3>Edit Folder</h3>
+        <button id="closeEditFolderBtn"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="folder-edit-title" id="editFolderName"></div>
+      <div class="group-selection" id="editGroupSelection">
+        <!-- Group selection will be inserted here by JS -->
+      </div>
+      <div class="dropdown-footer">
+        <button id="selectAllEditGroupsBtn">Select All</button>
+        <button id="saveEditFolderBtn">Save Changes</button>
+      </div>
+    </div>
+    
+    <!-- Sections -->
+    <div id="groupsSection" class="section-container active-section">
+      <div class="section-header">
+        <h2>Saved Groups</h2>
+        <span class="see-all">See all</span>
+      </div>
+      <ul id="groupsList"></ul>
+    </div>
+    
+    <!-- Bookmarks Section -->
+    <div id="bookmarksSection" class="section-container">
+      <div class="section-header">
+        <h2>Bookmarks</h2>
+        <div class="bookmark-actions">
+          <button id="sortBookmarksBtn" class="icon-button"><i class="fas fa-sort"></i></button>
+          <span class="see-all">See all</span>
+        </div>
+      </div>
+      <div id="bookmarksList" class="bookmarks-list"></div>
+    </div>
+    
+    <!-- Todo Section -->
+    <div id="todoSection" class="section-container">
+      <div class="section-header todo-header">
+        <h2>Todo List</h2>
+        <button id="addTodoBtn" class="small-button"><i class="fas fa-plus"></i></button>
+      </div>
+      <div id="todoList" class="todo-list"></div>
+      <div id="addTodoForm" class="add-todo-form">
+        <input type="text" id="newTodoInput" placeholder="Add new task..." />
+        <button id="submitTodoBtn">Add</button>
+      </div>
+    </div>
+    
+    <!-- Folder Creation Dialog -->
+    <div id="folderDialog" class="dropdown-panel">
+      <div class="dropdown-header">
+        <h3>Create Folder</h3>
+        <button id="closeFolderBtn"><i class="fas fa-times"></i></button>
+      </div>
+      <input type="text" id="folderNameInput" placeholder="Folder name..." />
+      <div class="group-selection" id="groupSelection">
+        <!-- Group selection will be inserted here by JS -->
+      </div>
+      <div class="dropdown-footer">
+        <button id="selectAllGroupsBtn">Select All</button>
+        <button id="createFolderBtn">Create Folder</button>
+      </div>
+    </div>
+
+    <!-- Navigation tabs (added folder button here) -->
+    <div class="nav-tabs">
+      <button class="nav-tab active" data-section="groups">
+        <i class="fas fa-layer-group"></i>
+        <span>Groups</span>
+      </button>
+      <button class="nav-tab" data-section="bookmarks">
+        <i class="fas fa-bookmark"></i>
+        <span>Bookmarks</span>
+      </button>
+      <button class="nav-tab" data-section="todo">
+        <i class="fas fa-tasks"></i>
+        <span>Todo</span>
+      </button>
+      <button class="nav-tab" id="folderButton">
+        <i class="fas fa-folder-plus"></i>
+        <span>Folder</span>
+      </button>
+    </div>
+  </div>
+  <div id="customConfirmOverlay" class="custom-confirm-overlay">
+    <div id="customConfirmDialog" class="custom-confirm-dialog">
+        <p id="customConfirmMessage"></p>
+        <div class="custom-confirm-buttons">
+            <button id="customConfirmCancel" class="custom-confirm-button cancel">Cancel</button>
+            <button id="customConfirmConfirm" class="custom-confirm-button confirm">Yes</button>
+        </div>
+    </div>
+</div>
+<div id="customAlertOverlay" class="custom-alert-overlay">
+  <div id="customAlertDialog" class="custom-alert-dialog">
+      <p id="customAlertMessage"></p>
+      <div class="custom-alert-buttons">
+          <button id="customAlertOk" class="custom-alert-button ok">OK</button>
+      </div>
+  </div>
+</div>
+  <script src="popup.js"></script>
+</body>
+</html>

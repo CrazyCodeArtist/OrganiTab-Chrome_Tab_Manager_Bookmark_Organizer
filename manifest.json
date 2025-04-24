@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "OrganiTab - Chrome Tab Manager & Bookmark Organizer",
+  "version": "1.0",
+  "description": "Save and manage tabs, bookmarks, and todo items with a sleek interface.",
+  "permissions": ["tabs", "storage", "contextMenus"],
+  "background": {
+    "service_worker": "background.js"
+  }, "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icon.png",
+      "48": "icon.png",
+      "128": "icon.png"
+    }
+  },
+  "icons": {
+    "16": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
+  }
+  
+}
