@@ -1,158 +1,275 @@
-function debounce(func, wait) {
-    let timeout;
-    return function(...args) {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => func.apply(this, args), wait);
-    };
-}
-
-
-
-
-function showCustomConfirm(message, onConfirm) {
-    const overlay = document.getElementById('customConfirmOverlay');
-    const dialog = document.getElementById('customConfirmDialog');
-    const messageElement = document.getElementById('customConfirmMessage');
-    const confirmButton = document.getElementById('customConfirmConfirm');
-    const cancelButton = document.getElementById('customConfirmCancel');
-
-    messageElement.textContent = message;
-
-    const newConfirmButton = confirmButton.cloneNode(true);
-    confirmButton.parentNode.replaceChild(newConfirmButton, confirmButton);
-
-    const newCancelButton = cancelButton.cloneNode(true);
-    cancelButton.parentNode.replaceChild(newCancelButton, cancelButton);
-
-    const currentConfirmButton = document.getElementById('customConfirmConfirm');
-    const currentCancelButton = document.getElementById('customConfirmCancel');
-
-
-    currentConfirmButton.addEventListener('click', () => {
-        onConfirm(); // Execute the provided callback function
-        overlay.style.display = 'none'; // Hide the overlay
-    });
-
-    currentCancelButton.addEventListener('click', () => {
-        overlay.style.display = 'none'; // Hide the overlay
-    });
-
-    // Add listener to hide dialog if overlay is clicked 
-    // overlay.addEventListener('click', (event) => {
-    //     if (event.target === overlay) { // Only hide if the overlay itself was clicked, not the dialog
-    //          overlay.style.display = 'none';
-    //     }
-    // }, { once: true }); // Use { once: true } block  multiple overlay listeners
-
-    overlay.style.display = 'flex'; // Use flex to enable centering
-}
-// Function to show the custom alert dialog
-function showCustomAlert(message) {
-    const overlay = document.getElementById('customAlertOverlay');
-    const dialog = document.getElementById('customAlertDialog');
-    const messageElement = document.getElementById('customAlertMessage');
-    const okButton = document.getElementById('customAlertOk');
-
-    messageElement.textContent = message;
-
-    const newOkButton = okButton.cloneNode(true);
-    okButton.parentNode.replaceChild(newOkButton, okButton);
-    const currentOkButton = document.getElementById('customAlertOk');
-
-
-    currentOkButton.addEventListener('click', () => {
-        overlay.style.display = 'none'; // Hide the overlay
-    });
-
-     overlay.addEventListener('click', (event) => {
-         if (event.target === overlay) { // Only hide if the overlay itself was clicked
-             overlay.style.display = 'none';
-         }
-     }, { once: true }); // Use { once: true } for single execution
-
-
-    // Display the dialog and overlay
-    overlay.style.display = 'flex'; // Use flex to enable centering
-}
-
-function toggleSearchVisibility() {
-    const searchContainer = document.querySelector('.search-container');
-    
-    // Check which tab is active
-    const activeTab = document.querySelector('.nav-tab.active');
-    
-    if (activeTab && activeTab.getAttribute('data-section') === 'groups') {
-      // Show search when on groups tab
-      searchContainer.style.display = 'block';
-    } else {
-      // Hide search on other tabs
-      searchContainer.style.display = 'none';
-    }
-  }
+/**
+ * popup.js - Optimized version with Folder Name Editing & Dialog Closing
+ *
+ * Optimizations applied:
+ * - Caching frequently accessed DOM elements.
+ * - Using event delegation for dynamic elements (groups, todos, bookmarks).
+ * - Using proper event listener removal in dialogs.
+ * - Using DocumentFragment for efficient batch DOM updates.
+ * - Consolidating DOM manipulations and reducing redundant queries.
+ * - Removing duplicate function definitions and commented-out code.
+ * - Simplifying tab switching logic.
+ *
+ * New Features (v2):
+ * - Folder name is editable in the "Edit Folder" dialog.
+ * - "Create Folder" and "Edit Folder" dialogs close automatically on main tab switch.
+ */
 
 document.addEventListener('DOMContentLoaded', () => {
-    
-    // Add these new element references
-    const searchInput = document.getElementById('searchInput');
-    const clearSearchBtn = document.getElementById('clearSearchBtn');
-    const folderButton = document.getElementById('folderButton');
-    const folderDialog = document.getElementById('folderDialog');
-    const closeFolderBtn = document.getElementById('closeFolderBtn');
-    const folderNameInput = document.getElementById('folderNameInput');
-    const groupSelection = document.getElementById('groupSelection');
-    const selectAllGroupsBtn = document.getElementById('selectAllGroupsBtn');
-    const createFolderBtn = document.getElementById('createFolderBtn');
+    // --- Cache DOM Elements ---
+    const elements = {
+        // Main layout & Nav
+        navTabs: document.querySelectorAll('.nav-tab'),
+        sections: document.querySelectorAll('.section-container'),
+        searchContainer: document.querySelector('.search-container'),
+        searchInput: document.getElementById('searchInput'),
+        clearSearchBtn: document.getElementById('clearSearchBtn'),
+        tabCountLabel: document.getElementById('tabCountLabel'),
+        savedItemsLabel: document.getElementById('savedItemsLabel'),
 
-    // search 
-    
-    // Todo specific elements
-    const todoInput = document.getElementById('todoInput');
-    const addTodoBtn = document.getElementById('addTodoBtn');
-    const todoList = document.getElementById('todoList');
-    
-    // Edit folder dialog references
-    const editFolderDialog = document.getElementById('editFolderDialog');
-    const closeEditFolderBtn = document.getElementById('closeEditFolderBtn');
-    const editFolderName = document.getElementById('editFolderName'); // This should be an input field
-    const editGroupSelection = document.getElementById('editGroupSelection');
-    const selectAllEditGroupsBtn = document.getElementById('selectAllEditGroupsBtn');
-    const saveEditFolderBtn = document.getElementById('saveEditFolderBtn');
-    
-    // Include existing element references
-    const addButton = document.getElementById('addButton');
-    const saveDropdown = document.getElementById('saveDropdown');
-    const closeDropdownBtn = document.getElementById('closeDropdownBtn');
-    const groupNameInput = document.getElementById('groupNameInput');
-    const tabsChecklist = document.getElementById('tabsChecklist');
-    const selectAllBtn = document.getElementById('selectAllBtn');
-    const saveTabsButton = document.getElementById('saveTabsButton');
-    const groupsList = document.getElementById('groupsList');
-    const tabCountLabel = document.getElementById('tabCountLabel');
-    const savedItemsLabel = document.getElementById('savedItemsLabel');
-    const navTabs = document.querySelectorAll('.nav-tab');
-    
-    // Add these to state
-    let folders = {};
-    let isSearchActive = false;
-    let currentTabs = [];
-    let currentEditingFolder = '';
-    
-    // Initialize
-    function init() {
-        updateTabCount();
-        updateSavedItemsCount();
-        setupNavTabs();
-        setupEventListeners();
-        
-        const activeTab = document.querySelector('.nav-tab.active');
-        if (activeTab) {
-            loadSectionContent(activeTab.dataset.section);
-        }
-        setupTodoEventListeners();
+        // Add Group Dropdown
+        addButton: document.getElementById('addButton'),
+        saveDropdown: document.getElementById('saveDropdown'),
+        closeDropdownBtn: document.getElementById('closeDropdownBtn'),
+        groupNameInput: document.getElementById('groupNameInput'),
+        tabsChecklist: document.getElementById('tabsChecklist'),
+        selectAllBtn: document.getElementById('selectAllBtn'),
+        saveTabsButton: document.getElementById('saveTabsButton'),
+
+        // Groups Section
+        groupsList: document.getElementById('groupsList'),
+
+        // Bookmarks Section
+        bookmarksList: document.getElementById('bookmarksList'),
+
+        // Todo Section
+        todoList: document.getElementById('todoList'),
+        newTodoInput: document.getElementById('newTodoInput'),
+        submitTodoBtn: document.getElementById('submitTodoBtn'),
+
+
+        // Create Folder Dialog
+        folderButton: document.getElementById('folderButton'), // Technically a nav tab, but triggers dialog
+        folderDialog: document.getElementById('folderDialog'),
+        closeFolderBtn: document.getElementById('closeFolderBtn'),
+        folderNameInput: document.getElementById('folderNameInput'),
+        groupSelection: document.getElementById('groupSelection'),
+        selectAllGroupsBtn: document.getElementById('selectAllGroupsBtn'),
+        createFolderBtn: document.getElementById('createFolderBtn'),
+
+        // Edit Folder Dialog
+        editFolderDialog: document.getElementById('editFolderDialog'),
+        closeEditFolderBtn: document.getElementById('closeEditFolderBtn'),
+        // IMPORTANT: Assumes editFolderName is now an <input type="text"> in HTML
+        editFolderName: document.getElementById('editFolderName'),
+        editGroupSelection: document.getElementById('editGroupSelection'),
+        selectAllEditGroupsBtn: document.getElementById('selectAllEditGroupsBtn'),
+        saveEditFolderBtn: document.getElementById('saveEditFolderBtn'),
+
+        // Custom Alert Dialog
+        customAlertOverlay: document.getElementById('customAlertOverlay'),
+        customAlertDialog: document.getElementById('customAlertDialog'),
+        customAlertMessage: document.getElementById('customAlertMessage'),
+        customAlertOk: document.getElementById('customAlertOk'),
+
+        // Custom Confirm Dialog
+        customConfirmOverlay: document.getElementById('customConfirmOverlay'),
+        customConfirmDialog: document.getElementById('customConfirmDialog'),
+        customConfirmMessage: document.getElementById('customConfirmMessage'),
+        customConfirmConfirm: document.getElementById('customConfirmConfirm'),
+        customConfirmCancel: document.getElementById('customConfirmCancel')
+    };
+
+    // --- State ---
+    let state = {
+        currentTabs: [],
+        currentEditingFolderOriginalName: '', // Store original name for comparison
+        activeSection: 'groups', // Default section
+        confirmCallback: null, // Store callback for confirm dialog
+        alertOkListener: null, // Store listeners for dialogs to remove them later
+        confirmConfirmListener: null,
+        confirmCancelListener: null,
+        overlayClickListenerAlert: null, // Specific listener for alert overlay
+        overlayClickListenerConfirm: null // Specific listener for confirm overlay
+    };
+
+    // --- Utility Functions ---
+    function debounce(func, wait) {
+        let timeout;
+        return function(...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), wait);
+        };
     }
 
+    // --- Dialog Functions ---
+
+    // Helper to hide any potentially open modal dialogs
+    function hideAllModalDialogs() {
+        if (elements.folderDialog.style.display !== 'none') {
+            hideCreateFolderDialog();
+        }
+        if (elements.editFolderDialog.style.display !== 'none') {
+            hideEditFolderDialog();
+        }
+        if (elements.saveDropdown.style.display !== 'none') {
+            elements.saveDropdown.style.display = 'none';
+        }
+        // Add custom alert/confirm if needed, though they usually close themselves
+        // if (elements.customAlertOverlay.style.display !== 'none') hideAlertDialog();
+        // if (elements.customConfirmOverlay.style.display !== 'none') hideConfirmDialog();
+    }
+
+    function showCustomConfirm(message, onConfirm) {
+        state.confirmCallback = onConfirm;
+        elements.customConfirmMessage.textContent = message;
+
+        // --- Listener Management ---
+        // Remove previous listeners to prevent duplicates
+        if (state.confirmConfirmListener) elements.customConfirmConfirm.removeEventListener('click', state.confirmConfirmListener);
+        if (state.confirmCancelListener) elements.customConfirmCancel.removeEventListener('click', state.confirmCancelListener);
+        if (state.overlayClickListenerConfirm) elements.customConfirmOverlay.removeEventListener('click', state.overlayClickListenerConfirm);
+
+        // Define new listeners
+        state.confirmConfirmListener = () => {
+            if (state.confirmCallback) state.confirmCallback();
+            hideConfirmDialog();
+        };
+        state.confirmCancelListener = () => hideConfirmDialog();
+        state.overlayClickListenerConfirm = (event) => {
+            if (event.target === elements.customConfirmOverlay) hideConfirmDialog();
+        };
+
+        // Add new listeners
+        elements.customConfirmConfirm.addEventListener('click', state.confirmConfirmListener);
+        elements.customConfirmCancel.addEventListener('click', state.confirmCancelListener);
+        elements.customConfirmOverlay.addEventListener('click', state.overlayClickListenerConfirm);
+        // --- End Listener Management ---
+
+        elements.customConfirmOverlay.style.display = 'flex';
+    }
+
+     function hideConfirmDialog() {
+        elements.customConfirmOverlay.style.display = 'none';
+        // Clean up listeners immediately after hiding
+        if (state.confirmConfirmListener) elements.customConfirmConfirm.removeEventListener('click', state.confirmConfirmListener);
+        if (state.confirmCancelListener) elements.customConfirmCancel.removeEventListener('click', state.confirmCancelListener);
+        if (state.overlayClickListenerConfirm) elements.customConfirmOverlay.removeEventListener('click', state.overlayClickListenerConfirm);
+        // Reset stored listeners and callback
+        state.confirmConfirmListener = null;
+        state.confirmCancelListener = null;
+        state.overlayClickListenerConfirm = null;
+        state.confirmCallback = null;
+    }
+
+    function showCustomAlert(message) {
+        elements.customAlertMessage.textContent = message;
+
+        // --- Listener Management ---
+        if (state.alertOkListener) elements.customAlertOk.removeEventListener('click', state.alertOkListener);
+        if (state.overlayClickListenerAlert) elements.customAlertOverlay.removeEventListener('click', state.overlayClickListenerAlert);
+
+        state.alertOkListener = () => hideAlertDialog();
+        state.overlayClickListenerAlert = (event) => {
+            if (event.target === elements.customAlertOverlay) hideAlertDialog();
+        };
+
+        elements.customAlertOk.addEventListener('click', state.alertOkListener);
+        elements.customAlertOverlay.addEventListener('click', state.overlayClickListenerAlert);
+        // --- End Listener Management ---
+
+        elements.customAlertOverlay.style.display = 'flex';
+    }
+
+    function hideAlertDialog() {
+        elements.customAlertOverlay.style.display = 'none';
+        // Clean up listeners
+        if (state.alertOkListener) elements.customAlertOk.removeEventListener('click', state.alertOkListener);
+        if (state.overlayClickListenerAlert) elements.customAlertOverlay.removeEventListener('click', state.overlayClickListenerAlert);
+        state.alertOkListener = null;
+        state.overlayClickListenerAlert = null;
+    }
+
+    // --- Specific Dialog Hide Functions ---
+    function hideCreateFolderDialog() {
+        elements.folderDialog.style.display = 'none';
+        // Reset fields if needed
+        elements.folderNameInput.value = '';
+        elements.groupSelection.innerHTML = ''; // Clear selection
+    }
+
+    function hideEditFolderDialog() {
+        elements.editFolderDialog.style.display = 'none';
+        state.currentEditingFolderOriginalName = ''; // Clear editing state
+         // Reset fields if needed
+        elements.editFolderName.value = '';
+        elements.editGroupSelection.innerHTML = ''; // Clear selection
+    }
+
+
+    // --- Core Logic Functions ---
+
+    function updateTabCount() {
+        chrome.tabs.query({}, (tabs) => {
+            state.currentTabs = tabs;
+            elements.tabCountLabel.textContent = tabs.length;
+        });
+    }
+
+    function updateSavedItemsCount() {
+        chrome.storage.local.get(['tabGroups', 'bookmarks', 'todos', 'folders'], ({ tabGroups = {}, bookmarks = [], todos = [], folders = {} }) => {
+            // More accurate count: Sum of standalone groups + folders + bookmarks + todos
+            let groupsInFolders = new Set();
+            Object.values(folders).forEach(folder => {
+                if (folder.groups) {
+                    Object.keys(folder.groups).forEach(name => groupsInFolders.add(name));
+                }
+            });
+            const standaloneGroupCount = Object.keys(tabGroups).filter(name => !groupsInFolders.has(name)).length;
+            const folderCount = Object.keys(folders).length;
+
+            // Count unique items: folders + standalone groups + bookmarks + todos
+            const count = folderCount + standaloneGroupCount + bookmarks.length + todos.length;
+            elements.savedItemsLabel.textContent = count;
+        });
+    }
+
+    function switchSection(sectionName) {
+        // --- NEW: Hide dialogs on tab switch ---
+        hideAllModalDialogs();
+        // ---------------------------------------
+
+        state.activeSection = sectionName;
+
+        // Update active tab style
+        elements.navTabs.forEach(t => {
+            t.classList.toggle('active', t.dataset.section === sectionName);
+        });
+
+        // Update active section display
+        elements.sections.forEach(section => {
+            section.classList.toggle('active-section', section.id === sectionName + 'Section');
+        });
+
+        // Toggle search bar visibility
+        elements.searchContainer.style.display = (sectionName === 'groups') ? 'block' : 'none';
+        if (sectionName !== 'groups' && elements.searchInput.value) {
+            clearSearch(); // Clear search if leaving groups tab
+        }
+
+
+        // Load content for the new section
+        loadSectionContent(sectionName);
+    }
+
+
     function loadSectionContent(section) {
-        switch(section) {
+         // Clear previous content for lists to prevent duplicates if loading fails
+        if (elements.groupsList) elements.groupsList.innerHTML = '';
+        if (elements.bookmarksList) elements.bookmarksList.innerHTML = '';
+        if (elements.todoList) elements.todoList.innerHTML = '';
+
+        switch (section) {
             case 'groups':
                 loadSavedGroups();
                 break;
@@ -165,311 +282,60 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function updateTabCount() {
-        chrome.tabs.query({}, (tabs) => {
-            currentTabs = tabs;
-            tabCountLabel.textContent = tabs.length;
-        });
-    }
+    // --- Group Saving Logic ---
 
-    function updateSavedItemsCount() {
-        chrome.storage.local.get(['tabGroups', 'bookmarks', 'todos'], ({ tabGroups = {}, bookmarks = [], todos = [] }) => {
-            const count = Object.keys(tabGroups).length + bookmarks.length + todos.length;
-            savedItemsLabel.textContent = count;
-        });
-    }
-    
-    function setupNavTabs() {
-        navTabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                // Special handling for folder button
-                if (tab.id === 'folderButton') {
-                    populateGroupSelection();
-                    folderDialog.style.display = 'block';
-                    return;
-                }
-                
-                // Remove active class from all tabs
-                navTabs.forEach(t => t.classList.remove('active'));
-                
-                // Add active class to clicked tab
-                tab.classList.add('active');
-                
-                // Hide all sections
-                document.querySelectorAll('.section-container').forEach(section => {
-                    section.classList.remove('active-section');
-                });
-                
-                // Show corresponding section
-                const sectionId = tab.dataset.section + 'Section';
-                document.getElementById(sectionId).classList.add('active-section');
-                
-                // Toggle search bar visibility
-                const searchContainer = document.querySelector('.search-container');
-                if (tab.dataset.section === 'groups') {
-                    searchContainer.style.display = 'block';
-                } else {
-                    searchContainer.style.display = 'none';
-                }
-                
-                // Only load content when tab is clicked
-                loadSectionContent(tab.dataset.section);
-            });
-        });
-    }
-    
-    function setupEventListeners() {
-        // Add button click handler
-        addButton.addEventListener('click', () => {
-            showSaveDropdown();
-        });
-        
-        // Close dropdown button click handler
-        closeDropdownBtn.addEventListener('click', () => {
-            saveDropdown.style.display = 'none';
-        });
-        
-        // Save tabs button click handler
-        saveTabsButton.addEventListener('click', () => {
-            saveSelectedTabs();
-        });
-        
-        // Select all button click handler
-        selectAllBtn.addEventListener('click', () => {
-            toggleSelectAll();
-        });
-        
-        // Folder dialog
-        closeFolderBtn.addEventListener('click', () => {
-            folderDialog.style.display = 'none';
-        });
-        
-        selectAllGroupsBtn.addEventListener('click', () => {
-            toggleSelectAllGroups(groupSelection, selectAllGroupsBtn);
-        });
-        
-        // Edit folder dialog
-        closeEditFolderBtn.addEventListener('click', () => {
-            editFolderDialog.style.display = 'none';
-        });
-        
-        selectAllEditGroupsBtn.addEventListener('click', () => {
-            toggleSelectAllGroups(editGroupSelection, selectAllEditGroupsBtn);
-        });
-        
-        saveEditFolderBtn.addEventListener('click', () => {
-            saveEditedFolder();
-        });
-        
-        createFolderBtn.addEventListener('click', () => {
-            createNewFolder();
-        });
-        
-        // Add search event listeners
-        searchInput.addEventListener('input', debounce(handleSearch, 300));
-        clearSearchBtn.addEventListener('click', clearSearch);
-        
-
-        // Add event delegation for groups list
-groupsList.addEventListener('click', function(e) {
-    // Handle folder header clicks (expand/collapse)
-    const folderHeader = e.target.closest('.folder-header');
-    if (folderHeader) {
-        const folderContent = folderHeader.nextElementSibling;
-        if (folderContent && folderContent.classList.contains('folder-content')) {
-            folderContent.classList.toggle('expanded');
-            const toggleIcon = folderHeader.querySelector('.fa-chevron-down, .fa-chevron-up');
-            if (toggleIcon) {
-                toggleIcon.classList.toggle('fa-chevron-down');
-                toggleIcon.classList.toggle('fa-chevron-up');
-            }
-        }
-        // Return early if it was a folder header click but not on a button
-        if (!e.target.closest('button')) {
-            return;
-        }
-    }
-    
-    // Handle edit folder button
-    if (e.target.closest('.edit-folder-btn')) {
-        const folderName = e.target.closest('.edit-folder-btn').dataset.folder;
-        openEditFolderDialog(folderName);
-        return;
-    }
-    
-    // Handle open group button
-    if (e.target.closest('.open-btn')) {
-        const groupName = e.target.closest('.open-btn').dataset.group;
-        chrome.storage.local.get('tabGroups', ({ tabGroups = {} }) => {
-            if (tabGroups[groupName]) {
-                openTabGroup(tabGroups[groupName]);
-            }
-        });
-        return;
-    }
-    
-    // Handle delete group button
-    if (e.target.closest('.delete-btn')) {
-        const button = e.target.closest('.delete-btn');
-        const groupName = button.dataset.group;
-        const folderName = button.dataset.folder;
-        
-        if (folderName) {
-            deleteGroupFromFolder(folderName, groupName);
-        } else {
-            deleteTabGroup(groupName);
-        }
-        return;
-    }
-    
-    // Handle delete folder button
-    if (e.target.closest('.delete-folder-btn')) {
-        const folderName = e.target.closest('.delete-folder-btn').dataset.folder;
-        deleteFolder(folderName);
-        return;
-    }
-}); 
-        
-   
-    }
-
-    
-    // Bookmark functionality
-    function loadBookmarks() {
-        const bookmarksList = document.getElementById('bookmarksList');
-        if (!bookmarksList) return;
-        
-        chrome.storage.local.get(['bookmarks'], ({ bookmarks = [] }) => {
-            bookmarksList.innerHTML = '';
-            
-            if (bookmarks.length === 0) {
-                const emptyMessage = document.createElement('div');
-                emptyMessage.className = 'empty-message';
-                emptyMessage.textContent = 'No bookmarks yet. Right-click on any page and select "Bookmark this page".';
-                bookmarksList.appendChild(emptyMessage);
-                return;
-            }
-            
-            bookmarks.forEach(bookmark => {
-                const bookmarkItem = document.createElement('div');
-                bookmarkItem.className = 'bookmark-item';
-                
-                const favicon = document.createElement('img');
-                favicon.className = 'bookmark-favicon';
-                favicon.src = bookmark.favIconUrl || 'icon.png';
-                favicon.onerror = () => favicon.src = 'icon.png';
-                
-                const bookmarkContent = document.createElement('div');
-                bookmarkContent.className = 'bookmark-content';
-                
-                const bookmarkTitle = document.createElement('div');
-                bookmarkTitle.className = 'bookmark-title';
-                bookmarkTitle.textContent = bookmark.title;
-                
-                const bookmarkUrl = document.createElement('div');
-                bookmarkUrl.className = 'bookmark-url';
-                bookmarkUrl.textContent = bookmark.url;
-                
-                const deleteBtn = document.createElement('button');
-                deleteBtn.className = 'delete-bookmark-btn';
-                deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
-                
-                bookmarkContent.appendChild(bookmarkTitle);
-                bookmarkContent.appendChild(bookmarkUrl);
-                
-                bookmarkItem.appendChild(favicon);
-                bookmarkItem.appendChild(bookmarkContent);
-                bookmarkItem.appendChild(deleteBtn);
-
-                
-                
-                // Open bookmark when clicked
-                bookmarkItem.addEventListener('click', (e) => {
-                    if (e.target !== deleteBtn && !deleteBtn.contains(e.target)) {
-                        chrome.tabs.create({ url: bookmark.url });
-                    }
-                });
-                
-                // Delete bookmark
-                deleteBtn.addEventListener('click', () => {
-                    deleteBookmark(bookmark.url);
-                });
-                
-                bookmarksList.appendChild(bookmarkItem);
-            });
-        });
-    }
-    
-    function deleteBookmark(url) {
-        chrome.storage.local.get(['bookmarks'], ({ bookmarks = [] }) => {
-            const updatedBookmarks = bookmarks.filter(bookmark => bookmark.url !== url);
-            
-            chrome.storage.local.set({ bookmarks: updatedBookmarks }, () => {
-                loadBookmarks();
-                updateSavedItemsCount();
-            });
-        });
-    }
-    
     function showSaveDropdown() {
-        // Populate tabs checklist
+        hideAllModalDialogs(); // Close other dialogs first
         populateTabsChecklist();
-        
-        // Show dropdown
-        saveDropdown.style.display = 'block';
+        elements.saveDropdown.style.display = 'block';
+        elements.groupNameInput.focus(); // Focus on input
     }
+
     function populateTabsChecklist() {
-        // Use string concatenation for better performance
-        let checklistHTML = '';
-        
-        currentTabs.forEach((tab, index) => {
-            checklistHTML += `
-                <div class="tab-item">
-                    <input type="checkbox" class="tab-checkbox" checked data-tab-id="${tab.id}">
-                    <img class="tab-favicon" src="${tab.favIconUrl || 'icon.png'}" onerror="this.src='icon.png'">
-                    <div class="tab-title">${tab.title}</div>
-                </div>
+        const fragment = document.createDocumentFragment();
+        state.currentTabs.forEach((tab) => {
+            const item = document.createElement('div');
+            item.className = 'tab-item';
+            // Use template literals for cleaner HTML creation
+            item.innerHTML = `
+                <input type="checkbox" class="tab-checkbox" checked data-tab-id="${tab.id}" id="tab-check-${tab.id}">
+                <img class="tab-favicon" src="${tab.favIconUrl || 'icon.png'}" onerror="this.src='icon.png'" alt="">
+                <label class="tab-title" for="tab-check-${tab.id}">${tab.title || tab.url}</label>
             `;
+            fragment.appendChild(item);
         });
-        
-        // Set all HTML at once
-        tabsChecklist.innerHTML = checklistHTML;
+        elements.tabsChecklist.innerHTML = ''; // Clear previous
+        elements.tabsChecklist.appendChild(fragment);
+        // Reset select all button text
+        elements.selectAllBtn.textContent = 'Deselect All';
     }
-    function toggleSelectAll() {
-        const checkboxes = tabsChecklist.querySelectorAll('.tab-checkbox');
-        const allChecked = Array.from(checkboxes).every(cb => cb.checked);
-        
+
+    function toggleSelectAll(container, buttonElement, checkboxSelector) {
+        const checkboxes = container.querySelectorAll(checkboxSelector);
+        // Check if ALL are currently checked
+        const allChecked = checkboxes.length > 0 && Array.from(checkboxes).every(cb => cb.checked);
+
         checkboxes.forEach(checkbox => {
             checkbox.checked = !allChecked;
         });
-        
-        selectAllBtn.textContent = allChecked ? 'Select All' : 'Deselect All';
-    }
-    
-    function toggleSelectAllGroups(selectionContainer, buttonElement) {
-        const checkboxes = selectionContainer.querySelectorAll('.group-checkbox');
-        const allChecked = Array.from(checkboxes).every(cb => cb.checked);
-        
-        checkboxes.forEach(checkbox => {
-            checkbox.checked = !allChecked;
-        });
-        
+
         buttonElement.textContent = allChecked ? 'Select All' : 'Deselect All';
     }
-    
+
+
     function saveSelectedTabs() {
-        const groupName = groupNameInput.value.trim();
+        const groupName = elements.groupNameInput.value.trim();
         if (!groupName) {
-            // Highlight input and return if no name is provided
-            groupNameInput.focus();
+            showCustomAlert('Please enter a name for the tab group.');
+            elements.groupNameInput.focus();
             return;
         }
-        
-        // Get selected tabs
+
         const selectedTabs = [];
-        tabsChecklist.querySelectorAll('.tab-checkbox:checked').forEach(checkbox => {
+        elements.tabsChecklist.querySelectorAll('.tab-checkbox:checked').forEach(checkbox => {
             const tabId = parseInt(checkbox.dataset.tabId);
-            const tab = currentTabs.find(t => t.id === tabId);
+            // Find tab efficiently (consider a map if many tabs)
+            const tab = state.currentTabs.find(t => t.id === tabId);
             if (tab) {
                 selectedTabs.push({
                     url: tab.url,
@@ -478,29 +344,37 @@ groupsList.addEventListener('click', function(e) {
                 });
             }
         });
-        
 
         if (selectedTabs.length === 0) {
             showCustomAlert('Please select at least one tab to save.');
-            return; 
+            return;
         }
-        
-        
-        // Save group
+
         chrome.storage.local.get('tabGroups', ({ tabGroups = {} }) => {
+            if (tabGroups[groupName]) {
+                 showCustomAlert(`A tab group named "${groupName}" already exists. Please choose a different name.`);
+                elements.groupNameInput.focus();
+                return;
+            }
+
             tabGroups[groupName] = {
                 tabs: selectedTabs,
                 dateAdded: Date.now()
             };
-            
+
             chrome.storage.local.set({ tabGroups }, () => {
-                saveDropdown.style.display = 'none';
-                groupNameInput.value = '';
-                loadSavedGroups();
+                elements.saveDropdown.style.display = 'none';
+                elements.groupNameInput.value = '';
+                if (state.activeSection === 'groups') {
+                     loadSavedGroups(); // Refresh if on groups tab
+                }
                 updateSavedItemsCount();
             });
         });
     }
+
+
+    // --- Group/Folder Rendering & Management ---
 
     function getIconClass(name) {
         const lowerName = name.toLowerCase();
@@ -511,17 +385,22 @@ groupsList.addEventListener('click', function(e) {
         if (lowerName.includes('dev') || lowerName.includes('code')) return 'fas fa-code';
         if (lowerName.includes('travel')) return 'fas fa-plane';
         if (lowerName.includes('finance')) return 'fas fa-dollar-sign';
-        return 'fas fa-layer-group';
+        return 'fas fa-layer-group'; // Default icon
     }
-    
-    function addGroupToList(name, group) {
+
+     function createGroupListItem(name, group, folderName = null) {
         const li = document.createElement('li');
+        li.dataset.group = name;
+        if (folderName) {
+            li.dataset.folder = folderName;
+        }
+
         const iconClass = getIconClass(name);
-        
-        // Format the date
         const date = new Date(group.dateAdded || Date.now());
-        const formattedDate = `${date.toLocaleDateString()}`;
-        
+        // Consistent date formatting
+        const formattedDate = date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+        const tabCount = group.tabs ? group.tabs.length : 0;
+
         li.innerHTML = `
             <div class="group-item">
                 <div class="group-icon">
@@ -529,793 +408,898 @@ groupsList.addEventListener('click', function(e) {
                 </div>
                 <div class="group-info">
                     <div class="group-name">${name}</div>
-                    <div class="group-status">${group.tabs.length} tabs</div>
+                    <div class="group-status">${tabCount} tab${tabCount !== 1 ? 's' : ''}</div>
                     <div class="group-date">${formattedDate}</div>
                 </div>
             </div>
             <div class="group-actions">
-                <button class="action-button open-btn">
+                <button class="action-button open-btn" title="Open Tabs">
                     <i class="fas fa-external-link-alt"></i>
                     <span class="open-tab-text">Open</span>
                 </button>
-                <button class="action-button delete-btn">
+                <button class="action-button delete-btn" title="Delete Group">
                     <i class="fas fa-trash"></i>
                 </button>
             </div>
         `;
-        
-        // Add event listeners
-        const openBtn = li.querySelector('.open-btn');
-        const deleteBtn = li.querySelector('.delete-btn');
-        
-        openBtn.addEventListener('click', () => {
-            openTabGroup(group);
-        });
-        
-        deleteBtn.addEventListener('click', () => {
-            deleteTabGroup(name);
-        });
-        
-        // Add the list item to the groups list
-        groupsList.appendChild(li);
+        return li;
     }
-    
-    function openTabGroup(group) {
-        group.tabs.forEach(tab => {
-            chrome.tabs.create({ url: tab.url });
+
+
+    function loadSavedGroups() {
+        chrome.storage.local.get(['tabGroups', 'folders'], ({ tabGroups = {}, folders = {} }) => {
+            // Use requestAnimationFrame for smoother rendering
+             requestAnimationFrame(() => {
+                const fragment = document.createDocumentFragment();
+                let groupsInFolders = new Set();
+
+                // --- Render Folders ---
+                // Sort folders alphabetically
+                const sortedFolderNames = Object.keys(folders).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+
+                sortedFolderNames.forEach(folderName => {
+                    const folder = folders[folderName];
+                    const folderElement = document.createElement('div');
+                    folderElement.className = 'folder-item';
+                    folderElement.dataset.folder = folderName; // Add dataset for easier targeting
+
+                    const folderGroupCount = Object.keys(folder.groups || {}).length;
+                    folderElement.innerHTML = `
+                        <div class="folder-header">
+                            <div class="folder-title">
+                                <i class="fas fa-folder"></i>
+                                <span>${folderName}</span>
+                                <span class="folder-count">(${folderGroupCount})</span>
+                            </div>
+                            <div class="folder-header-actions">
+                                <button class="action-button edit-folder-btn" title="Edit Folder">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="action-button toggle-folder-btn" title="Expand/Collapse">
+                                     <i class="fas fa-chevron-down"></i> </button>
+                           </div>
+                        </div>
+                        <div class="folder-content"> <ul></ul>
+                             <div class="folder-actions">
+                                 <button class="action-button delete-folder-btn">
+                                     <i class="fas fa-trash"></i> Delete Folder
+                                 </button>
+                            </div>
+                        </div>`;
+
+                    const folderContentUl = folderElement.querySelector('.folder-content ul');
+                    if (folder.groups && folderGroupCount > 0) {
+                         // Sort groups within folder
+                         const sortedGroupNames = Object.keys(folder.groups).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+                         sortedGroupNames.forEach(groupName => {
+                            groupsInFolders.add(groupName); // Mark as processed
+                            const group = folder.groups[groupName];
+                            const groupLi = createGroupListItem(groupName, group, folderName);
+                            folderContentUl.appendChild(groupLi);
+                        });
+                    } else {
+                         folderContentUl.innerHTML = '<li class="empty-folder">This folder is empty.</li>';
+                    }
+
+                    fragment.appendChild(folderElement);
+                });
+
+                // --- Render Standalone Groups ---
+                 const standaloneGroupList = document.createElement('ul');
+                 standaloneGroupList.className = 'standalone-groups-list'; // Optional class for styling
+                 let standaloneGroupsExist = false;
+
+                 // Sort standalone groups alphabetically
+                 const sortedStandaloneGroupNames = Object.keys(tabGroups)
+                    .filter(name => !groupsInFolders.has(name))
+                    .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+
+                 sortedStandaloneGroupNames.forEach(name => {
+                    standaloneGroupsExist = true;
+                    const group = tabGroups[name];
+                    const groupLi = createGroupListItem(name, group);
+                    standaloneGroupList.appendChild(groupLi);
+                });
+
+                if (standaloneGroupsExist) {
+                    // Optional: Add a separator or header
+                    // const separator = document.createElement('hr');
+                    // fragment.appendChild(separator);
+                    fragment.appendChild(standaloneGroupList);
+                }
+
+                 // --- Display or Show Empty Message ---
+                 elements.groupsList.innerHTML = ''; // Clear previous content
+                 if (fragment.hasChildNodes()) {
+                     elements.groupsList.appendChild(fragment);
+                 } else {
+                     elements.groupsList.innerHTML = '<div class="empty-message">No tab groups saved yet. Click the "+" button to save your current tabs.</div>';
+                 }
+
+                 // Update count after rendering
+                updateSavedItemsCount();
+             });
         });
     }
-    
-    function deleteTabGroup(name) {
-        // Call the custom confirmation dialog
-        showCustomConfirm(`Are you sure you want to delete the "${name}" group tabs?`, () => {
-            // This block of code will only execute if the user clicks "Delete" in the custom dialog
+
+     function openTabGroup(group) {
+        if (group && group.tabs && group.tabs.length > 0) {
+            group.tabs.forEach(tab => {
+                chrome.tabs.create({ url: tab.url, active: false }); // Open in background
+            });
+        } else {
+            console.warn("Attempted to open an invalid or empty group:", group);
+            showCustomAlert("Could not open tab group - it might be empty or corrupted.");
+        }
+    }
+
+    function deleteTabGroup(name, folderName = null) {
+        // If deleting from within a folder, just remove from folder, don't delete group entirely?
+        // Let's clarify the behavior: This function DELETES the group permanently.
+        // To just remove from folder, we'd need a different function or logic branch.
+
+        const message = folderName
+            ? `Permanently delete group "${name}"? It will also be removed from folder "${folderName}". This cannot be undone.`
+            : `Are you sure you want to permanently delete the "${name}" group? This cannot be undone.`;
+
+        showCustomConfirm(message, () => {
             chrome.storage.local.get(['tabGroups', 'folders'], ({ tabGroups = {}, folders = {} }) => {
-                // Remove group from tab groups
-                delete tabGroups[name];
-    
-                // Also remove from any folders
-                Object.keys(folders).forEach(folderName => {
-                    if (folders[folderName].groups && folders[folderName].groups[name]) {
-                        delete folders[folderName].groups[name];
+                let changed = false;
+
+                // Remove from the main groups list
+                if (tabGroups[name]) {
+                    delete tabGroups[name];
+                    changed = true;
+                }
+
+                // Also remove from ANY folders it might be in
+                Object.values(folders).forEach(folder => {
+                    if (folder.groups && folder.groups[name]) {
+                        delete folder.groups[name];
+                        changed = true;
+                        // Optional: Check if folder became empty? Decide if empty folders should persist.
                     }
                 });
-    
-                chrome.storage.local.set({ tabGroups, folders }, () => {
-                    loadSavedGroups(); // Assuming these functions refresh your UI
+
+
+                if (changed) {
+                    chrome.storage.local.set({ tabGroups, folders }, () => {
+                         loadSavedGroups(); // Refresh UI
+                        updateSavedItemsCount();
+                    });
+                } else {
+                     console.warn(`Group "${name}" not found for deletion.`);
+                     showCustomAlert(`Group "${name}" was not found.`); // User feedback
+                }
+            });
+        });
+    }
+
+
+    function deleteFolder(folderName) {
+         // Check if folder has groups
+         chrome.storage.local.get('folders', ({ folders = {} }) => {
+            const folder = folders[folderName];
+            const groupCount = folder && folder.groups ? Object.keys(folder.groups).length : 0;
+            const message = groupCount > 0
+                ? `Delete folder "${folderName}"? The ${groupCount} group(s) inside will NOT be deleted and will appear outside the folder.`
+                : `Delete empty folder "${folderName}"?`;
+
+             showCustomConfirm(message, () => {
+                // Keep the groups, just remove the folder structure
+                delete folders[folderName];
+                chrome.storage.local.set({ folders }, () => {
+                    loadSavedGroups();
                     updateSavedItemsCount();
                 });
             });
         });
     }
-    
-    // Search functionality
-    function handleSearch(e) {
-        const searchTerm = e.target.value.trim().toLowerCase();
-        
-        if (searchTerm === '') {
-            clearSearch();
-            return;
-        }
-        
-        clearSearchBtn.classList.add('visible');
-        isSearchActive = true;
-        
-        // Search through groups and folders
-        chrome.storage.local.get(['tabGroups', 'folders'], ({ tabGroups = {}, folders = {} }) => {
-            const filteredGroups = {};
-            const filteredFolders = {};
-            
-            // Search in standalone groups
-            Object.entries(tabGroups).forEach(([name, group]) => {
-                if (name.toLowerCase().includes(searchTerm)) {
-                    filteredGroups[name] = group;
-                }
-            });
-            
-            // Search in folders and their groups
-            Object.entries(folders).forEach(([folderName, folder]) => {
-                // Check if folder name matches
-                if (folderName.toLowerCase().includes(searchTerm)) {
-                    filteredFolders[folderName] = folder; // Add the entire folder
-                } else {
-                    // Check if any groups in the folder match
-                    const matchingGroups = {};
-                    let hasMatch = false;
-                    
-                    if (folder.groups) {
-                        Object.entries(folder.groups).forEach(([groupName, group]) => {
-                            if (groupName.toLowerCase().includes(searchTerm)) {
-                                matchingGroups[groupName] = group;
-                                hasMatch = true;
-                            }
-                        });
-                    }
-                    
-                    if (hasMatch) {
-                        // Create a new folder with only matching groups
-                        filteredFolders[folderName] = {
-                            ...folder,
-                            groups: matchingGroups
-                        };
-                    }
-                }
-            });
-            
-            // Clear and render filtered results
-            groupsList.innerHTML = '';
-            
-            // Display filtered folders first
-            renderFolders(filteredFolders);
-            
-            // Then display filtered standalone groups
-            Object.entries(filteredGroups).forEach(([name, group]) => {
-                // Only show if not in any of the filtered folders
-                let isInFilteredFolder = false;
-                Object.values(filteredFolders).forEach(folder => {
-                    if (folder.groups && folder.groups[name]) isInFilteredFolder = true;
-                });
-                
-                if (!isInFilteredFolder) {
-                    addGroupToList(name, group);
-                }
-            });
-            
-            // Show no results message if needed
-            if (Object.keys(filteredGroups).length === 0 && Object.keys(filteredFolders).length === 0) {
-                const noResults = document.createElement('div');
-                noResults.className = 'no-results';
-                noResults.textContent = 'No matching groups found';
-                groupsList.appendChild(noResults);
-            }
-        });
-    }
-    
-    function clearSearch() {
-        searchInput.value = '';
-        clearSearchBtn.classList.remove('visible');
-        isSearchActive = false;
-        loadSavedGroups(); // Reload all groups
-    }
-    
-    function populateGroupSelection() {
-        groupSelection.innerHTML = '';
-        
+
+    // --- Folder Dialog Logic ---
+
+    function populateGroupSelection(containerElement, selectedGroups = []) {
+         // Accepts an array of group names that should be pre-checked
+        const selectedSet = new Set(selectedGroups);
+
         chrome.storage.local.get('tabGroups', ({ tabGroups = {} }) => {
+             const fragment = document.createDocumentFragment();
             if (Object.keys(tabGroups).length === 0) {
-                const emptyItem = document.createElement('div');
-                emptyItem.className = 'empty-selection';
-                emptyItem.textContent = 'No tab groups available to organize.';
-                groupSelection.appendChild(emptyItem);
+                containerElement.innerHTML = '<div class="empty-selection">No tab groups available to organize.</div>';
                 return;
             }
-            
-            Object.keys(tabGroups).forEach((name, index) => {
-                const groupElement = document.createElement('div');
-                groupElement.className = 'group-check-item';
-                
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.className = 'group-checkbox';
-                checkbox.dataset.name = name;
-                checkbox.id = `group-${index}`;
-                
-                const label = document.createElement('label');
-                label.className = 'group-name';
-                label.htmlFor = `group-${index}`;
-                label.textContent = name;
-                
-                groupElement.appendChild(checkbox);
-                groupElement.appendChild(label);
-                
-                groupSelection.appendChild(groupElement);
+
+            Object.keys(tabGroups).sort().forEach((name, index) => { // Sort alphabetically
+                const item = document.createElement('div');
+                item.className = 'group-check-item';
+                const checkboxId = `group-check-${containerElement.id}-${index}`; // Unique ID
+                item.innerHTML = `
+                    <input type="checkbox" class="group-checkbox" data-name="${name}" id="${checkboxId}" ${selectedSet.has(name) ? 'checked' : ''}>
+                    <label for="${checkboxId}" class="group-name">${name}</label>
+                `;
+                fragment.appendChild(item);
             });
+
+             containerElement.innerHTML = ''; // Clear previous
+            containerElement.appendChild(fragment);
         });
     }
-    
-    function populateEditGroupSelection(folderName) {
-        editGroupSelection.innerHTML = '';
-        
-        chrome.storage.local.get(['tabGroups', 'folders'], ({ tabGroups = {}, folders = {} }) => {
-            if (Object.keys(tabGroups).length === 0) {
-                const emptyItem = document.createElement('div');
-                emptyItem.className = 'empty-selection';
-                emptyItem.textContent = 'No tab groups available to organize.';
-                editGroupSelection.appendChild(emptyItem);
-                return;
-            }
-            
-            const folder = folders[folderName] || { groups: {} };
-            
-            Object.keys(tabGroups).forEach((name, index) => {
-                const groupElement = document.createElement('div');
-                groupElement.className = 'group-check-item';
-                
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.className = 'group-checkbox';
-                checkbox.dataset.name = name;
-                checkbox.id = `edit-group-${index}`;
-                // Check if group is in the folder
-                checkbox.checked = !!(folder.groups && folder.groups[name]);
-                
-                const label = document.createElement('label');
-                label.className = 'group-name';
-                label.htmlFor = `edit-group-${index}`;
-                label.textContent = name;
-                
-                groupElement.appendChild(checkbox);
-                groupElement.appendChild(label);
-                
-                editGroupSelection.appendChild(groupElement);
-            });
-        });
-    }
-    
+
     function createNewFolder() {
-        const folderName = folderNameInput.value.trim();
-        if (!folderName) return folderNameInput.focus();
-        
-        const selectedGroups = Array.from(document.querySelectorAll('#groupSelection .group-checkbox:checked'))
-            .map(checkbox => checkbox.dataset.name);
-        
-        if (selectedGroups.length === 0) {
-            
-            showCustomAlert('Please select at least one group to add to the folder.');
+        const folderName = elements.folderNameInput.value.trim();
+        if (!folderName) {
+             showCustomAlert("Please enter a name for the folder.");
+            elements.folderNameInput.focus();
             return;
         }
-        
+
+        const selectedGroups = Array.from(elements.groupSelection.querySelectorAll('.group-checkbox:checked'))
+            .map(checkbox => checkbox.dataset.name);
+
+        // Allow creating empty folders
+        // if (selectedGroups.length === 0) {
+        //     showCustomAlert('Please select at least one group to add to the folder.');
+        //     return;
+        // }
+
         chrome.storage.local.get(['folders', 'tabGroups'], ({ folders = {}, tabGroups = {} }) => {
-            // Create folder object with selected groups
+            if (folders[folderName]) {
+                showCustomAlert(`A folder named "${folderName}" already exists. Please choose a different name.`);
+                 elements.folderNameInput.focus();
+                return;
+            }
+
             const folderGroups = {};
             selectedGroups.forEach(groupName => {
-                if (tabGroups[groupName]) {
+                if (tabGroups[groupName]) { // Ensure group exists
                     folderGroups[groupName] = tabGroups[groupName];
+                } else {
+                    console.warn(`Selected group "${groupName}" not found in tabGroups during folder creation.`);
                 }
             });
-            
+
             folders[folderName] = {
                 groups: folderGroups,
                 dateCreated: Date.now()
             };
-            
+
             chrome.storage.local.set({ folders }, () => {
-                folderNameInput.value = '';
-                folderDialog.style.display = 'none';
-                loadSavedGroups();
-            });
-        });
-    }
-    
-    function openEditFolderDialog(folderName) {
-        currentEditingFolder = folderName;
-        editFolderName.textContent = folderName; // Changed from value to textContent
-        
-        populateEditGroupSelection(folderName);
-        
-        editFolderDialog.style.display = 'block';
-    }
-    
-    function saveEditedFolder() {
-        // Since editFolderName is a div, we get its text content
-        const newFolderName = editFolderName.textContent.trim();
-        if (!newFolderName) {
-            showCustomAlert('Please enter a folder name');
-            return;
-        }
-        
-        const selectedGroups = Array.from(document.querySelectorAll('#editGroupSelection .group-checkbox:checked'))
-            .map(checkbox => checkbox.dataset.name);
-        
-        chrome.storage.local.get(['folders', 'tabGroups'], ({ folders = {}, tabGroups = {} }) => {
-            // Get the old folder to preserve dateCreated
-            const oldFolder = folders[currentEditingFolder] || { dateCreated: Date.now() };
-            
-            // Create folder object with selected groups
-            const folderGroups = {};
-            selectedGroups.forEach(groupName => {
-                if (tabGroups[groupName]) {
-                    folderGroups[groupName] = tabGroups[groupName];
-                }
-            });
-            
-            // Remove old folder if name changed
-            if (newFolderName !== currentEditingFolder) {
-                delete folders[currentEditingFolder];
-            }
-            
-            // Create/update folder with new values
-            folders[newFolderName] = {
-                groups: folderGroups,
-                dateCreated: oldFolder.dateCreated
-            };
-            
-            chrome.storage.local.set({ folders }, () => {
-                editFolderDialog.style.display = 'none';
-                currentEditingFolder = '';
-                loadSavedGroups();
-            });
-        });
-    }
-    function loadSavedGroups() {
-        chrome.storage.local.get(['tabGroups', 'folders'], ({ tabGroups = {}, folders = {} }) => {
-            // Use requestAnimationFrame to avoid blocking the UI
-            requestAnimationFrame(() => {
-                groupsList.innerHTML = '';
-                
-                // First render folders
-                renderFolders(folders);
-                
-                // Then render individual groups (not in folders)
-                let groupsInFolders = new Set();
-                Object.values(folders).forEach(folder => {
-                    if (folder.groups) {
-                        Object.keys(folder.groups).forEach(name => {
-                            groupsInFolders.add(name);
-                        });
-                    }
-                });
-                
-                // Build HTML for standalone groups
-                let groupsHTML = '';
-                Object.entries(tabGroups).forEach(([name, group]) => {
-                    if (!groupsInFolders.has(name)) {
-                        const iconClass = getIconClass(name);
-                        const date = new Date(group.dateAdded || Date.now());
-                        const formattedDate = `${date.toLocaleDateString()}`;
-                        
-                        groupsHTML += `
-                            <li>
-                                <div class="group-item">
-                                    <div class="group-icon">
-                                        <i class="${iconClass}"></i>
-                                    </div>
-                                    <div class="group-info">
-                                        <div class="group-name">${name}</div>
-                                        <div class="group-status">${group.tabs.length} tabs</div>
-                                        <div class="group-date">${formattedDate}</div>
-                                    </div>
-                                </div>
-                                <div class="group-actions">
-                                    <button class="action-button open-btn" data-group="${name}">
-                                        <i class="fas fa-external-link-alt"></i>
-                                        <span class="open-tab-text">Open</span>
-                                    </button>
-                                    <button class="action-button delete-btn" data-group="${name}">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </li>
-                        `;
-                    }
-                });
-                
-                // Append groups HTML
-                groupsList.innerHTML += groupsHTML;
-                
-                // Update saved items count
+                hideCreateFolderDialog(); // Use helper to hide and reset
+                loadSavedGroups(); // Refresh the groups list
                 updateSavedItemsCount();
             });
         });
     }
-    function renderFolders(folders) {
-        let foldersHTML = '';        
-        Object.entries(folders).forEach(([folderName, folder]) => {
-            const folderGroupCount = Object.keys(folder.groups || {}).length;
-            foldersHTML += `
-                <div class="folder-item">
+
+     function openEditFolderDialog(folderName) {
+         hideAllModalDialogs(); // Close other dialogs first
+         chrome.storage.local.get(['folders'], ({ folders = {} }) => {
+            const folder = folders[folderName];
+            if (!folder) {
+                console.error("Folder not found for editing:", folderName);
+                showCustomAlert("Could not find the folder to edit.");
+                return;
+            }
+
+            state.currentEditingFolderOriginalName = folderName; // Store original name
+            // --- NEW: Set input value ---
+            elements.editFolderName.value = folderName;
+            // --------------------------
+
+             const currentGroupNames = folder.groups ? Object.keys(folder.groups) : [];
+            populateGroupSelection(elements.editGroupSelection, currentGroupNames);
+
+            // Reset select all button text
+            const allCheckboxes = elements.editGroupSelection.querySelectorAll('.group-checkbox');
+            const checkedCheckboxes = elements.editGroupSelection.querySelectorAll('.group-checkbox:checked');
+            elements.selectAllEditGroupsBtn.textContent = (allCheckboxes.length > 0 && checkedCheckboxes.length === allCheckboxes.length) ? 'Deselect All' : 'Select All';
+
+
+            elements.editFolderDialog.style.display = 'block';
+            elements.editFolderName.focus(); // Focus on the name input
+            elements.editFolderName.select(); // Select the text for easy replacement
+        });
+    }
+
+     function saveEditedFolder() {
+         // --- NEW: Read from input value ---
+         const newFolderName = elements.editFolderName.value.trim();
+         const originalFolderName = state.currentEditingFolderOriginalName;
+         // --------------------------------
+
+         if (!newFolderName) {
+             showCustomAlert('Folder name cannot be empty.');
+             elements.editFolderName.focus();
+             return;
+         }
+
+         if (!originalFolderName) {
+             console.error("Original folder name state is missing.");
+             showCustomAlert("An error occurred. Could not determine the original folder name.");
+             hideEditFolderDialog();
+             return;
+         }
+
+        const selectedGroups = Array.from(elements.editGroupSelection.querySelectorAll('.group-checkbox:checked'))
+            .map(checkbox => checkbox.dataset.name);
+
+        chrome.storage.local.get(['folders', 'tabGroups'], ({ folders = {}, tabGroups = {} }) => {
+             // --- NEW: Check for name conflicts ---
+             if (newFolderName !== originalFolderName && folders[newFolderName]) {
+                 showCustomAlert(`A folder named "${newFolderName}" already exists. Please choose a different name.`);
+                 elements.editFolderName.focus();
+                 return;
+             }
+             // -----------------------------------
+
+             if (!folders[originalFolderName]) {
+                 console.error("Original folder not found during save:", originalFolderName);
+                 showCustomAlert("Error saving folder: Original folder seems to have been deleted.");
+                 hideEditFolderDialog();
+                 loadSavedGroups(); // Refresh list to reflect deletion
+                 return;
+             }
+
+             // Prepare the updated/new folder data
+             const updatedFolderGroups = {};
+             selectedGroups.forEach(groupName => {
+                if (tabGroups[groupName]) {
+                    updatedFolderGroups[groupName] = tabGroups[groupName];
+                } else {
+                     console.warn(`Selected group "${groupName}" not found in tabGroups during folder edit.`);
+                }
+            });
+
+             const folderDataToSave = {
+                groups: updatedFolderGroups,
+                dateCreated: folders[originalFolderName].dateCreated, // Preserve original creation date
+                dateModified: Date.now() // Add/update modified date
+             };
+
+             // --- NEW: Handle rename ---
+             let updatedFolders = { ...folders }; // Copy existing folders
+             if (newFolderName !== originalFolderName) {
+                 // Delete the old entry
+                 delete updatedFolders[originalFolderName];
+             }
+             // Add/update the entry with the new name
+             updatedFolders[newFolderName] = folderDataToSave;
+             // --------------------------
+
+
+             chrome.storage.local.set({ folders: updatedFolders }, () => {
+                hideEditFolderDialog(); // Use helper to hide and clear state
+                loadSavedGroups(); // Refresh list
+                 // Count might change if groups were added/removed, but rename itself doesn't change count
+                 updateSavedItemsCount(); // Recalculate count just in case
+            });
+        });
+    }
+
+
+    // --- Search Functionality ---
+    const handleSearchDebounced = debounce((searchTerm) => {
+        const lowerSearchTerm = searchTerm.trim().toLowerCase();
+
+         if (lowerSearchTerm === '') {
+            clearSearch(); // clearSearch calls loadSavedGroups
+            return;
+        }
+
+        elements.clearSearchBtn.classList.add('visible');
+
+        chrome.storage.local.get(['tabGroups', 'folders'], ({ tabGroups = {}, folders = {} }) => {
+             const filteredGroups = {}; // Standalone groups matching
+             const filteredFolders = {}; // Folders matching name OR containing matching groups
+             const groupsInFilteredFolders = new Set(); // Track groups already shown in folders
+
+             // Search folders first: Check name and contained groups
+            Object.entries(folders).forEach(([folderName, folder]) => {
+                let folderNameMatches = folderName.toLowerCase().includes(lowerSearchTerm);
+                let matchingGroupsInFolder = {};
+                let groupMatchFound = false;
+
+                 if (folder.groups) {
+                    Object.entries(folder.groups).forEach(([groupName, group]) => {
+                        if (groupName.toLowerCase().includes(lowerSearchTerm)) {
+                            matchingGroupsInFolder[groupName] = group;
+                            groupMatchFound = true;
+                        }
+                    });
+                }
+
+                 if (folderNameMatches || groupMatchFound) {
+                    // Always include the folder if its name or any group matches
+                     filteredFolders[folderName] = {
+                        ...folder,
+                        // If only groups matched, show only those groups within the folder result
+                        groups: folderNameMatches ? folder.groups : matchingGroupsInFolder
+                    };
+                     // Add all groups within this matching folder to the set
+                     Object.keys(filteredFolders[folderName].groups || {}).forEach(gn => groupsInFilteredFolders.add(gn));
+                }
+            });
+
+             // Search standalone groups (only those NOT already included in a filtered folder)
+            Object.entries(tabGroups).forEach(([name, group]) => {
+                if (!groupsInFilteredFolders.has(name) && name.toLowerCase().includes(lowerSearchTerm)) {
+                    filteredGroups[name] = group;
+                }
+            });
+
+
+             // --- Render Filtered Results ---
+            const fragment = document.createDocumentFragment();
+            let resultsFound = false;
+
+             // Render filtered folders (sorted)
+             const sortedFilteredFolderNames = Object.keys(filteredFolders).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+             sortedFilteredFolderNames.forEach(folderName => {
+                 resultsFound = true;
+                 const folder = filteredFolders[folderName];
+                 const folderElement = document.createElement('div');
+                 folderElement.className = 'folder-item';
+                 folderElement.dataset.folder = folderName;
+                 const folderGroupCount = Object.keys(folder.groups || {}).length;
+                 // Keep expanded in search results for visibility
+                 folderElement.innerHTML = `
                     <div class="folder-header">
-                        <div class="folder-title">
-                            <i class="fas fa-folder"></i>
-                            <span>${folderName}</span>
-                            <span class="folder-count">(${folderGroupCount})</span>
-                        </div>
-                        <button class="edit-folder-btn" data-folder="${folderName}" title="Edit folder">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <i class="fas fa-chevron-down"></i>
+                         <div class="folder-title">
+                             <i class="fas fa-folder"></i>
+                             <span>${folderName}</span>
+                             <span class="folder-count">(${folderGroupCount})</span>
+                         </div>
+                          <div class="folder-header-actions">
+                            <button class="action-button edit-folder-btn" title="Edit Folder"><i class="fas fa-edit"></i></button>
+                            <button class="action-button toggle-folder-btn" title="Expand/Collapse"><i class="fas fa-chevron-up"></i></button> </div>
                     </div>
-                    <div class="folder-content">`;
-            
-            if (folder.groups) {
-                Object.entries(folder.groups).forEach(([groupName, group]) => {
-                    const iconClass = getIconClass(groupName);
-                    const date = new Date(group.dateAdded || Date.now());
-                    const formattedDate = `${date.toLocaleDateString()}`;
-                    const tabCount = group.tabs ? group.tabs.length : 0;
-                    
-                    foldersHTML += `
-                        <li data-group="${groupName}" data-folder="${folderName}">
-                            <div class="group-item">
-                                <div class="group-icon">
-                                    <i class="${iconClass}"></i>
-                                </div>
-                                <div class="group-info">
-                                    <div class="group-name">${groupName}</div>
-                                    <div class="group-status">${tabCount} tabs</div>
-                                    <div class="group-date">${formattedDate}</div>
-                                </div>
-                            </div>
-                            <div class="group-actions">
-                                <button class="action-button open-btn" data-group="${groupName}">
-                                    <i class="fas fa-external-link-alt"></i>
-                                    <span class="open-tab-text">Open</span>
-                                </button>
-                                <button class="action-button delete-btn" data-group="${groupName}" data-folder="${folderName}">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
-                        </li>`;
+                    <div class="folder-content expanded"> <ul></ul>
+                        <div class="folder-actions">
+                            <button class="action-button delete-folder-btn"><i class="fas fa-trash"></i> Delete Folder</button>
+                       </div>
+                    </div>`;
+
+                 const folderContentUl = folderElement.querySelector('.folder-content ul');
+                if (folder.groups && folderGroupCount > 0) {
+                     const sortedGroupNames = Object.keys(folder.groups).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+                     sortedGroupNames.forEach(groupName => {
+                        folderContentUl.appendChild(createGroupListItem(groupName, folder.groups[groupName], folderName));
+                    });
+                } else {
+                    // This case might occur if folder name matched but contained groups didn't
+                    folderContentUl.innerHTML = '<li class="empty-folder">No matching groups inside this folder.</li>';
+                }
+                 fragment.appendChild(folderElement);
+            });
+
+             // Render filtered standalone groups (sorted)
+             const standaloneGroupList = document.createElement('ul');
+             standaloneGroupList.className = 'standalone-groups-list';
+             const sortedFilteredGroupNames = Object.keys(filteredGroups).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+             sortedFilteredGroupNames.forEach(name => {
+                 resultsFound = true;
+                 standaloneGroupList.appendChild(createGroupListItem(name, filteredGroups[name]));
+             });
+
+             if (standaloneGroupList.hasChildNodes()) {
+                 // Optional separator if both folders and groups are found
+                 if (Object.keys(filteredFolders).length > 0) {
+                     // const separator = document.createElement('hr'); fragment.appendChild(separator);
+                 }
+                 fragment.appendChild(standaloneGroupList);
+             }
+
+
+             // Display results or 'no results' message
+             elements.groupsList.innerHTML = '';
+             if (resultsFound) {
+                 elements.groupsList.appendChild(fragment);
+             } else {
+                 elements.groupsList.innerHTML = '<div class="no-results">No matching groups or folders found.</div>';
+             }
+        });
+    }, 300); // 300ms debounce
+
+
+    function clearSearch() {
+        elements.searchInput.value = '';
+        elements.clearSearchBtn.classList.remove('visible');
+        // Only reload if we are currently on the groups tab
+        if (state.activeSection === 'groups') {
+            loadSavedGroups(); // Reload all groups
+        }
+    }
+
+    // --- Bookmark Logic ---
+     function loadBookmarks() {
+        chrome.storage.local.get(['bookmarks'], ({ bookmarks = [] }) => {
+            if (!elements.bookmarksList) return; // Ensure element exists
+
+             const fragment = document.createDocumentFragment();
+             if (!bookmarks || bookmarks.length === 0) {
+                 const emptyMessage = document.createElement('div');
+                 emptyMessage.className = 'empty-message';
+                 emptyMessage.textContent = 'No bookmarks yet. Right-click on any page and select "Bookmark this page".';
+                 fragment.appendChild(emptyMessage);
+            } else {
+                 // Sort bookmarks alphabetically by title
+                 bookmarks.sort((a, b) => (a.title || a.url).localeCompare(b.title || b.url, undefined, { sensitivity: 'base' }));
+
+                 bookmarks.forEach(bookmark => {
+                    if (!bookmark || !bookmark.url) return; // Skip invalid bookmarks
+
+                     const item = document.createElement('div');
+                    item.className = 'bookmark-item';
+                    item.dataset.url = bookmark.url; // Add URL for easier deletion targeting
+
+                     // Sanitize title and URL display if necessary
+                    const title = bookmark.title || bookmark.url; // Fallback to URL if no title
+                    const displayUrl = bookmark.url;
+
+                     item.innerHTML = `
+                        <img class="bookmark-favicon" src="${bookmark.favIconUrl || 'icon.png'}" onerror="this.src='icon.png';" alt="">
+                        <div class="bookmark-content">
+                            <div class="bookmark-title" title="${title}">${title}</div>
+                            <div class="bookmark-url" title="${displayUrl}">${displayUrl}</div>
+                        </div>
+                        <button class="action-button delete-bookmark-btn" title="Delete Bookmark">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    `;
+                    fragment.appendChild(item);
                 });
             }
-            
-            foldersHTML += `
-                        <div class="folder-actions">
-                            <button class="action-button delete-folder-btn" data-folder="${folderName}">
-                                <i class="fas fa-trash"></i> Delete Folder
-                            </button>
-                        </div>
-                    </div>
-                </div>`;
+
+             elements.bookmarksList.innerHTML = ''; // Clear previous
+             elements.bookmarksList.appendChild(fragment);
         });
-        
-        groupsList.innerHTML = foldersHTML;
-        
-        // Add event listeners using delegation (will be added in the next optimization)
     }
-    // function renderFolders(folders) {
-    //     Object.entries(folders).forEach(([folderName, folder]) => {
-    //         const folderElement = document.createElement('div');
-    //         folderElement.className = 'folder-item';
-            
-    //         // Folder header
-    //         const folderHeader = document.createElement('div');
-    //         folderHeader.className = 'folder-header';
-            
-    //         const folderTitle = document.createElement('div');
-    //         folderTitle.className = 'folder-title';
-            
-    //         const folderIcon = document.createElement('i');
-    //         folderIcon.className = 'fas fa-folder';
-            
-    //         const folderNameElement = document.createElement('span');
-    //         folderNameElement.textContent = folderName;
 
-    //         const folderCount = document.createElement('span');
-    //         folderCount.className = 'folder-count';
-    //         folderCount.textContent = `(${Object.keys(folder.groups || {}).length})`;
-            
-    //         const toggleIcon = document.createElement('i');
-    //         toggleIcon.className = 'fas fa-chevron-down';
-            
-    //         // Add edit button to folder header
-    //         const editButton = document.createElement('button');
-    //         editButton.className = 'edit-folder-btn';
-    //         editButton.innerHTML = '<i class="fas fa-edit"></i>';
-    //         editButton.title = 'Edit folder';
-            
-    //         // Event listener for edit button
-    //         editButton.addEventListener('click', (e) => {
-    //             e.stopPropagation(); // Prevent folder toggle
-    //             openEditFolderDialog(folderName);
-    //         });
-            
-    //         folderTitle.appendChild(folderIcon);
-    //         folderTitle.appendChild(folderNameElement);
-    //         folderTitle.appendChild(folderCount);
-            
-    //         folderHeader.appendChild(folderTitle);
-    //         folderHeader.appendChild(editButton);
-    //         folderHeader.appendChild(toggleIcon);
-            
-    //         // Folder content
-    //         const folderContent = document.createElement('div');
-    //         folderContent.className = 'folder-content';
-            
-    //         // Add each group in the folder
-    //         if (folder.groups) {
-    //             Object.entries(folder.groups).forEach(([groupName, group]) => {
-    //                 const li = document.createElement('li');
-    //                 const iconClass = getIconClass(groupName);
-                    
-    //                 // Format the date
-    //                 const date = new Date(group.dateAdded || Date.now());
-    //                 const formattedDate = `${date.toLocaleDateString()}`;
-                    
-    //                 li.innerHTML = `
-    //                     <div class="group-item">
-    //                         <div class="group-icon">
-    //                             <i class="${iconClass}"></i>
-    //                         </div>
-    //                         <div class="group-info">
-    //                             <div class="group-name">${groupName}</div>
-    //                             <div class="group-status">${group.tabs ? group.tabs.length : 0} tabs</div>
-    //                             <div class="group-date">${formattedDate}</div>
-    //                         </div>
-    //                     </div>
-    //                     <div class="group-actions">
-    //                         <button class="action-button open-btn">
-    //                             <i class="fas fa-external-link-alt"></i>
-    //                             <span class="open-tab-text">Open</span>
-    //                         </button>
-    //                         <button class="action-button delete-btn">
-    //                             <i class="fas fa-trash"></i>
-    //                         </button>
-    //                     </div>
-    //                 `;
-                    
-    //                 // Add event listeners for group in folder
-    //                 const openBtn = li.querySelector('.open-btn');
-    //                 const deleteBtn = li.querySelector('.delete-btn');
-                    
-    //                 openBtn.addEventListener('click', () => {
-    //                     openTabGroup(group);
-    //                 });
-                    
-    //                 deleteBtn.addEventListener('click', () => {
-    //                     deleteGroupFromFolder(folderName, groupName);
-    //                 });
-                    
-    //                 // Add it to folder content
-    //                 folderContent.appendChild(li);
-    //             });
-    //         }
-            
-    //         // Add option to delete folder
-    //         const folderActions = document.createElement('div');
-    //         folderActions.className = 'folder-actions';
-    //         folderActions.innerHTML = `
-    //             <button class="action-button delete-folder-btn">
-    //                 <i class="fas fa-trash"></i> Delete Folder
-    //             </button>
-    //         `;
-            
-    //         folderContent.appendChild(folderActions);
-            
-    //         // Event listener for delete folder button
-    //         const deleteFolderBtn = folderActions.querySelector('.delete-folder-btn');
-    //         deleteFolderBtn.addEventListener('click', () => {
-    //             deleteFolder(folderName);
-    //         });
-            
-    //         // Toggle folder expand/collapse
-    //         folderHeader.addEventListener('click', () => {
-    //             folderContent.classList.toggle('expanded');
-    //             toggleIcon.classList.toggle('fa-chevron-down');
-    //             toggleIcon.classList.toggle('fa-chevron-up');
-    //         });
-            
-    //         folderElement.appendChild(folderHeader);
-    //         folderElement.appendChild(folderContent);
-            
-    //         groupsList.appendChild(folderElement);
-    //     });
-    // }
+     function deleteBookmark(url) {
+         // Simple confirmation for bookmarks
+         showCustomConfirm(`Delete bookmark for "${url}"?`, () => {
+            chrome.storage.local.get(['bookmarks'], ({ bookmarks = [] }) => {
+                const updatedBookmarks = bookmarks.filter(bookmark => bookmark && bookmark.url !== url);
+                chrome.storage.local.set({ bookmarks: updatedBookmarks }, () => {
+                    loadBookmarks(); // Refresh the list
+                    updateSavedItemsCount();
+                });
+            });
+        });
+    }
 
-    function deleteGroupFromFolder(folderName, groupName) {
-        // Use the custom confirmation dialog instead of native confirm
-        showCustomConfirm(`Remove "${groupName}" from folder "${folderName}"?`, () => {
-            // This code runs ONLY if the user confirms in the custom dialog
-            chrome.storage.local.get('folders', ({ folders = {} }) => {
-                if (folders[folderName] && folders[folderName].groups && folders[folderName].groups[groupName]) {
-                    // Remove group from folder
-                    delete folders[folderName].groups[groupName];
-    
-                    // Delete folder if it's empty after removing the group
-                    if (Object.keys(folders[folderName].groups).length === 0) {
-                        delete folders[folderName];
-                    }
-    
-                    chrome.storage.local.set({ folders }, () => {
-                        loadSavedGroups(); // Assuming this refreshes your UI
-                        // updateSavedItemsCount(); // You might want to call this here if removing from a folder affects the total count display
+    // --- Todo Logic ---
+    function renderTodos() {
+         chrome.storage.local.get(['todos'], ({ todos = [] }) => {
+            if (!elements.todoList) return;
+
+             const fragment = document.createDocumentFragment();
+            if (!todos || todos.length === 0) {
+                 const emptyMessage = document.createElement('div');
+                 emptyMessage.className = 'empty-message';
+                 emptyMessage.textContent = 'No todo items yet. Add one above!';
+                 fragment.appendChild(emptyMessage);
+            } else {
+                 // Sort todos: incomplete first, then by date added (newest first)
+                 todos.sort((a, b) => (a.completed - b.completed) || ((b.dateAdded || 0) - (a.dateAdded || 0)));
+
+                 todos.forEach(todo => {
+                    if (!todo || typeof todo.id === 'undefined') return; // Skip invalid todos
+
+                     const item = document.createElement('div');
+                    item.className = `todo-item ${todo.completed ? 'completed' : ''}`;
+                    item.dataset.id = todo.id;
+                    // Sanitize text - basic example, consider a library for robustness
+                    const textContent = (todo.text || '').replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+
+                     item.innerHTML = `
+                      <div class="todo-content">
+                        <div class="todo-checkbox">
+                          <input type="checkbox" id="todo-check-${todo.id}" ${todo.completed ? 'checked' : ''}>
+                          <label for="todo-check-${todo.id}" class="checkmark"></label>
+                        </div>
+                        <div class="todo-text">${textContent}</div>
+                      </div>
+                      <button class="action-button delete-todo" title="Delete Todo">
+                          <i class="fas fa-trash"></i>
+                      </button>
+                    `;
+                    fragment.appendChild(item);
+                });
+            }
+             elements.todoList.innerHTML = ''; // Clear previous
+            elements.todoList.appendChild(fragment);
+        });
+    }
+
+     function addNewTodo() {
+        const todoText = elements.newTodoInput.value.trim();
+        if (todoText) {
+            chrome.storage.local.get(['todos'], ({ todos = [] }) => {
+                const newTodo = {
+                    id: Date.now() + Math.random(), // Add random component for higher uniqueness chance
+                    text: todoText,
+                    completed: false,
+                    dateAdded: Date.now()
+                };
+                // Add to the beginning of the list for immediate visibility
+                const updatedTodos = [newTodo, ...todos];
+
+                 chrome.storage.local.set({ todos: updatedTodos }, () => {
+                    renderTodos(); // Refresh list
+                    elements.newTodoInput.value = ''; // Clear input
+                    elements.newTodoInput.focus(); // Keep focus
+                    updateSavedItemsCount();
+                });
+            });
+        }
+    }
+
+    function toggleTodoComplete(todoId) {
+        // Find the item in the DOM first for immediate visual feedback
+        const todoItem = elements.todoList.querySelector(`.todo-item[data-id="${todoId}"]`);
+        if (!todoItem) return;
+
+         const checkbox = todoItem.querySelector('input[type="checkbox"]');
+         // Ensure checkbox exists before reading property
+         if (!checkbox) return;
+         const isCompleted = checkbox.checked; // State *after* the click
+
+         // Toggle class immediately
+        todoItem.classList.toggle('completed', isCompleted);
+
+         // Update storage asynchronously
+        requestAnimationFrame(() => {
+            chrome.storage.local.get(['todos'], ({ todos = [] }) => {
+                // Ensure todoId is treated consistently (string vs number)
+                const idToFind = String(todoId);
+                const todoIndex = todos.findIndex(todo => todo && String(todo.id) === idToFind);
+
+                if (todoIndex !== -1) {
+                    todos[todoIndex].completed = isCompleted;
+                    // Optional: Re-render if sorting changes order significantly
+                    chrome.storage.local.set({ todos: todos }, () => {
+                         // Re-render only if sorting is important after completion change
+                         // renderTodos();
                     });
+                } else {
+                    console.warn("Todo item not found in storage for toggling:", todoId);
                 }
             });
         });
     }
-    
-    function deleteFolder(folderName) {
-        // Use the custom confirmation dialog instead of native confirm
-        showCustomConfirm(`Delete "${folderName}" folder? (Groups inside will NOT be deleted)`, () => {
-            // This code runs ONLY if the user confirms in the custom dialog
-            chrome.storage.local.get('folders', ({ folders = {} }) => {
-                // Remove folder
-                delete folders[folderName];
-    
-                chrome.storage.local.set({ folders }, () => {
-                    loadSavedGroups(); // Assuming this refreshes your UI
-                    updateSavedItemsCount(); // Update the count after deleting a folder
+
+    function deleteTodo(todoId) {
+         // Add confirmation? For now, direct delete.
+         // showCustomConfirm("Delete this todo item?", () => { ... });
+
+         chrome.storage.local.get(['todos'], ({ todos = [] }) => {
+             const idToDelete = String(todoId); // Ensure consistent type
+            const updatedTodos = todos.filter(todo => todo && String(todo.id) !== idToDelete);
+
+             // Check if anything actually changed
+             if (updatedTodos.length !== todos.length) {
+                 chrome.storage.local.set({ todos: updatedTodos }, () => {
+                     // Remove directly from DOM for instant feedback
+                    const todoItem = elements.todoList.querySelector(`.todo-item[data-id="${todoId}"]`);
+                    if (todoItem) {
+                        todoItem.remove();
+                         // Check if list is now empty and show message
+                        if (elements.todoList.children.length === 0) {
+                             renderTodos(); // Will show the empty message
+                        }
+                    } else {
+                         renderTodos(); // Fallback refresh if DOM element wasn't found
+                    }
+                    updateSavedItemsCount();
                 });
-            });
+             } else {
+                 console.warn("Todo item not found in storage for deletion:", todoId);
+             }
         });
     }
-    document.getElementById('submitTodoBtn').addEventListener('click', function() {
-        addNewTodo();
-      });
-      
-      document.getElementById('newTodoInput').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-          addNewTodo();
-        }
-      });
-      function addNewTodo() {
-        const todoText = document.getElementById('newTodoInput').value.trim();
-        if (todoText) {
-          chrome.storage.local.get(['todos'], function(result) {
-            const todos = result.todos || [];
-            const newTodo = {
-              id: Date.now(),
-              text: todoText,
-              completed: false,
-              dateAdded: Date.now()
-            };
-            todos.push(newTodo);
-            chrome.storage.local.set({todos: todos}, function() {
-              renderTodos();
-              document.getElementById('newTodoInput').value = ''; // Just clear the input
-              // Don't hide the form
-              // Keep focus on the input field for convenience
-              document.getElementById('newTodoInput').focus();
-            });
-          });
-        }
-      }
-      
-      // Check if you have a rendering function
-      
-      function renderTodos() {
-        chrome.storage.local.get(['todos'], function(result) {
-            const todos = result.todos || [];
-            const todoList = document.getElementById('todoList');
-            const fragment = document.createDocumentFragment();
-            
-            if (todos.length === 0) {
-                const emptyMessage = document.createElement('div');
-                emptyMessage.className = 'empty-message';
-                emptyMessage.textContent = 'No todo items yet. Add one above!';
-                fragment.appendChild(emptyMessage);
+
+    // --- Event Listeners Setup ---
+    function setupEventListeners() {
+        // Navigation Tabs
+        elements.navTabs.forEach(tab => {
+             // Special handling for folder button click
+            if (tab.id === 'folderButton') {
+                tab.addEventListener('click', () => {
+                     hideAllModalDialogs(); // Close other dialogs first
+                     populateGroupSelection(elements.groupSelection); // Populate with no groups selected
+                     elements.selectAllGroupsBtn.textContent = 'Select All'; // Reset button
+                    elements.folderDialog.style.display = 'block';
+                    elements.folderNameInput.focus();
+                });
             } else {
-                todos.forEach(todo => {
-                    const todoItem = document.createElement('div');
-                    todoItem.className = 'todo-item' + (todo.completed ? ' completed' : '');
-                    todoItem.dataset.id = todo.id;
-                    
-                    todoItem.innerHTML = `
-                      <div class="todo-content">
-                        <div class="todo-checkbox">
-                          <input type="checkbox" ${todo.completed ? 'checked' : ''}>
-                          <span class="checkmark"></span>
-                        </div>
-                        <div class="todo-text">${todo.text}</div>
-                      </div>
-                      <button class="delete-todo"><i class="fas fa-trash"></i></button>
-                    `;
-                    
-                    fragment.appendChild(todoItem);
+                 // Standard tabs
+                tab.addEventListener('click', () => {
+                    // Only switch if it's a different section and has a dataset
+                    if (tab.dataset.section && state.activeSection !== tab.dataset.section) {
+                        switchSection(tab.dataset.section);
+                    }
                 });
             }
-            
-            // Clear and add all at once
-            todoList.innerHTML = '';
-            todoList.appendChild(fragment);
-            
-            // Add event listeners using delegation (next optimization)
         });
-    }
 
-      document.querySelectorAll('.nav-tab').forEach(tab => {
-        tab.addEventListener('click', function() {
-          if (this.dataset.section) {
-            document.querySelectorAll('.section-container').forEach(section => {
-              section.classList.remove('active-section');
-            });
-            document.getElementById(this.dataset.section + 'Section').classList.add('active-section');
-            
-            document.querySelectorAll('.nav-tab').forEach(t => {
-              t.classList.remove('active');
-            });
-            this.classList.add('active');
-          }
+        // Add Group Dropdown
+        elements.addButton.addEventListener('click', showSaveDropdown);
+        elements.closeDropdownBtn.addEventListener('click', () => elements.saveDropdown.style.display = 'none');
+        elements.saveTabsButton.addEventListener('click', saveSelectedTabs);
+        elements.selectAllBtn.addEventListener('click', () => toggleSelectAll(elements.tabsChecklist, elements.selectAllBtn, '.tab-checkbox'));
+
+
+         // Create Folder Dialog
+         elements.closeFolderBtn.addEventListener('click', hideCreateFolderDialog);
+         elements.selectAllGroupsBtn.addEventListener('click', () => toggleSelectAll(elements.groupSelection, elements.selectAllGroupsBtn, '.group-checkbox'));
+         elements.createFolderBtn.addEventListener('click', createNewFolder);
+
+
+         // Edit Folder Dialog
+         elements.closeEditFolderBtn.addEventListener('click', hideEditFolderDialog);
+         elements.selectAllEditGroupsBtn.addEventListener('click', () => toggleSelectAll(elements.editGroupSelection, elements.selectAllEditGroupsBtn, '.group-checkbox'));
+         elements.saveEditFolderBtn.addEventListener('click', saveEditedFolder);
+
+
+         // Search
+        elements.searchInput.addEventListener('input', (e) => handleSearchDebounced(e.target.value));
+        elements.clearSearchBtn.addEventListener('click', clearSearch);
+
+
+        // --- Event Delegation for Dynamic Lists ---
+
+        // Groups List (Handles Folders and Groups)
+        elements.groupsList.addEventListener('click', (e) => {
+            const target = e.target;
+            // Find closest relevant elements
+            const groupItem = target.closest('li[data-group]');
+            const folderItem = target.closest('.folder-item[data-folder]');
+            const folderHeader = target.closest('.folder-header');
+
+            // Action Buttons inside list items or folder headers
+            const openBtn = target.closest('.open-btn');
+            const deleteGroupBtn = target.closest('.delete-btn'); // Group delete
+            const editFolderBtn = target.closest('.edit-folder-btn');
+            const toggleFolderBtn = target.closest('.toggle-folder-btn');
+            const deleteFolderBtn = target.closest('.delete-folder-btn');
+
+
+             // Toggle Folder Expansion
+             if (toggleFolderBtn && folderItem) {
+                e.stopPropagation();
+                 const folderContent = folderItem.querySelector('.folder-content');
+                 const icon = toggleFolderBtn.querySelector('i');
+                 if (folderContent) {
+                     const isExpanding = !folderContent.classList.contains('expanded');
+                     folderContent.classList.toggle('expanded', isExpanding);
+                     icon?.classList.toggle('fa-chevron-down', !isExpanding);
+                     icon?.classList.toggle('fa-chevron-up', isExpanding);
+                 }
+                 return;
+             }
+
+             // Edit Folder Button
+            if (editFolderBtn && folderItem) {
+                e.stopPropagation();
+                const folderName = folderItem.dataset.folder;
+                if (folderName) openEditFolderDialog(folderName);
+                return;
+            }
+
+             // Delete Folder Button
+            if (deleteFolderBtn && folderItem) {
+                 e.stopPropagation();
+                const folderName = folderItem.dataset.folder;
+                 if (folderName) deleteFolder(folderName);
+                 return;
+            }
+
+             // Open Group Button
+             if (openBtn && groupItem) {
+                 const groupName = groupItem.dataset.group;
+                 const folderName = groupItem.dataset.folder; // null for standalone
+                 if (groupName) {
+                     chrome.storage.local.get(['tabGroups', 'folders'], ({ tabGroups = {}, folders = {} }) => {
+                         const groupData = folderName ? folders[folderName]?.groups?.[groupName] : tabGroups[groupName];
+                         if (groupData) openTabGroup(groupData);
+                         else {
+                            console.error(`Group data not found for ${groupName} in ${folderName || 'standalone'}`);
+                            showCustomAlert("Error: Could not find data for this group.");
+                         }
+                     });
+                 }
+                 return;
+             }
+
+             // Delete Group Button
+             if (deleteGroupBtn && groupItem) {
+                 const groupName = groupItem.dataset.group;
+                 const folderName = groupItem.dataset.folder; // null if standalone
+                 if (groupName) deleteTabGroup(groupName, folderName); // Pass folder context for msg
+                 return;
+             }
+
+             // Click on folder header (but not buttons inside header actions) to toggle
+             if (folderHeader && folderItem && !target.closest('.folder-header-actions button')) {
+                 const folderContent = folderItem.querySelector('.folder-content');
+                 const icon = folderHeader.querySelector('.toggle-folder-btn i');
+                 if (folderContent) {
+                    const isExpanding = !folderContent.classList.contains('expanded');
+                    folderContent.classList.toggle('expanded', isExpanding);
+                    icon?.classList.toggle('fa-chevron-down', !isExpanding);
+                    icon?.classList.toggle('fa-chevron-up', isExpanding);
+                }
+                 return;
+             }
+
         });
-      });
+
+         // Bookmarks List
+         if (elements.bookmarksList) {
+             elements.bookmarksList.addEventListener('click', (e) => {
+                 const target = e.target;
+                 const bookmarkItem = target.closest('.bookmark-item');
+                 const url = bookmarkItem?.dataset.url;
+
+                 if (!url) return; // Clicked outside an item
+
+                 // Delete Button
+                 if (target.closest('.delete-bookmark-btn')) {
+                     deleteBookmark(url);
+                 }
+                 // Click on item itself (but not delete button)
+                 else {
+                     chrome.tabs.create({ url: url, active: true }); // Open in foreground
+                 }
+             });
+         }
 
 
+         // Todo List
+        if (elements.todoList) {
+            elements.todoList.addEventListener('click', (e) => {
+                 const target = e.target;
+                 const todoItem = target.closest('.todo-item');
+                 const todoId = todoItem?.dataset.id;
 
-      function renderTodos() {
-        chrome.storage.local.get(['todos'], function(result) {
-          const todos = result.todos || [];
-          const todoList = document.getElementById('todoList');
-          todoList.innerHTML = '';
-          
-          todos.forEach(todo => {
-            const todoItem = document.createElement('div');
-            todoItem.className = 'todo-item' + (todo.completed ? ' completed' : '');
-            todoItem.dataset.id = todo.id;
-            
-            todoItem.innerHTML = `
-              <div class="todo-content">
-                <div class="todo-checkbox">
-                  <input type="checkbox" ${todo.completed ? 'checked' : ''}>
-                  <span class="checkmark"></span>
-                </div>
-                <div class="todo-text">${todo.text}</div>
-              </div>
-              <button class="delete-todo"><i class="fas fa-trash"></i></button>
-            `;
-            
-            todoList.appendChild(todoItem);
-          });
-          
-          // Add event listeners for checkboxes and delete buttons
-        });
-      }
-      
-function setupTodoEventListeners() {
-    const todoList = document.getElementById('todoList');
-    
-    // Use a single event listener for all todo interactions
-    todoList.addEventListener('click', function(e) {
-        // Handle checkbox clicks
-        if (e.target.type === 'checkbox' || e.target.closest('.todo-checkbox')) {
-            const todoItem = e.target.closest('.todo-item');
-            const isChecked = todoItem.querySelector('input[type="checkbox"]').checked;
-            toggleTodoComplete(todoItem.dataset.id, isChecked);
-            return;
+                 if (!todoId) return; // Clicked outside an item
+
+                 // Delete Button
+                 if (target.closest('.delete-todo')) {
+                     deleteTodo(todoId);
+                 }
+                 // Checkbox click (handle click on input or the custom checkmark label)
+                 else if (target.closest('.todo-checkbox')) {
+                     // Use timeout to ensure the 'checked' property is updated in the DOM before reading
+                     setTimeout(() => toggleTodoComplete(todoId), 0);
+                 }
+             });
         }
-        
-        // Handle delete button clicks
-        if (e.target.closest('.delete-todo')) {
-            const todoId = e.target.closest('.todo-item').dataset.id;
-            deleteTodo(todoId);
-            return;
-        }
-    });
-}
 
-
-function toggleTodoComplete(todoId, isCompleted) {
-    // Update UI immediately for responsiveness
-    const todoItem = document.querySelector(`.todo-item[data-id="${todoId}"]`);
-    if (todoItem) {
-        if (isCompleted) {
-            todoItem.classList.add('completed');
-        } else {
-            todoItem.classList.remove('completed');
-        }
-    }
-    
-    // Update storage (deferred)
-    requestAnimationFrame(() => {
-        chrome.storage.local.get(['todos'], function(result) {
-            const todos = result.todos || [];
-            const todoIndex = todos.findIndex(todo => todo.id == todoId);
-            
-            if (todoIndex !== -1) {
-                todos[todoIndex].completed = isCompleted;
-                chrome.storage.local.set({todos: todos});
+        // Todo Input Form
+         elements.submitTodoBtn.addEventListener('click', addNewTodo);
+         elements.newTodoInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault(); // Prevent potential form submission
+                addNewTodo();
             }
         });
-    });
-}
-      
-      function deleteTodo(todoId) {
-        chrome.storage.local.get(['todos'], function(result) {
-          const todos = result.todos || [];
-          const updatedTodos = todos.filter(todo => todo.id != todoId);
-          
-          chrome.storage.local.set({todos: updatedTodos}, function() {
-            // Remove the item from the DOM
-            const todoItem = document.querySelector(`.todo-item[data-id="${todoId}"]`);
-            if (todoItem) {
-              todoItem.remove();
-            }
-          });
-        });
-      }
 
-    // Initialize
+    }
+
+
+    // --- Initialization ---
+    function init() {
+        updateTabCount();
+        updateSavedItemsCount(); // Initial count
+        setupEventListeners();
+        // Load initial section content based on the default active section
+        switchSection(state.activeSection);
+    }
+
+    // Start the application
     init();
-    // end()
-});
 
+}); // End DOMContentLoaded
