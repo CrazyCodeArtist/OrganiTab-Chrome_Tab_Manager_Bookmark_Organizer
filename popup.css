@@ -914,3 +914,165 @@ li {
 .custom-alert-button.ok:hover {
      background-color: #0056b3; /* Darker blue on hover */
 }
+
+/* [...] Keep existing styles */
+
+/* --- Group/Folder List Enhancements --- */
+
+#groupsList {
+    padding: 0 5px; /* Add slight horizontal padding */
+  }
+  
+  /* Standalone Group Styling (Base) */
+  #groupsList > .standalone-groups-list > li {
+    margin-bottom: 10px;
+    transition: box-shadow 0.2s ease;
+  }
+  #groupsList > .standalone-groups-list > li:hover {
+     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+  
+  
+  /* Folder Styling */
+  .folder-item {
+    background-color: transparent; /* Remove default background */
+    border: 1px solid var(--border-color); /* Add border */
+    border-radius: 8px;
+    margin-bottom: 15px; /* Increase spacing between folders */
+    box-shadow: none; /* Remove default shadow */
+    overflow: visible; /* Allow potential dropdowns/tooltips */
+  }
+  
+  .folder-header {
+    background-color: #f7f7f7; /* Slightly different header bg */
+    border-bottom: 1px solid var(--border-color);
+    padding: 10px 15px; /* Adjust padding */
+    transition: background-color 0.2s ease;
+  }
+  
+  .folder-header:hover {
+      background-color: #eeeeee; /* Header hover */
+  }
+  
+  .folder-title i.fa-folder {
+    color: #ffb74d; /* Softer folder icon color */
+  }
+  
+  /* Chevron icon transition */
+  .toggle-folder-btn i {
+      transition: transform 0.3s ease;
+  }
+  .folder-content.expanded + .folder-header .toggle-folder-btn i, /* Incorrect: Selector needs fixing in JS toggle */
+  .folder-header .toggle-folder-btn i.rotated { /* Add this class via JS */
+      transform: rotate(180deg);
+  }
+  
+  
+  .folder-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, padding 0.3s ease; /* Add padding transition */
+    padding: 0 0px; /* Remove padding when collapsed */
+    background-color: var(--card-color); /* White background for content */
+    border-bottom-left-radius: 8px; /* Match parent */
+    border-bottom-right-radius: 8px;
+  }
+  
+  .folder-content.expanded {
+    max-height: 1000px; /* Increase max-height */
+    padding: 10px 0px 0 0px; /* Add padding when expanded */
+  }
+  
+  /* Groups inside folders */
+  .folder-content ul {
+    padding-left: 15px; /* Indent groups within folders */
+    padding-right: 15px;
+  }
+  
+  .folder-content li {
+    margin-bottom: 8px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+    border: 1px solid #f0f0f0;
+    padding: 12px 15px; /* Adjust padding */
+    background-color: #feffff; /* Slightly off-white */
+     transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .folder-content li:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.06);
+  }
+  
+  
+  .folder-content li:last-child {
+    margin-bottom: 0; /* Remove margin for last item */
+  }
+  
+  /* Folder Actions Styling */
+  .folder-actions {
+      padding: 10px 15px; /* Adjust padding */
+      border-top: 1px solid var(--border-color);
+      background-color: #fdfdfd;
+      border-bottom-left-radius: 8px; /* Match parent */
+      border-bottom-right-radius: 8px;
+  }
+  
+  .delete-folder-btn {
+      background-color: transparent;
+      color: var(--delete-hover);
+      padding: 5px 8px;
+      font-size: 12px;
+      border: 1px solid #ffcdd2; /* Light red border */
+  }
+  .delete-folder-btn:hover {
+      background-color: #ffebee; /* Light red background on hover */
+      color: #c62828; /* Darker red text */
+  }
+  
+  
+  /* --- Action Button Enhancements --- */
+  .action-button {
+      padding: 5px; /* Slightly larger click area */
+      border-radius: 4px;
+      transition: background-color 0.2s ease, color 0.2s ease;
+  }
+  .action-button:hover {
+      background-color: #e8e8e8;
+      color: var(--text-color);
+  }
+  .action-button.open-btn:hover {
+      background-color: #dcedc8; /* Light green hover for open */
+      color: #33691e;
+  }
+  .action-button.delete-btn:hover,
+  .delete-folder-btn:hover i, /* Ensure icon color changes too */
+  .action-button.delete-todo:hover,
+  .action-button.delete-bookmark-btn:hover {
+      background-color: #ffebee; /* Light red background */
+      color: var(--delete-hover); /* Use variable for consistency */
+  }
+  .edit-folder-btn:hover {
+      background-color: #fff8e1; /* Light yellow */
+      color: #f57f17; /* Darker yellow */
+  }
+  
+  
+  /* --- Empty State Enhancements --- */
+  .empty-message, .no-results, .empty-folder, .empty-selection {
+      text-align: center;
+      padding: 30px 20px;
+      color: var(--text-secondary);
+      font-size: 14px;
+      background-color: #f9f9f9; /* Slightly different background */
+      border-radius: 8px;
+      margin: 20px 5px;
+      border: 1px dashed var(--border-color);
+  }
+  
+  .empty-folder {
+      margin: 0; /* Reset margin if inside folder */
+      padding: 15px;
+      font-style: italic;
+      border: none;
+      background-color: transparent;
+  }
+  

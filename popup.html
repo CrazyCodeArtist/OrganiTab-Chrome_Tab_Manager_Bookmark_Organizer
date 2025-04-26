@@ -66,6 +66,16 @@
     <div id="groupsSection" class="section-container active-section">
       <div class="section-header">
         <h2>Saved Groups</h2>
+        <div class="group-sort-controls"> <label for="sortGroupsSelect">Sort by:</label>
+          <select id="sortGroupsSelect">
+              <option value="dateDesc">Date (Newest)</option>
+              <option value="dateAsc">Date (Oldest)</option>
+              <option value="nameAsc">Name (A-Z)</option>
+              <option value="nameDesc">Name (Z-A)</option>
+              <option value="tabsDesc">Tabs (Most)</option>
+              <option value="tabsAsc">Tabs (Fewest)</option>
+          </select>
+        </div>
         </div>
       <ul id="groupsList">
           </ul>
@@ -144,6 +154,10 @@
   </div>
 </div>
 
-  <script src="popup.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/groups.js"></script>
+<script src="js/bookmarks.js"></script>
+<script src="js/todo.js"></script>
+<script src="js/main.js"></script>
 </body>
 </html>
