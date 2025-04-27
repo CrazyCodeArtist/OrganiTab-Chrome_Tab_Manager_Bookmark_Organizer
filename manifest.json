@@ -1,13 +1,14 @@
 {
   "manifest_version": 3,
   "name": "OrganiTab - Chrome Tab Manager & Organizer",
-  "version": "1.1",
-  "description": "Save and manage tabs, groups, folders, bookmarks, and todos with a sleek interface and export/import functionality.",
+  "version": "1.2",
+  "description": "Save/manage tabs, groups, folders, bookmarks, todos. Includes export/import, shortcuts, and data management.",
   "permissions": [
     "tabs",
     "storage",
     "contextMenus",
-    "downloads"
+    "downloads",
+    "windows"
   ],
   "background": {
     "service_worker": "background.js"
@@ -24,5 +25,28 @@
     "16": "icon.png",
     "48": "icon.png",
     "128": "icon.png"
+  },
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+L",
+        "mac": "Command+Shift+L"
+      },
+      "description": "Open OrganiTab Extension"
+    },
+    "save-all-tabs": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+S",
+        "mac": "Command+Shift+S"
+      },
+      "description": "Save all open tabs to a new group"
+    },
+    "bookmark-current-page": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+B",
+        "mac": "Command+Shift+B"
+      },
+      "description": "Bookmark the current page"
+    }
   }
 }

@@ -2,7 +2,6 @@
  * main.js - Main application entry point, initialization, and coordination.
  */
 
-// Ensure the global app object exists
 var app = app || {};
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -30,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Groups Section
         groupsList: document.getElementById('groupsList'),
-        createFolderHeaderBtn: document.getElementById('createFolderHeaderBtn'), // New button location
+        createFolderHeaderBtn: document.getElementById('createFolderHeaderBtn'),
 
         // Bookmarks Section
         bookmarksList: document.getElementById('bookmarksList'),
@@ -40,8 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
         newTodoInput: document.getElementById('newTodoInput'),
         submitTodoBtn: document.getElementById('submitTodoBtn'),
 
-        // Create Folder Dialog (Elements remain, triggering changes)
-        // folderButton: document.getElementById('folderButton'), // REMOVED - No longer a nav tab
+        // Create Folder Dialog
         folderDialog: document.getElementById('folderDialog'),
         closeFolderBtn: document.getElementById('closeFolderBtn'),
         folderNameInput: document.getElementById('folderNameInput'),
@@ -57,11 +55,14 @@ document.addEventListener('DOMContentLoaded', () => {
         selectAllEditGroupsBtn: document.getElementById('selectAllEditGroupsBtn'),
         saveEditFolderBtn: document.getElementById('saveEditFolderBtn'),
 
-        // Settings Section (NEW)
+        // Settings Section
         settingsSection: document.getElementById('settingsSection'),
         exportDataBtn: document.getElementById('exportDataBtn'),
         importDataBtn: document.getElementById('importDataBtn'),
-        importFile: document.getElementById('importFile'), // Hidden file input
+        importFile: document.getElementById('importFile'),
+        clearAllDataBtn: document.getElementById('clearAllDataBtn'), // New
+        shortcutsList: document.getElementById('shortcutsList'),       // New
+        configureShortcutsBtn: document.getElementById('configureShortcutsBtn'), // New
 
         // Custom Alert/Confirm Dialogs
         customAlertOverlay: document.getElementById('customAlertOverlay'),
@@ -72,7 +73,15 @@ document.addEventListener('DOMContentLoaded', () => {
         customConfirmDialog: document.getElementById('customConfirmDialog'),
         customConfirmMessage: document.getElementById('customConfirmMessage'),
         customConfirmConfirm: document.getElementById('customConfirmConfirm'),
-        customConfirmCancel: document.getElementById('customConfirmCancel')
+        customConfirmCancel: document.getElementById('customConfirmCancel'),
+
+        // Custom Choice Dialog (New)
+        customChoiceOverlay: document.getElementById('customChoiceOverlay'),
+        customChoiceDialog: document.getElementById('customChoiceDialog'),
+        customChoiceMessage: document.getElementById('customChoiceMessage'),
+        customChoiceBtn1: document.getElementById('customChoiceBtn1'),
+        customChoiceBtn2: document.getElementById('customChoiceBtn2'),
+        customChoiceCancel: document.getElementById('customChoiceCancel')
     };
     console.log("Elements cached");
 
@@ -82,7 +91,6 @@ document.addEventListener('DOMContentLoaded', () => {
         currentEditingFolderOriginalName: '',
         activeSection: 'groups', // Default section
         groupSortOrder: 'dateDesc'
-        // Dialog-specific state is in app.utils.dialogState
     };
     console.log("State initialized");
 
@@ -91,7 +99,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function switchSection(sectionName) {
         console.log("Switching section to:", sectionName);
-        // Hide dialogs on tab switch (using utility)
         if (app.utils && app.utils.hideAllModalDialogs) {
             app.utils.hideAllModalDialogs();
         } else {
@@ -110,35 +117,31 @@ document.addEventListener('DOMContentLoaded', () => {
             section.classList.toggle('active-section', section.id === sectionName + 'Section');
         });
 
-        // Toggle search bar visibility (Groups only)
-        // Hide create folder button unless on groups tab
+        // Toggle UI elements based on section
         const isGroupsSection = sectionName === 'groups';
         app.elements.searchContainer.style.display = isGroupsSection ? 'block' : 'none';
-        app.elements.createFolderHeaderBtn.style.display = isGroupsSection ? 'inline-flex' : 'none'; // Adjust display as needed
+        // Ensure createFolderHeaderBtn exists before trying to style it
+        if (app.elements.createFolderHeaderBtn) {
+            app.elements.createFolderHeaderBtn.style.display = isGroupsSection ? 'inline-flex' : 'none';
+        }
+
 
         if (!isGroupsSection && app.elements.searchInput.value) {
-             // Use group function to clear search if available
              if (app.groups && app.groups.clearSearch) {
                 app.groups.clearSearch();
             } else {
-                 console.warn("app.groups.clearSearch not available to clear search input.");
-                 app.elements.searchInput.value = ''; // Manual clear as fallback
-                 app.elements.clearSearchBtn.classList.remove('visible');
+                 app.elements.searchInput.value = '';
+                 if (app.elements.clearSearchBtn) app.elements.clearSearchBtn.classList.remove('visible');
             }
         }
 
         // Load content for the new section
-        loadSectionContent(sectionName);
+app.loadSectionContent(sectionName);
     }
 
-    function loadSectionContent(section) {
+    // Renamed from loadSectionContent to avoid conflict with global variable if any
+    app.loadSectionContent = function(section) {
         console.log("Loading content for section:", section);
-        // Clear previous list content to prevent duplicates/stale data
-        // (Keep specific content clearing within the module's load function if preferred)
-        // if (app.elements.groupsList) app.elements.groupsList.innerHTML = '';
-        // if (app.elements.bookmarksList) app.elements.bookmarksList.innerHTML = '';
-        // if (app.elements.todoList) app.elements.todoList.innerHTML = '';
-        // Settings section doesn't typically need clearing/reloading data in the same way
 
         switch (section) {
             case 'groups':
@@ -154,9 +157,13 @@ document.addEventListener('DOMContentLoaded', () => {
                  else console.error("app.todo.renderTodos not available!");
                 break;
             case 'settings':
-                // No specific data loading needed for settings currently,
-                // but could add initialization logic here if required later.
                 console.log("Settings section activated.");
+                // Refresh shortcut display when switching to settings
+                if (app.settings && app.settings.displayShortcuts) {
+                    app.settings.displayShortcuts();
+                } else {
+                    console.error("app.settings.displayShortcuts not available!");
+                }
                 break;
         }
     }
@@ -167,47 +174,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Navigation Tabs
         app.elements.navTabs.forEach(tab => {
-             // Check if it has a section dataset attribute
             if (tab.dataset.section) {
                 tab.addEventListener('click', () => {
                     if (app.state.activeSection !== tab.dataset.section) {
                         switchSection(tab.dataset.section);
                     }
                 });
-            } else {
-                console.warn("Nav tab found without data-section:", tab);
             }
         });
 
-        // Call setup functions from other modules IF they exist
-        if (app.groups && app.groups.setupEventListeners) {
-            app.groups.setupEventListeners();
-            console.log("Groups listeners setup called.");
-        } else {
-             console.error("app.groups.setupEventListeners not found!");
-        }
+        // Call setup functions from other modules
+        if (app.groups && app.groups.setupEventListeners) app.groups.setupEventListeners();
+        else console.error("app.groups.setupEventListeners not found!");
 
-        if (app.bookmarks && app.bookmarks.setupEventListeners) {
-             app.bookmarks.setupEventListeners();
-             console.log("Bookmarks listeners setup called.");
-         } else {
-             console.error("app.bookmarks.setupEventListeners not found!");
-         }
+        if (app.bookmarks && app.bookmarks.setupEventListeners) app.bookmarks.setupEventListeners();
+        else console.error("app.bookmarks.setupEventListeners not found!");
 
-         if (app.todo && app.todo.setupEventListeners) {
-             app.todo.setupEventListeners();
-             console.log("Todo listeners setup called.");
-         } else {
-             console.error("app.todo.setupEventListeners not found!");
-         }
+        if (app.todo && app.todo.setupEventListeners) app.todo.setupEventListeners();
+        else console.error("app.todo.setupEventListeners not found!");
 
-         // NEW: Setup Settings Listeners
-         if (app.settings && app.settings.setupEventListeners) {
-             app.settings.setupEventListeners();
-             console.log("Settings listeners setup called.");
-         } else {
-             console.error("app.settings.setupEventListeners not found!");
-         }
+        if (app.settings && app.settings.setupEventListeners) app.settings.setupEventListeners();
+        else console.error("app.settings.setupEventListeners not found!");
 
 
         console.log("Base Event Listeners setup complete.");
@@ -217,10 +204,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Initialization ---
     function init() {
         console.log("Initializing...");
-        // Ensure utilities are loaded before using them
         if (app.utils && app.utils.updateTabCount && app.utils.updateSavedItemsCount) {
            app.utils.updateTabCount();
-           app.utils.updateSavedItemsCount(); // Initial counts
+           app.utils.updateSavedItemsCount();
            console.log("Counts updated.");
         } else {
             console.error("Count update utilities not available!");
@@ -228,27 +214,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
         setupEventListeners();
 
-        // Load initial section content based on the default active section
+        // Load initial section
         const defaultSection = app.state.activeSection;
+        // Check if the necessary load function exists before calling switchSection
          let canLoadDefault = false;
          switch (defaultSection) {
              case 'groups': canLoadDefault = !!(app.groups && app.groups.loadSavedGroups); break;
              case 'bookmarks': canLoadDefault = !!(app.bookmarks && app.bookmarks.loadBookmarks); break;
              case 'todo': canLoadDefault = !!(app.todo && app.todo.renderTodos); break;
-             case 'settings': canLoadDefault = true; break; // Settings section doesn't need specific load func yet
+             case 'settings': canLoadDefault = !!(app.settings && app.settings.displayShortcuts); break; // Settings needs its display func
          }
 
          if (canLoadDefault) {
-             // Call switchSection to set initial visibility and load content
-             switchSection(defaultSection);
+             switchSection(defaultSection); // This will also call app.loadSectionContent
              console.log(`Initial section '${defaultSection}' set.`);
          } else {
              console.error(`Cannot load default section '${defaultSection}', required functions missing.`);
-             // Optionally switch to a section that *can* be loaded, or show an error state.
-             // Maybe default to 'groups' if settings fails?
+             // Fallback to groups if possible
              if (app.groups && app.groups.loadSavedGroups) {
                  switchSection('groups');
                  console.warn("Default section failed, switched to 'groups'.");
+             } else {
+                 console.error("Fallback to 'groups' also failed. Check script loading and functions.");
+                 // Display an error message in the UI?
              }
          }
 
