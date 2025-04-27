@@ -27,7 +27,7 @@
       </div>
     </div>
 
-    <div class="search-container">
+    <div class="search-container" style="display: none;">
       <div class="search-input">
         <i class="fas fa-search search-icon"></i>
         <input type="text" id="searchInput" placeholder="Search saved items...">
@@ -35,7 +35,6 @@
       </div>
     </div>
 
-    <!-- Improved Save Tabs Dropdown -->
     <div id="saveDropdown" class="dropdown-panel" style="display: none;">
       <div class="dropdown-header">
         <h3>Save tabs</h3>
@@ -53,7 +52,6 @@
       </div>
     </div>
 
-    <!-- Improved Edit Folder Dialog -->
     <div id="editFolderDialog" class="dropdown-panel" style="display: none;">
       <div class="dropdown-header">
         <h3>Edit Folder</h3>
@@ -71,10 +69,14 @@
       </div>
     </div>
 
-    <!-- Main Content Sections -->
     <div id="groupsSection" class="section-container active-section">
       <div class="section-header">
-        <h2>Saved Groups</h2>
+        <div class="section-title-actions">
+             <h2>Saved Groups</h2>
+             <button class="action-button create-folder-header-btn" id="createFolderHeaderBtn" title="Create New Folder">
+                 <i class="fas fa-folder-plus"></i> Create Folder
+             </button>
+        </div>
         <div class="group-sort-controls">
           <label for="sortGroupsSelect">Sort by:</label>
           <select id="sortGroupsSelect">
@@ -109,7 +111,23 @@
       </div>
     </div>
 
-    <!-- Improved Create Folder Dialog -->
+    <div id="settingsSection" class="section-container">
+        <div class="section-header">
+            <h2>Settings</h2>
+        </div>
+        <div class="settings-content">
+            <div class="settings-item">
+                <h3>Data Management</h3>
+                <p>Export your saved groups, folders, bookmarks, and todos to a JSON file, or import them from a previously saved file.</p>
+                <div class="settings-actions">
+                    <button id="exportDataBtn" class="primary-btn"><i class="fas fa-file-export"></i> Export Data</button>
+                    <button id="importDataBtn" class="secondary-btn"><i class="fas fa-file-import"></i> Import Data</button>
+                    <input type="file" id="importFile" accept=".json" style="display: none;"> </div>
+            </div>
+            </div>
+    </div>
+
+
     <div id="folderDialog" class="dropdown-panel" style="display: none;">
       <div class="dropdown-header">
         <h3>Create Folder</h3>
@@ -127,7 +145,6 @@
       </div>
     </div>
 
-    <!-- Navigation Tabs -->
     <div class="nav-tabs">
       <button class="nav-tab active" data-section="groups">
         <i class="fas fa-layer-group"></i>
@@ -141,14 +158,13 @@
         <i class="fas fa-tasks"></i>
         <span>Todo</span>
       </button>
-      <button class="nav-tab" id="folderButton">
-        <i class="fas fa-folder-plus"></i>
-        <span>Folder</span>
+      <button class="nav-tab" data-section="settings">
+        <i class="fas fa-cog"></i>
+        <span>Settings</span>
       </button>
     </div>
   </div>
-  
-  <!-- Custom Dialog Components -->
+
   <div id="customConfirmOverlay" class="custom-confirm-overlay" style="display: none;">
     <div id="customConfirmDialog" class="custom-confirm-dialog">
       <p id="customConfirmMessage"></p>
@@ -168,11 +184,10 @@
     </div>
   </div>
 
-  <!-- Scripts -->
   <script src="js/utils.js"></script>
   <script src="js/groups.js"></script>
   <script src="js/bookmarks.js"></script>
   <script src="js/todo.js"></script>
-  <script src="js/main.js"></script>
+  <script src="js/settings.js"></script> <script src="js/main.js"></script>
 </body>
 </html>

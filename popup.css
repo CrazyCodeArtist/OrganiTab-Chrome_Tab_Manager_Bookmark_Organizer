@@ -1387,3 +1387,329 @@ li[data-group] .group-actions {
     padding: 10px; /* Add padding when expanded */
     border-top: 1px solid #eee; /* Separator */
   }
+/* --- Additions for popup.css --- */
+
+/* Style for the "Create Folder" button in the Groups header */
+.section-title-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Space between title and button */
+  flex-wrap: wrap; /* Allow button to wrap on small screens if needed */
+}
+
+.create-folder-header-btn {
+  padding: 5px 10px;
+  font-size: 0.85em;
+  background-color: #e0e0e0; /* Lighter background */
+  color: #333;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  display: inline-flex; /* Use flex for icon alignment */
+  align-items: center;
+  gap: 5px; /* Space between icon and text */
+}
+
+.create-folder-header-btn:hover {
+  background-color: #d5d5d5;
+}
+
+.create-folder-header-btn i {
+  font-size: 0.9em; /* Slightly smaller icon */
+}
+
+
+/* Styles for the Settings Section */
+#settingsSection {
+    /* Inherits section-container styles */
+    padding-bottom: 60px; /* Ensure space above nav tabs */
+}
+
+.settings-content {
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* Space between setting items */
+}
+
+.settings-item {
+    background-color: #f9f9f9; /* Slightly different background for item */
+    padding: 15px;
+    border-radius: 6px;
+    border: 1px solid #eee;
+}
+
+.settings-item h3 {
+    margin-top: 0;
+    margin-bottom: 8px;
+    font-size: 1.1em;
+    color: #333;
+}
+
+.settings-item p {
+    font-size: 0.9em;
+    color: #666;
+    line-height: 1.4;
+    margin-bottom: 15px;
+}
+
+.settings-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap; /* Allow buttons to wrap */
+}
+
+/* Use existing button styles or define specific ones */
+.settings-actions .primary-btn,
+.settings-actions .secondary-btn {
+    /* Assuming you have base styles for these */
+    padding: 8px 15px;
+    font-size: 0.9em;
+}
+
+.settings-actions .primary-btn i,
+.settings-actions .secondary-btn i {
+    margin-right: 6px;
+}
+
+/* Ensure nav tabs have consistent styling */
+.nav-tabs .nav-tab {
+    /* Add any specific styles if needed, e.g., ensuring flex properties */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1; /* Make tabs share space equally */
+    padding: 8px 5px; /* Adjust padding */
+    gap: 3px; /* Space between icon and text */
+}
+
+.nav-tabs .nav-tab i {
+    font-size: 1.2em; /* Adjust icon size */
+}
+
+.nav-tabs .nav-tab span {
+    font-size: 0.75em; /* Adjust text size */
+    white-space: nowrap; /* Prevent text wrapping */
+}
+
+/* Adjust search container visibility logic if needed */
+.search-container {
+    /* Ensure it doesn't interfere when hidden */
+    margin-bottom: 10px; /* Add some space below */
+}
+
+/* Adjustments for group list item layout */
+.group-list-item {
+    display: flex; /* Use flexbox for better alignment */
+    justify-content: space-between;
+    align-items: flex-start; /* Align items to the top */
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    position: relative; /* For potential absolute positioning inside */
+    gap: 10px; /* Space between info and actions */
+}
+
+.group-item {
+    /* Contains info + status */
+    flex-grow: 1; /* Allow info section to take available space */
+    display: flex;
+    flex-direction: column; /* Stack info and status */
+}
+
+.group-info {
+    /* Contains name container + status */
+     display: flex;
+     flex-direction: column; /* Stack name and status */
+     margin-bottom: 5px; /* Space below name/status block */
+}
+
+.group-name-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px; /* Space between name and status */
+    cursor: pointer;
+}
+
+.group-name {
+    font-weight: 600;
+    color: #333;
+    flex-grow: 1; /* Allow name to take space */
+    word-break: break-word; /* Prevent long names overflowing */
+}
+
+.edit-group-icon {
+    color: #888;
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: color 0.2s ease;
+    visibility: hidden; /* Hide initially */
+    opacity: 0;
+    transition: visibility 0s linear 0.2s, opacity 0.2s ease;
+}
+
+.group-list-item:hover .edit-group-icon {
+    visibility: visible; /* Show on hover */
+    opacity: 1;
+    transition-delay: 0s;
+}
+
+.group-status {
+    font-size: 0.8em;
+    color: #777;
+}
+
+.group-actions {
+    display: flex;
+    align-items: center; /* Align buttons vertically */
+    gap: 5px;
+    flex-shrink: 0; /* Prevent action buttons from shrinking */
+}
+
+.group-actions .action-button {
+    padding: 4px 8px; /* Smaller padding */
+    font-size: 0.85em;
+    background: none;
+    border: 1px solid transparent; /* Keep space consistent */
+    color: #666;
+    border-radius: 4px;
+}
+.group-actions .action-button:hover {
+    background-color: #f0f0f0;
+    border-color: #ddd;
+    color: #333;
+}
+.group-actions .action-button .open-tab-text {
+    display: none; /* Hide text by default */
+}
+.group-actions .action-button i {
+    font-size: 1.1em; /* Slightly larger icons */
+}
+
+/* Make Open text visible on larger screens if desired */
+@media (min-width: 400px) {
+    .group-actions .action-button .open-tab-text {
+        display: inline; /* Show text */
+        margin-left: 4px;
+    }
+    .group-actions .action-button {
+        padding: 4px 10px; /* Adjust padding */
+    }
+}
+
+
+/* Inline Edit Styles */
+.group-name-edit-container {
+    display: flex;
+    align-items: center;
+    width: 100%; /* Take full width */
+    gap: 5px;
+}
+
+.group-name-input {
+    flex-grow: 1;
+    padding: 4px 6px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    font-size: 1em; /* Match original name size */
+}
+.group-name-input:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.edit-actions {
+    display: flex;
+    gap: 3px;
+}
+
+.edit-actions button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 3px;
+    font-size: 1.1em; /* Adjust icon size */
+    color: #555;
+    border-radius: 3px;
+}
+.edit-actions button:hover {
+    background-color: #eee;
+}
+.edit-actions .save-edit-btn { color: #28a745; } /* Green for save */
+.edit-actions .cancel-edit-btn { color: #dc3545; } /* Red for cancel */
+
+
+/* Group Details (Tab List) */
+.group-details {
+    /* Styles for the hidden tab list container */
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+    width: 100%; /* Span full width below the item */
+    padding: 0 10px; /* Add padding only when expanded */
+    box-sizing: border-box;
+    /* Position it below the main flex item */
+    flex-basis: 100%; /* Make it take full width in flex context */
+
+}
+
+.group-details.expanded {
+    max-height: 300px; /* Adjust as needed, or use 'none' if height is unpredictable */
+    overflow-y: auto; /* Add scroll if content exceeds max-height */
+    padding: 10px; /* Add padding when expanded */
+    border-top: 1px dashed #eee; /* Separator */
+    margin-top: 10px; /* Space above */
+}
+
+.detailed-tab-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.detailed-tab-item {
+    display: flex;
+    align-items: center;
+    padding: 5px 0;
+    gap: 8px;
+    font-size: 0.9em;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: background-color 0.2s ease;
+}
+.detailed-tab-item:hover {
+    background-color: #f0f0f0;
+}
+
+.detailed-tab-favicon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+.detailed-tab-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #555;
+}
+
+.empty-group-message {
+    font-style: italic;
+    color: #888;
+    padding: 5px 0;
+    font-size: 0.9em;
+}
+
+/* Rotate chevron icon */
+.toggle-details-btn i.rotated {
+    transform: rotate(180deg);
+}
+.toggle-details-btn i {
+    transition: transform 0.3s ease-in-out;
+}
+
+
