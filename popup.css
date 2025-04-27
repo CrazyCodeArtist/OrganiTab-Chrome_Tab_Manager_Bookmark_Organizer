@@ -1076,3 +1076,314 @@ li {
       background-color: transparent;
   }
   
+/* === Groups Tab - Inline Details & Editing Enhancements === */
+/* Group Item Adjustments */
+li[data-group] .group-item {
+    padding-right: 10px;
+    width: calc(100% - 10px); /* Account for padding */
+    display: flex;
+    align-items: center;
+
+}
+
+li[data-group] .group-info {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    margin-right: 10px;
+    overflow: hidden;
+}
+
+/* Group Actions - Move to be part of the main layout */
+li[data-group] .group-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 5px; /* Space between buttons */
+}
+
+/* Remove original icon */
+.group-icon {
+    display: none;
+}
+
+/* Group Name Display & Editing */
+.group-name-container {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+.group-name-container:hover .edit-group-icon {
+    opacity: 1;
+}
+.group-name {
+    font-size: 15px;
+    font-weight: 500;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 3px 5px;
+    border-radius: 3px;
+    transition: background-color 0.2s ease;
+}
+.group-name:hover {
+    background-color: #f0f0f0;
+}
+.edit-group-icon {
+    font-size: 12px;
+    color: var(--edit-color);
+    margin-left: 8px;
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+    cursor: pointer;
+}
+
+.group-name-edit-container {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+.group-name-input {
+    flex-grow: 1;
+    padding: 4px 6px;
+    font-size: 15px;
+    border: 1px solid var(--edit-color);
+    border-radius: 3px;
+    margin-right: 5px;
+    font-family: inherit;
+}
+.edit-actions button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 4px;
+    margin-left: 3px;
+}
+.edit-actions .save-edit-btn { color: var(--primary-color); }
+.edit-actions .cancel-edit-btn { color: var(--delete-hover); }
+
+/* Toggle Button */
+.toggle-details-btn {
+    color: var(--primary-color);
+}
+.toggle-details-btn i {
+    transition: transform 0.3s ease;
+}
+.toggle-details-btn i.rotated {
+    transform: rotate(180deg);
+}
+
+/* Group Details (Tab List) Container - KEY FIX HERE */
+.group-details {
+    max-height: 0;
+    overflow: hidden; /* Hide initially */
+    transition: max-height 0.35s ease-out, padding 0.35s ease-out;
+    padding: 0 15px;
+    background-color: #fafafa;
+    border-top: 0; /* Remove top border initially */
+    margin-top: 0;
+    width: 100%; /* Take full width */
+    box-sizing: border-box; /* Include padding in width */
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px;
+    clear: both; /* Force to next line */
+    /* Position below the group item */
+    display: block; /* Ensure it's a block element */
+}
+.group-details.expanded {
+    max-height: 150px; /* Adjust as needed */
+    padding: 10px 15px;
+    margin-top: 8px;
+    border-top: 1px dashed var(--border-color); /* Add separator when expanded */
+    overflow-y: auto; /* Add scrollbar when expanded */
+}
+
+/* Styling for individual tabs in the details list */
+.detailed-tab-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.detailed-tab-item {
+    display: flex;
+    align-items: center;
+    padding: 6px 0;
+    font-size: 13px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+    overflow: hidden;
+}
+.detailed-tab-item:last-child {
+    border-bottom: none;
+}
+.detailed-tab-item:hover {
+    background-color: #f0f0f0;
+}
+.detailed-tab-favicon {
+    width: 16px;
+    height: 16px;
+    margin-right: 8px;
+    flex-shrink: 0;
+}
+.detailed-tab-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #333;
+}
+.detailed-tab-url { /* Optional feature */
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-left: 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: none;
+}
+.detailed-tab-item:hover .detailed-tab-url {
+    display: block; /* Uncomment if you want to show URL on hover */
+}
+
+#saveDropdown,#editFolderDialog,#dropdown-panel,#folderDialog{
+    display: none;
+}
+
+  /* Save-Group Dropdown Container */
+#saveDropdown {
+    position: absolute;
+    top: 56px;      /* adjust as needed */
+    right: 16px;    /* adjust as needed */
+    width: 320px;
+    background: var(--card-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    padding: 16px;
+  }
+  
+  /* Header / Title */
+  #saveDropdown .dropdown-header {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: var(--text-color);
+  }
+  
+  /* Group Name Input */
+  #saveDropdown input[type="text"] {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 0.95rem;
+    color: var(--text-color);
+    background: var(--background-color);
+  }
+  
+  /* Tabs Checklist */
+  #saveDropdown .tabs-checklist {
+    max-height: 200px;
+    overflow-y: auto;
+    margin-bottom: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--background-color);
+    padding: 8px;
+  }
+  
+  /* Individual Tab Item */
+  .tab-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .tab-item:last-child {
+    margin-bottom: 0;
+  }
+  .tab-favicon {
+    width: 16px;
+    height: 16px;
+    margin-right: 8px;
+  }
+  .tab-title {
+    flex: 1;
+    font-size: 0.9rem;
+    color: var(--text-color);
+  }
+  
+  /* “Select All” / “Deselect All” Button */
+  #saveDropdown .select-all-btn {
+    display: inline-block;
+    margin-bottom: 12px;
+    background: none;
+    border: none;
+    font-size: 0.9rem;
+    color: var(--primary-color);
+    cursor: pointer;
+  }
+  #saveDropdown .select-all-btn:hover {
+    color: var(--button-hover);
+  }
+  
+  /* Action Buttons */
+  #saveDropdown .actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+  #saveDropdown .actions button {
+    padding: 8px 14px;
+    font-size: 0.9rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  #saveDropdown .actions .save-tabs-btn {
+    background: var(--primary-color);
+    color: #fff;
+  }
+  #saveDropdown .actions .save-tabs-btn:hover {
+    background: var(--button-hover);
+  }
+  #saveDropdown .actions .cancel-btn {
+    background: var(--delete-hover);
+    color: #fff;
+  }
+  #saveDropdown .actions .cancel-btn:hover {
+    background: #d32f2f;
+  }
+  
+  /* Hide by default */
+  #saveDropdown {
+    display: none;
+  }
+  li[data-group] {
+  flex-direction: column; /* <-- Make sure this is set */
+  }
+  .group-details {
+    width: 100%;         /* Take full width */
+    box-sizing: border-box; /* Include padding in width */
+    clear: both;         /* If floats were used above */
+    /* Ensure no problematic float or position rules */
+    float: none;
+    position: static; /* Or relative if needed inside */
+  
+    /* Styles for hiding/showing */
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+    /* Add padding, background, border-top etc. as needed */
+    padding: 0 10px;
+    background-color: #f9f9f9; /* Example */
+  }
+  
+  .group-details.expanded {
+    max-height: 400px; /* Or enough height */
+    padding: 10px; /* Add padding when expanded */
+    border-top: 1px solid #eee; /* Separator */
+  }

@@ -14,6 +14,8 @@ app.groups.showSaveDropdown = function() {
     app.elements.groupNameInput.focus();
 };
 
+
+
 app.groups.populateTabsChecklist = function() {
     const fragment = document.createDocumentFragment();
     app.state.currentTabs.forEach((tab) => {
@@ -75,6 +77,7 @@ app.groups.saveSelectedTabs = function() {
 
 // --- Group/Folder Rendering & Management ---
 
+
 app.groups.createGroupListItem = function(name, group, folderName = null) {
     const li = document.createElement('li');
     li.dataset.group = name;
@@ -82,30 +85,86 @@ app.groups.createGroupListItem = function(name, group, folderName = null) {
         li.dataset.folder = folderName;
     }
 
-    const iconClass = app.utils.getIconClass(name); // Use utility
+    // Main visible part of the group item
+    const groupItemDiv = document.createElement('div');
+    groupItemDiv.className = 'group-item';
+
+    // Group Info (Name is now editable)
+    const groupInfoDiv = document.createElement('div');
+    groupInfoDiv.className = 'group-info';
+
+    // Container for the name and edit icon/input
+    const groupNameContainer = document.createElement('div');
+    groupNameContainer.className = 'group-name-container';
+    groupNameContainer.innerHTML = `
+        <span class="group-name" title="Click to edit name">${name}</span>
+        <i class="fas fa-pencil-alt edit-group-icon" title="Edit name"></i>
+    `;
+    groupInfoDiv.appendChild(groupNameContainer);
+
+    // Group Status (Tab count and Date)
     const date = new Date(group.dateAdded || Date.now());
     const formattedDate = date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
     const tabCount = group.tabs ? group.tabs.length : 0;
 
-    li.innerHTML = `
-        <div class="group-item">
-            <div class="group-icon"><i class="${iconClass}"></i></div>
-            <div class="group-info">
-                <div class="group-name">${name}</div>
-                <div class="group-status">${tabCount} tab${tabCount !== 1 ? 's' : ''}</div>
-                <div class="group-date">${formattedDate}</div>
-            </div>
-        </div>
-        <div class="group-actions">
-            <button class="action-button open-btn" title="Open Tabs"><i class="fas fa-external-link-alt"></i><span class="open-tab-text">Open</span></button>
-            <button class="action-button delete-btn" title="Delete Group"><i class="fas fa-trash"></i></button>
-        </div>
+const groupStatusDiv = document.createElement('div');
+groupStatusDiv.className = 'group-status';
+groupStatusDiv.innerHTML = `${tabCount} tab${tabCount !== 1 ? 's' : ''} <span style="color: #bbb; margin: 0 5px;">|</span> ${formattedDate}`;
+
+
+    groupInfoDiv.appendChild(groupStatusDiv);
+
+    // Action Buttons
+    const groupActionsDiv = document.createElement('div');
+    groupActionsDiv.className = 'group-actions';
+    groupActionsDiv.innerHTML = `
+        <button class="action-button open-btn" title="Open Tabs in New Window">
+            <i class="fas fa-external-link-alt"></i>
+            <span class="open-tab-text">Open</span>
+        </button>
+        <button class="action-button delete-btn" title="Delete Group">
+            <i class="fas fa-trash"></i>
+        </button>
+        <button class="action-button toggle-details-btn" title="Show/Hide Tabs List">
+            <i class="fas fa-chevron-down"></i>
+        </button>
     `;
+
+    // Assemble the main visible part
+    groupItemDiv.appendChild(groupInfoDiv);
+    // groupItemDiv.appendChild(groupActionsDiv); // Actions might be outside group-item now
+
+    // Hidden Details Section (Tab List)
+    const groupDetailsDiv = document.createElement('div');
+    groupDetailsDiv.className = 'group-details'; // Initially hidden by CSS (max-height: 0)
+    const tabListUl = document.createElement('ul');
+    tabListUl.className = 'detailed-tab-list';
+
+    if (group.tabs && group.tabs.length > 0) {
+        group.tabs.forEach(tab => {
+            const tabLi = document.createElement('li');
+            tabLi.className = 'detailed-tab-item';
+            // Store URL directly on the element for easy access on click
+            tabLi.dataset.url = tab.url;
+            tabLi.innerHTML = `
+            <img class="detailed-tab-favicon" src="${tab.favIconUrl || 'icon.png'}" onerror="this.src='icon.png'" alt="">
+            <span class="detailed-tab-title" title="${tab.title || tab.url}">${tab.title || 'No Title'}</span>
+        `;
+tabListUl.appendChild(tabLi);
+});
+} else {
+tabListUl.innerHTML = '<li style="font-style: italic; color: #888; padding: 5px 0;">No tabs in this group.</li>';
+}
+groupDetailsDiv.appendChild(tabListUl);
+
+    // Add parts to the main list item (li)
+    li.appendChild(groupItemDiv); // Visible part
+    li.appendChild(groupActionsDiv); // Actions next to visible part
+    li.appendChild(groupDetailsDiv); // Hidden details part
+
     return li;
 };
 
-// Inside groups.js
-// REPLACE the existing loadSavedGroups function with this:
 app.groups.loadSavedGroups = function() {
     chrome.storage.local.get(['tabGroups', 'folders'], ({ tabGroups = {}, folders = {} }) => {
         // --- Sorting Logic ---
@@ -165,24 +224,26 @@ app.groups.loadSavedGroups = function() {
                 const iconClass = isExpanded ? 'fa-chevron-up rotated' : 'fa-chevron-down';
 
                 folderElement.innerHTML = `
-                    <div class="folder-header">
-                        <div class="folder-title">
-                            <i class="fas fa-folder"></i>
-                            <span><span class="math-inline">\{folderName\}</span\><span class="folder-count">({folderGroupCount})</span>
-</div>
-<div class="folder-header-actions">
-<button class="action-button edit-folder-btn" title="Edit Folder"><i class="fas fa-edit"></i></button>
-<button class="action-button toggle-folder-btn" title="Expand/Collapse"><i class="fas ${iconClass}"></i></button>
-</div>
-</div>
-<div class="folder-content ${isExpanded ? 'expanded' : ''}">
-<ul></ul>
-<div class="folder-actions">
-<button class="action-button delete-folder-btn" title="Delete Folder Only (Groups Remain)">
-<i class="fas fa-trash"></i> Delete Folder
-</button>
-</div>
-</div>`;const folderContentUl = folderElement.querySelector('.folder-content ul');
+                <div class="folder-header">
+                    <div class="folder-title">
+                        <i class="fas fa-folder"></i>
+                        <span>${folderName}<span class="folder-count">(${folderGroupCount})</span></span>
+                    </div>
+                    <div class="folder-header-actions">
+                        <button class="action-button edit-folder-btn" title="Edit Folder"><i class="fas fa-edit"></i></button>
+                        <button class="action-button toggle-folder-btn" title="Expand/Collapse"><i class="fas ${iconClass}"></i></button>
+                    </div>
+                </div>
+                <div class="folder-content ${isExpanded ? 'expanded' : ''}">
+                    <ul></ul>
+                    <div class="folder-actions">
+                        <button class="action-button delete-folder-btn" title="Delete Folder Only (Groups Remain)">
+                            <i class="fas fa-trash"></i> Delete Folder
+                        </button>
+                    </div>
+                </div>`;
+
+;const folderContentUl = folderElement.querySelector('.folder-content ul');
 if (folder.groups && folderGroupCount > 0) {
      // Sort groups *within* the folder too
      const sortedGroupNames = Object.keys(folder.groups).sort((a, b) =>
@@ -522,98 +583,297 @@ app.groups.clearSearch = function() {
     }
 };
 
+/**
+ * @param {string} oldName - The current name (key) of the group.
+ * @param {string} newName - The desired new name for the group.
+ * @param {string|null} folderName - The name of the folder containing the group, or null if standalone.
+ * @param {function} callback - Function to call after renaming attempt (success or failure).
+ */
+app.groups.renameTabGroup = function(oldName, newName, folderName, callback) {
+    newName = newName.trim();
+    if (!newName || newName === oldName) {
+        console.log("Rename cancelled: Name unchanged or empty.");
+        if (callback) callback(false, "Name unchanged or empty.");
+        return;
+    }
+
+    chrome.storage.local.get(['tabGroups', 'folders'], ({ tabGroups = {}, folders = {} }) => {
+        let groupData;
+        let targetStorage = {}; // Will hold either tabGroups or folders
+        let storageKey = 'tabGroups'; // Default to standalone
+
+        // Check for name conflict
+        if (folderName) {
+            if (!folders[folderName] || !folders[folderName].groups) {
+                 console.error(`Folder "${folderName}" not found for renaming group.`);
+                 if (callback) callback(false, "Parent folder not found.");
+                 return;
+            }
+            if (folders[folderName].groups[newName]) {
+                app.utils.showCustomAlert(`A group named "${newName}" already exists in the folder "${folderName}".`);
+                if (callback) callback(false, "Name conflict in folder.");
+                return;
+            }
+            
+            if (!folders[folderName].groups[oldName]) {
+                 console.error(`Group "<span class="math-inline">\{oldName\}" not found in folder "</span>{folderName}".`);
+                 if (callback) callback(false, "Original group not found in folder.");
+                 return;
+            }
+            groupData = folders[folderName].groups[oldName];
+            storageKey = 'folders';
+            targetStorage = folders; // We are modifying the folders object
+
+        } else { // Standalone group
+            if (tabGroups[newName]) {
+                app.utils.showCustomAlert(`A standalone group named "${newName}" already exists.`);
+                if (callback) callback(false, "Name conflict (standalone).");
+                return;
+            }
+             if (!tabGroups[oldName]) {
+                 console.error(`Standalone group "${oldName}" not found.`);
+                 if (callback) callback(false, "Original standalone group not found.");
+                 return;
+             }
+            groupData = tabGroups[oldName];
+            storageKey = 'tabGroups';
+            targetStorage = tabGroups; // Modifying tabGroups object
+        }
+
+        // Perform the rename by deleting the old key and adding the new key
+        if (folderName) {
+            // Modify the specific folder's groups object
+            delete folders[folderName].groups[oldName];
+            folders[folderName].groups[newName] = groupData;
+            targetStorage = folders; // Ensure we save the modified folders object
+        } else {
+            // Modify the main tabGroups object
+            delete tabGroups[oldName];
+            tabGroups[newName] = groupData;
+            targetStorage = tabGroups; // Ensure we save the modified tabGroups object
+        }
+
+        // Prepare the data to set back into storage
+        const dataToSet = {};
+        dataToSet[storageKey] = targetStorage; // This sets either {tabGroups: ...} or {folders: ...}
+
+        chrome.storage.local.set(dataToSet, () => {
+        
+
+            if (callback) callback(true); // Indicate success
+        });
+    });
+};
+
 // --- Event Handlers (Specific to Groups section, initialized in main.js) ---
 app.groups.setupEventListeners = function() {
 // Event Delegation for Dynamic Group/Folder List
 app.elements.groupsList.addEventListener('click', (e) => {
     const target = e.target;
     // Find closest relevant elements
-    const groupItem = target.closest('li[data-group]');
-    const folderItem = target.closest('.folder-item[data-folder]');
+    const groupLi = target.closest('li[data-group]'); // The main list item for the group
+    const groupItem = target.closest('.group-item'); // The visible info part
+    const folderItem = target.closest('.folder-item[data-folder]'); // Parent folder, if any
     const folderHeader = target.closest('.folder-header');
+    const detailedTab = target.closest('.detailed-tab-item'); // Click on a tab in the details list
+    const groupNameSpan = target.closest('.group-name'); // Click on the name span itself
+    const editIcon = target.closest('.edit-group-icon'); // Click on the pencil icon
 
-    // Action Buttons inside list items or folder headers
+    // --- Action Buttons ---
     const openBtn = target.closest('.open-btn');
-    const deleteGroupBtn = target.closest('.delete-btn'); // Group delete
-    const editFolderBtn = target.closest('.edit-folder-btn');
+    const deleteGroupBtn = target.closest('.delete-btn');
+    const toggleDetailsBtn = target.closest('.toggle-details-btn'); // New button
+    const editFolderBtn = target.closest('.edit-folder-btn'); // Folder actions
     const toggleFolderBtn = target.closest('.toggle-folder-btn');
     const deleteFolderBtn = target.closest('.delete-folder-btn');
 
-    // --- Logic for toggling folder expansion ---
-    const handleToggle = (contentElement, iconElement) => {
-         if (contentElement && iconElement) {
-             const isExpanding = !contentElement.classList.contains('expanded');
-             contentElement.classList.toggle('expanded', isExpanding);
-             // Toggle rotation class on the icon itself
-             iconElement.classList.toggle('rotated', isExpanding);
-             // Optional: Update chevron direction class if needed for accessibility/fallback
-             // (Keep these if you rely on them elsewhere, otherwise 'rotated' is sufficient)
-             iconElement.classList.toggle('fa-chevron-down', !isExpanding);
-             iconElement.classList.toggle('fa-chevron-up', isExpanding);
-         }
-    };
+    // --- Inline Edit Buttons (Dynamically added) ---
+    const saveEditBtn = target.closest('.save-edit-btn');
+    const cancelEditBtn = target.closest('.cancel-edit-btn');
 
-    // Toggle Folder Expansion via Button
-    if (toggleFolderBtn && folderItem) {
-        e.stopPropagation(); // Prevent header click toggle
-        const folderContent = folderItem.querySelector('.folder-content');
-        const icon = toggleFolderBtn.querySelector('i'); // Target the icon directly
-        handleToggle(folderContent, icon);
+    // --- Prevent actions if editing ---
+    if (groupLi && groupLi.classList.contains('editing')) {
+         // If the click is NOT on save/cancel, ignore it to prevent side effects
+         if (!saveEditBtn && !cancelEditBtn && !target.closest('.group-name-input')) {
+             e.stopPropagation();
+             return;
+         }
+    }
+
+    // --- Handle clicking a tab in the detailed list ---
+    if (detailedTab && detailedTab.dataset.url) {
+        e.stopPropagation(); // Don't trigger other group actions
+        const urlToOpen = detailedTab.dataset.url;
+        console.log('Opening individual tab:', urlToOpen);
+        chrome.tabs.create({ url: urlToOpen, active: true });
         return; // Action handled
     }
 
-    // Toggle Folder Expansion via Header Click (excluding buttons)
-    if (folderHeader && folderItem && !target.closest('.folder-header-actions button')) {
-         const folderContent = folderItem.querySelector('.folder-content');
-         // Find the icon within the header's toggle button
-         const icon = folderHeader.querySelector('.toggle-folder-btn i');
-         handleToggle(folderContent, icon);
-         return; // Action handled
-    }
-    // --- End of toggle logic ---
+    // --- Handle Folder Toggles (Unchanged from previous step) ---
+     const handleToggleFolder = (contentElement, iconElement) => { /* ... copy from previous step ... */
+          if (contentElement && iconElement) {
+             const isExpanding = !contentElement.classList.contains('expanded');
+             contentElement.classList.toggle('expanded', isExpanding);
+             iconElement.classList.toggle('rotated', isExpanding);
+             iconElement.classList.toggle('fa-chevron-down', !isExpanding);
+             iconElement.classList.toggle('fa-chevron-up', isExpanding);
+         }
+     };
+     if (toggleFolderBtn && folderItem) { e.stopPropagation(); const fc = folderItem.querySelector('.folder-content'); const i = toggleFolderBtn.querySelector('i'); handleToggleFolder(fc, i); return; }
+     if (folderHeader && folderItem && !target.closest('.folder-header-actions button')) { const fc = folderItem.querySelector('.folder-content'); const i = folderHeader.querySelector('.toggle-folder-btn i'); handleToggleFolder(fc, i); return; }
+
+     // --- Handle Folder Edit/Delete (Unchanged) ---
+     if (editFolderBtn && folderItem) { e.stopPropagation(); const fn=folderItem.dataset.folder; if(fn) app.groups.openEditFolderDialog(fn); return; }
+     if (deleteFolderBtn && folderItem) { e.stopPropagation(); const fn=folderItem.dataset.folder; if(fn) app.groups.deleteFolder(fn); return; }
 
 
-     // Edit Folder Button
-    if (editFolderBtn && folderItem) {
+    // --- Handle Group-Specific Actions (Needs groupLi) ---
+    if (!groupLi) return; // Exit if the click wasn't within a group list item
+
+    const groupName = groupLi.dataset.group;
+    const folderName = groupLi.dataset.folder; // null if standalone
+
+    // --- Toggle Group Details List ---
+    if (toggleDetailsBtn) {
         e.stopPropagation();
-        const folderName = folderItem.dataset.folder;
-        if (folderName) app.groups.openEditFolderDialog(folderName);
-        return;
+        const detailsDiv = groupLi.querySelector('.group-details');
+        const icon = toggleDetailsBtn.querySelector('i');
+        if (detailsDiv && icon) {
+            const isExpanding = !detailsDiv.classList.contains('expanded');
+            detailsDiv.classList.toggle('expanded', isExpanding);
+            icon.classList.toggle('rotated', isExpanding); // Toggle rotation class
+            // Optional: Change icon based on state
+            icon.classList.toggle('fa-chevron-down', !isExpanding);
+            icon.classList.toggle('fa-chevron-up', isExpanding);
+        }
+        return; // Action handled
     }
 
-     // Delete Folder Button
-    if (deleteFolderBtn && folderItem) {
-         e.stopPropagation();
-        const folderName = folderItem.dataset.folder;
-         if (folderName) app.groups.deleteFolder(folderName);
-         return;
+    // --- Initiate Inline Group Name Edit ---
+    if (editIcon || groupNameSpan) {
+        e.stopPropagation();
+        const nameContainer = groupLi.querySelector('.group-name-container');
+        const currentNameSpan = nameContainer.querySelector('.group-name');
+        const currentName = currentNameSpan.textContent;
+
+        // Prevent starting edit if already editing
+        if (groupLi.classList.contains('editing')) return;
+        groupLi.classList.add('editing'); // Mark as editing
+
+        // Create input field and action buttons
+        nameContainer.innerHTML = `
+            <div class="group-name-edit-container">
+                <input type="text" class="group-name-input" value="${currentName}" />
+                <div class="edit-actions">
+                    <button class="save-edit-btn" title="Save Name"><i class="fas fa-check"></i></button>
+                    <button class="cancel-edit-btn" title="Cancel Edit"><i class="fas fa-times"></i></button>
+                </div>
+            </div>
+        `;
+        const inputField = nameContainer.querySelector('.group-name-input');
+        inputField.focus();
+        inputField.select(); // Select text for easy replacement
+
+        // Add temporary listener for Enter/Escape keys on the input
+         const handleEditKeydown = (keyEvent) => {
+             if (keyEvent.key === 'Enter') {
+                 nameContainer.querySelector('.save-edit-btn').click(); // Simulate save click
+             } else if (keyEvent.key === 'Escape') {
+                 nameContainer.querySelector('.cancel-edit-btn').click(); // Simulate cancel click
+             }
+         };
+         inputField.addEventListener('keydown', handleEditKeydown);
+         // Store the handler to remove it later
+         inputField.dataset.keydownHandler = handleEditKeydown; // Not ideal, but works for this context
+
+
+        return; // Action handled
     }
 
-     // Open Group Button
-     if (openBtn && groupItem) {
-         const groupName = groupItem.dataset.group;
-         const folderName = groupItem.dataset.folder; // null for standalone
-         if (groupName) {
-             chrome.storage.local.get(['tabGroups', 'folders'], ({ tabGroups = {}, folders = {} }) => {
-                 const groupData = folderName ? folders[folderName]?.groups?.[groupName] : tabGroups[groupName];
-                 if (groupData) app.groups.openTabGroup(groupData);
-                 else {
-                    console.error(`Group data not found for ${groupName} in ${folderName || 'standalone'}`);
-                    app.utils.showCustomAlert("Error: Could not find data for this group.");
+    // --- Save Inline Group Name Edit ---
+    if (saveEditBtn) {
+        e.stopPropagation();
+        const nameContainer = groupLi.querySelector('.group-name-container');
+        const inputField = nameContainer.querySelector('.group-name-input');
+        const newName = inputField.value.trim();
+        const originalName = groupLi.dataset.group; // Get original name from dataset
+
+        if (newName && newName !== originalName) {
+             // Call the rename function
+             app.groups.renameTabGroup(originalName, newName, folderName, (success, errorMsg) => {
+                 if (success) {
+                     // Update UI immediately
+                     nameContainer.innerHTML = `
+                         <span class="group-name" title="Click to edit name">${newName}</span>
+                         <i class="fas fa-pencil-alt edit-group-icon" title="Edit name"></i>
+                     `;
+                     groupLi.dataset.group = newName; // IMPORTANT: Update the dataset attribute!
+                     groupLi.classList.remove('editing');
+                     // Maybe re-sort/reload if name change affects order? Optional.
+                     // app.groups.loadSavedGroups(); // Or trigger sort update
+                     if(inputField.dataset.keydownHandler) inputField.removeEventListener('keydown', inputField.dataset.keydownHandler);
+
+                 } else {
+                     // Error handled by renameTabGroup (alert), just revert UI minimally
+                     console.error("Rename failed:", errorMsg);
+                     // Optionally revert input or keep it open for user to fix
+                     inputField.focus(); // Keep focus on input for correction
+                     // Optionally add a visual error state to the input
                  }
              });
-         }
+
+        } else if (newName === originalName) { // Name didn't change, just cancel edit
+             nameContainer.innerHTML = `
+                <span class="group-name" title="Click to edit name">${originalName}</span>
+                <i class="fas fa-pencil-alt edit-group-icon" title="Edit name"></i>
+            `;
+            groupLi.classList.remove('editing');
+            if(inputField.dataset.keydownHandler) inputField.removeEventListener('keydown', inputField.dataset.keydownHandler);
+
+        } else {
+            // Name was empty - maybe show alert or just revert
+            app.utils.showCustomAlert("Group name cannot be empty.");
+             inputField.focus();
+        }
+        return; // Action handled
+    }
+
+    // --- Cancel Inline Group Name Edit ---
+    if (cancelEditBtn) {
+        e.stopPropagation();
+        const nameContainer = groupLi.querySelector('.group-name-container');
+        const originalName = groupLi.dataset.group; // Get original name from dataset
+        const inputField = nameContainer.querySelector('.group-name-input');
+
+
+        // Revert UI
+        nameContainer.innerHTML = `
+            <span class="group-name" title="Click to edit name">${originalName}</span>
+            <i class="fas fa-pencil-alt edit-group-icon" title="Edit name"></i>
+        `;
+        groupLi.classList.remove('editing');
+        if(inputField && inputField.dataset.keydownHandler) inputField.removeEventListener('keydown', inputField.dataset.keydownHandler);
+
+
+        return; // Action handled
+    }
+
+    // --- Handle Standard Group Open/Delete (Ensure these come after edit logic) ---
+    if (openBtn) {
+         console.log("Open button clicked for group:", groupName);
+         chrome.storage.local.get(['tabGroups', 'folders'], ({ tabGroups = {}, folders = {} }) => {
+             const groupData = folderName ? folders[folderName]?.groups?.[groupName] : tabGroups[groupName];
+             if (groupData) app.groups.openTabGroup(groupData);
+             else { app.utils.showCustomAlert("Error: Could not find data for this group."); }
+         });
+         return;
+     }
+     if (deleteGroupBtn) {
+        console.log("Delete button clicked for group:", groupName);
+         app.groups.deleteTabGroup(groupName, folderName);
          return;
      }
 
-     // Delete Group Button
-     if (deleteGroupBtn && groupItem) {
-         const groupName = groupItem.dataset.group;
-         const folderName = groupItem.dataset.folder; // null if standalone
-         if (groupName) app.groups.deleteTabGroup(groupName, folderName); // Pass folder context for msg
-         return;
-     }
-     
 }); // End of groupsList listener
 
     // Other specific listeners for group/folder UI elements if necessary

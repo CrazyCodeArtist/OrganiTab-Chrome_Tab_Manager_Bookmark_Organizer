@@ -35,88 +35,99 @@
       </div>
     </div>
 
-    <div id="saveDropdown" class="dropdown-panel">
+    <!-- Improved Save Tabs Dropdown -->
+    <div id="saveDropdown" class="dropdown-panel" style="display: none;">
       <div class="dropdown-header">
         <h3>Save tabs</h3>
-        <button id="closeDropdownBtn"><i class="fas fa-times"></i></button>
+        <button id="closeDropdownBtn" class="close-btn"><i class="fas fa-times"></i></button>
       </div>
-      <input type="text" id="groupNameInput" placeholder="Group name..." />
-      <div class="tabs-checklist" id="tabsChecklist">
+      <div class="dropdown-content">
+        <input type="text" id="groupNameInput" placeholder="Group name..." class="full-width-input" />
+        <div class="tabs-checklist-container">
+          <div class="tabs-checklist" id="tabsChecklist"></div>
         </div>
+      </div>
       <div class="dropdown-footer">
-        <button id="selectAllBtn">Select All</button>
-        <button id="saveTabsButton">Save Group</button>
+        <button id="selectAllBtn" class="secondary-btn">Select All</button>
+        <button id="saveTabsButton" class="primary-btn">Save Group</button>
       </div>
     </div>
 
-    <div id="editFolderDialog" class="dropdown-panel">
+    <!-- Improved Edit Folder Dialog -->
+    <div id="editFolderDialog" class="dropdown-panel" style="display: none;">
       <div class="dropdown-header">
         <h3>Edit Folder</h3>
-        <button id="closeEditFolderBtn"><i class="fas fa-times"></i></button>
+        <button id="closeEditFolderBtn" class="close-btn"><i class="fas fa-times"></i></button>
       </div>
-      <input type="text" id="editFolderName" placeholder="Enter folder name..." class="folder-name-input"/>
-      <div class="group-selection" id="editGroupSelection">
+      <div class="dropdown-content">
+        <input type="text" id="editFolderName" placeholder="Enter folder name..." class="full-width-input"/>
+        <div class="group-selection-container">
+          <div class="group-selection" id="editGroupSelection"></div>
         </div>
+      </div>
       <div class="dropdown-footer">
-        <button id="selectAllEditGroupsBtn">Select All</button>
-        <button id="saveEditFolderBtn">Save Changes</button>
+        <button id="selectAllEditGroupsBtn" class="secondary-btn">Select All</button>
+        <button id="saveEditFolderBtn" class="primary-btn">Save Changes</button>
       </div>
     </div>
 
+    <!-- Main Content Sections -->
     <div id="groupsSection" class="section-container active-section">
       <div class="section-header">
         <h2>Saved Groups</h2>
-        <div class="group-sort-controls"> <label for="sortGroupsSelect">Sort by:</label>
+        <div class="group-sort-controls">
+          <label for="sortGroupsSelect">Sort by:</label>
           <select id="sortGroupsSelect">
-              <option value="dateDesc">Date (Newest)</option>
-              <option value="dateAsc">Date (Oldest)</option>
-              <option value="nameAsc">Name (A-Z)</option>
-              <option value="nameDesc">Name (Z-A)</option>
-              <option value="tabsDesc">Tabs (Most)</option>
-              <option value="tabsAsc">Tabs (Fewest)</option>
+            <option value="dateDesc">Date (Newest)</option>
+            <option value="dateAsc">Date (Oldest)</option>
+            <option value="nameAsc">Name (A-Z)</option>
+            <option value="nameDesc">Name (Z-A)</option>
+            <option value="tabsDesc">Tabs (Most)</option>
+            <option value="tabsAsc">Tabs (Fewest)</option>
           </select>
         </div>
-        </div>
-      <ul id="groupsList">
-          </ul>
+      </div>
+      <ul id="groupsList" class="groups-list"></ul>
     </div>
 
     <div id="bookmarksSection" class="section-container">
       <div class="section-header">
         <h2>Bookmarks</h2>
-        <div class="bookmark-actions">
-          </div>
+        <div class="bookmark-actions"></div>
       </div>
-      <div id="bookmarksList" class="bookmarks-list">
-          </div>
+      <div id="bookmarksList" class="bookmarks-list"></div>
     </div>
 
     <div id="todoSection" class="section-container">
       <div class="section-header todo-header">
         <h2>Todo List</h2>
       </div>
-      <div id="todoList" class="todo-list">
-          </div>
+      <div id="todoList" class="todo-list"></div>
       <div id="addTodoForm" class="add-todo-form">
         <input type="text" id="newTodoInput" placeholder="Add new task..." />
         <button id="submitTodoBtn">Add</button>
       </div>
     </div>
 
-    <div id="folderDialog" class="dropdown-panel">
+    <!-- Improved Create Folder Dialog -->
+    <div id="folderDialog" class="dropdown-panel" style="display: none;">
       <div class="dropdown-header">
         <h3>Create Folder</h3>
-        <button id="closeFolderBtn"><i class="fas fa-times"></i></button>
+        <button id="closeFolderBtn" class="close-btn"><i class="fas fa-times"></i></button>
       </div>
-      <input type="text" id="folderNameInput" placeholder="Folder name..." />
-      <div class="group-selection" id="groupSelection">
+      <div class="dropdown-content">
+        <input type="text" id="folderNameInput" placeholder="Folder name..." class="full-width-input" />
+        <div class="group-selection-container">
+          <div class="group-selection" id="groupSelection"></div>
         </div>
+      </div>
       <div class="dropdown-footer">
-        <button id="selectAllGroupsBtn">Select All</button>
-        <button id="createFolderBtn">Create Folder</button>
+        <button id="selectAllGroupsBtn" class="secondary-btn">Select All</button>
+        <button id="createFolderBtn" class="primary-btn">Create Folder</button>
       </div>
     </div>
 
+    <!-- Navigation Tabs -->
     <div class="nav-tabs">
       <button class="nav-tab active" data-section="groups">
         <i class="fas fa-layer-group"></i>
@@ -135,29 +146,33 @@
         <span>Folder</span>
       </button>
     </div>
-  </div> <div id="customConfirmOverlay" class="custom-confirm-overlay">
+  </div>
+  
+  <!-- Custom Dialog Components -->
+  <div id="customConfirmOverlay" class="custom-confirm-overlay" style="display: none;">
     <div id="customConfirmDialog" class="custom-confirm-dialog">
-        <p id="customConfirmMessage"></p>
-        <div class="custom-confirm-buttons">
-            <button id="customConfirmCancel" class="custom-confirm-button cancel">Cancel</button>
-            <button id="customConfirmConfirm" class="custom-confirm-button confirm">Yes</button>
-        </div>
+      <p id="customConfirmMessage"></p>
+      <div class="custom-confirm-buttons">
+        <button id="customConfirmCancel" class="custom-confirm-button cancel">Cancel</button>
+        <button id="customConfirmConfirm" class="custom-confirm-button confirm">Yes</button>
+      </div>
     </div>
-</div>
+  </div>
 
-<div id="customAlertOverlay" class="custom-alert-overlay">
-  <div id="customAlertDialog" class="custom-alert-dialog">
+  <div id="customAlertOverlay" class="custom-alert-overlay" style="display: none;">
+    <div id="customAlertDialog" class="custom-alert-dialog">
       <p id="customAlertMessage"></p>
       <div class="custom-alert-buttons">
-          <button id="customAlertOk" class="custom-alert-button ok">OK</button>
+        <button id="customAlertOk" class="custom-alert-button ok">OK</button>
       </div>
+    </div>
   </div>
-</div>
 
-<script src="js/utils.js"></script>
-<script src="js/groups.js"></script>
-<script src="js/bookmarks.js"></script>
-<script src="js/todo.js"></script>
-<script src="js/main.js"></script>
+  <!-- Scripts -->
+  <script src="js/utils.js"></script>
+  <script src="js/groups.js"></script>
+  <script src="js/bookmarks.js"></script>
+  <script src="js/todo.js"></script>
+  <script src="js/main.js"></script>
 </body>
 </html>
