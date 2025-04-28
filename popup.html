@@ -33,7 +33,7 @@
       </div>
     </div>
 
-    <div id="saveDropdown" class="dropdown-panel" style="display: none;">
+    <div id="saveDropdown" class="dropdown-panel">
       <div class="dropdown-header">
         <h3>Save tabs</h3>
         <button id="closeDropdownBtn" class="close-btn"><i class="fas fa-times"></i></button>
@@ -148,7 +148,7 @@
     </div>
 
 
-    <div id="folderDialog" class="dropdown-panel" style="display: none;">
+    <div id="folderDialog" class="dropdown-panel">
       <div class="dropdown-header">
         <h3>Create Folder</h3>
         <button id="closeFolderBtn" class="close-btn"><i class="fas fa-times"></i></button>
@@ -214,8 +214,35 @@
           </div>
       </div>
   </div>
+  <div class="modal-overlay" id="rename-group-dialog" style="display: none;">
+    <div class="modal-dialog">
+        <h3>Rename Tab Group</h3>
+        <p class="modal-message">Enter the new name for the group:</p>
+        <input type="hidden" id="rename-group-original-name" value="">
 
+        <input type="text" id="rename-group-input" class="modal-input" placeholder="New group name...">
 
+        <div class="modal-buttons">
+            <button id="rename-group-cancel-btn" class="modal-button cancel">Cancel</button>
+            <button id="rename-group-save-btn" class="modal-button confirm">Save Name</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="edit-tabs-dialog" style="display: none;">
+    <div class="modal-dialog wide-dialog"> <h3 id="edit-tabs-dialog-title">Edit Tabs in Group: "..."</h3>
+
+        <p class="modal-message">Review and modify the tabs in this group:</p>
+
+        <ul id="edit-tabs-list" class="edit-tabs-list-container">
+            </ul>
+
+        <div class="modal-buttons">
+            <button id="edit-tabs-cancel-btn" class="modal-button cancel">Cancel</button>
+            <button id="edit-tabs-save-btn" class="modal-button confirm">Save Changes</button>
+        </div>
+    </div>
+</div>
   <script src="js/utils.js"></script>
   <script src="js/groups.js"></script>
   <script src="js/bookmarks.js"></script>

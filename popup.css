@@ -1,1972 +1,1601 @@
 :root {
-    --primary-color: #4caf50;
-    --background-color: #f5f5f5;
-    --card-color: #ffffff;
-    --text-color: #333;
-    --text-secondary: #888;
-    --border-color: #eaeaea;
-    --button-hover: #45a049;
-    --delete-hover: #e53935;
-    --highlight-color: #ff7043;
-    --bookmark-color: #2196f3;
-    --edit-color: #ffa000;
-}
+  --primary-color: #ff6384;
+  --secondary-color: #6c5ce7;
+  --light-gray: #f5f5f5;
+  --medium-gray: #e0e0e0;
+  --dark-gray: #333;
+  --white: #fff;
+  --folder-blue: #4a86ff;
+  --folder-pink: #ff6384;
+  --danger-color: #ff4d4d;
+  --success-color: #4caf50;
+  --border-radius: 8px;
+  --box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  --transition: all 0.2s ease;
+
+
+  }
+
 
 * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
 }
 
 body {
-    font-family: 'Segoe UI', 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
-    margin: 0;
-    padding: 16px;
-    background-color: var(--background-color);
-    color: var(--text-color);
+  width: 350px;
+  height: 500px;
+  background-color: var(--white);
+  overflow-x: hidden;
+  overflow-y: auto;
+  color: var(--dark-gray);
+  font-size: 13px;
 }
 
 #app {
-    width: 320px;
-    margin: 0 auto;
-    position: relative;
-    padding-bottom: 60px; /* Space for nav tabs */
+  padding: 12px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
+button {
+  cursor: pointer;
+  border: none;
+  outline: none;
+  background: none;
+  transition: var(--transition);
+  font-size: 12px;
+}
+
+ul, li {
+  list-style: none;
+}
+
+input {
+  outline: none;
+  border: 1px solid var(--medium-gray);
+  border-radius: var(--border-radius);
+  padding: 6px 10px;
+  font-size: 12px;
+  transition: var(--transition);
+}
+
+input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(255, 99, 132, 0.1);
+}
+
+/* -------------------------------- 
+   Header Styles
+-------------------------------- */
 .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-h1 {
-    font-size: 20px;
-    font-weight: 600;
-}
-
-h2 {
-    font-size: 16px;
-    font-weight: 600;
-}
-
-h3 {
-    font-size: 16px;
-    font-weight: 500;
-}
-
-.add-button {
-    padding: 8px 12px;
-    border-radius: 16px;
-    background-color: var(--highlight-color);
-    color: white;
-    border: none;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    font-size: 12px;
-    font-weight: 500;
-}
-
-.small-button, .icon-button {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background-color: var(--highlight-color);
-    color: white;
-    border: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    font-size: 12px;
-}
-
-.icon-button {
-    background-color: transparent;
-    color: var(--text-secondary);
-}
-
-.status-card {
-    background-color: var(--card-color);
-    border-radius: 16px;
-    padding: 16px;
-    margin-bottom: 20px;
-    display: flex;
-    justify-content: space-between;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-.status-info {
-    width: 48%;
-    padding: 10px;
-    background-color: #f9f9f9;
-    border-radius: 12px;
-}
-
-.status-label {
-    font-size: 14px;
-    color: var(--text-secondary);
-    margin-bottom: 5px;
-}
-
-.status-value {
-    font-size: 24px;
-    font-weight: 600;
-}
-
-.section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-    margin-top: 20px;
-}
-
-.bookmark-actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.todo-header {
-    margin-bottom: 10px;
-}
-
-.see-all {
-    color: var(--text-secondary);
-    font-size: 14px;
-    cursor: pointer;
-}
-
-/* Section Containers */
-.section-container {
-    display: none;
-}
-
-.active-section {
-    display: block;
-}
-
-/* Dropdown Panel for Save */
-.dropdown-panel {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    background-color: var(--card-color);
-    border-radius: 16px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    z-index: 100;
-    padding: 16px;
-    display: none;
-    max-height: 400px;
-    overflow-y: auto;
-}
-
-.dropdown-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-}
-
-#closeDropdownBtn, #closeFolderBtn, #closeEditFolderBtn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 16px;
-    color: var(--text-secondary);
-}
-
-#groupNameInput, #folderNameInput {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    font-size: 14px;
-    background-color: #f9f9f9;
-    margin-bottom: 12px;
-}
-
-.folder-edit-title {
-    font-size: 16px;
-    font-weight: 500;
-    padding: 12px;
-    background-color: #f9f9f9;
-    border-radius: 8px;
-    margin-bottom: 12px;
-    color: var(--text-color);
-}
-
-.tabs-checklist {
-    max-height: 200px;
-    overflow-y: auto;
-    margin-bottom: 12px;
-}
-
-.tab-item {
-    display: flex;
-    align-items: center;
-    padding: 8px 0;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.tab-item:last-child {
-    border-bottom: none;
-}
-
-.tab-checkbox {
-    margin-right: 10px;
-}
-
-.tab-favicon {
-    width: 16px;
-    height: 16px;
-    margin-right: 8px;
-    object-fit: contain;
-}
-
-.tab-title {
-    font-size: 14px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    flex: 1;
-}
-
-.dropdown-footer {
-    display: flex;
-    justify-content: space-between;
-    padding-top: 12px;
-}
-
-#selectAllBtn, #selectAllGroupsBtn, #selectAllEditGroupsBtn {
-    background-color: transparent;
-    border: 1px solid var(--border-color);
-    color: var(--text-color);
-    padding: 8px 12px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 14px;
-}
-
-#saveTabsButton, #createFolderBtn, #saveEditFolderBtn {
-    background-color: var(--highlight-color);
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 500;
-    font-size: 14px;
-}
-
-/* Bookmarks Section */
-.bookmarks-list {
-    background-color: var(--card-color);
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    overflow: hidden;
-}
-
-.bookmark-item {
-    display: flex;
-    align-items: center;
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--border-color);
-    cursor: pointer;
-}
-
-.bookmark-item:hover {
-    background-color: #f9f9f9;
-}
-
-.bookmark-item:last-child {
-    border-bottom: none;
-}
-
-.bookmark-favicon {
-    width: 16px;
-    height: 16px;
-    margin-right: 12px;
-    object-fit: contain;
-}
-
-.bookmark-info {
-    flex: 1;
-    overflow: hidden;
-}
-
-.bookmark-title {
-    font-size: 14px;
-    font-weight: 500;
-    margin-bottom: 4px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.bookmark-url {
-    font-size: 12px;
-    color: var(--text-secondary);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.bookmark-date {
-    font-size: 11px;
-    color: var(--text-secondary);
-    margin-top: 4px;
-}
-
-.bookmark-actions {
-    display: flex;
-    gap: 8px;
-}
-
-.bookmark-action-btn {
-    border: none;
-    background: none;
-    cursor: pointer;
-    color: var(--text-secondary);
-    font-size: 14px;
-}
-
-.bookmark-action-btn:hover {
-    color: var(--text-color);
-}
-
-/* Todo Section */
-.todo-list {
-    background-color: var(--card-color);
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    overflow: hidden;
-}
-
-.todo-item {
-    display: flex;
-    align-items: center;
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.todo-item:last-child {
-    border-bottom: none;
-}
-
-.todo-checkbox {
-    margin-right: 12px;
-}
-
-.todo-text {
-    flex: 1;
-    font-size: 14px;
-}
-
-.completed {
-    text-decoration: line-through;
-    color: var(--text-secondary);
-}
-
-.todo-delete {
-    color: var(--text-secondary);
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 14px;
-}
-
-.add-todo-form {
-    margin-top: 12px;
-    display: flex;
-    gap: 8px;
-}
-
-#newTodoInput {
-    flex: 1;
-    padding: 10px;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    font-size: 14px;
-}
-
-#submitTodoBtn {
-    background-color: var(--primary-color);
-    color: white;
-    border: none;
-    padding: 10px 16px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 14px;
-}
-
-/* Saved Groups List */
-ul {
-    list-style: none;
-    padding: 0;
-}
-
-li {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px;
-    margin-bottom: 12px;
-    background-color: var(--card-color);
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-.group-item {
-    display: flex;
-    align-items: center;
-}
-
-.group-icon {
-    width: 32px;
-    height: 32px;
-    background-color: #f2f2f2;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 12px;
-}
-
-.group-info {
-    flex: 1;
-}
-
-.group-name {
-    font-size: 16px;
-    font-weight: 500;
-    margin-bottom: 4px;
-}
-
-.group-status {
-    font-size: 14px;
-    color: var(--text-secondary);
-}
-
-.group-date {
-    font-size: 12px;
-    color: var(--text-secondary);
-}
-
-.open-tab-text {
-    font-size: 13px;
-    margin-left: 4px;
-}
-
-.status-connected {
-    color: var(--primary-color);
-}
-
-.status-pending {
-    color: #ffa000;
-}
-
-.status-declined {
-    color: #9e9e9e;
-}
-
-.group-actions {
-    display: flex;
-    gap: 8px;
-}
-
-.action-button {
-    display: flex;
-    align-items: center;
-    border: none;
-    background: none;
-    cursor: pointer;
-    color: var(--text-secondary);
-    font-size: 16px;
-}
-
-.action-button:hover {
-    color: var(--text-color);
-}
-
-.dot-menu {
-    padding: 4px;
-}
-
-/* Navigation Tabs */
-.nav-tabs {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    display: flex;
-    background-color: white;
-    border-top: 1px solid var(--border-color);
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
-}
-
-.nav-tab {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 10px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--text-secondary);
-    font-size: 12px;
-}
-
-.nav-tab i {
-    margin-bottom: 4px;
-    font-size: 16px;
-}
-
-.nav-tab.active {
-    color: var(--highlight-color);
-}
-
-.action-button.open-btn {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    padding: 5px 8px;
-    background-color: #f5f5f5;
-    border-radius: 4px;
-}
-
-.action-button.open-btn:hover {
-    background-color: #e0e0e0;
-}
-
-.open-tab-text {
-    font-size: 12px;
-    white-space: nowrap;
-}
-
-.search-container {
-    margin-bottom: 20px;
-}
-  
-.search-input {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-  
-.search-icon {
-    position: absolute;
-    left: 12px;
-    color: var(--text-secondary);
-}
-  
-#searchInput {
-    width: 100%;
-    padding: 10px 36px;
-    border-radius: 20px;
-    border: 1px solid var(--border-color);
-    font-size: 14px;
-    background-color: white;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-  
-#searchInput:focus {
-    outline: none;
-    border-color: var(--highlight-color);
-}
-  
-.clear-search {
-    position: absolute;
-    right: 12px;
-    background: none;
-    border: none;
-    color: var(--text-secondary);
-    cursor: pointer;
-    display: none;
-}
-  
-.clear-search.visible {
-    display: block;
-}
-  
-.no-results {
-    text-align: center;
-    padding: 20px;
-    color: var(--text-secondary);
-    font-size: 14px;
-    background-color: var(--card-color);
-    border-radius: 12px;
-    margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.header h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--dark-gray);
 }
 
 .header-buttons {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+  display: flex;
+  gap: 8px;
 }
-  
-.icon-action-button {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background-color: white;
-    color: var(--text-color);
-    border: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    font-size: 16px;
+
+.add-button {
+  background-color: var(--primary-color);
+  color: var(--white);
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-weight: 600;
+  font-size: 12px;
+  box-shadow: var(--box-shadow);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: var(--transition);
 }
-  
-.icon-action-button:hover {
-    background-color: #f5f5f5;
+
+.add-button:hover {
+  background-color: darken(var(--primary-color), 10%);
+  transform: translateY(-1px);
 }
-  
-.folder-item {
-    background-color: #f9f9f9;
-    border-radius: 8px;
-    margin-top: 12px;
-    margin-bottom: 12px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+
+.add-button i {
+  font-size: 10px;
 }
-  
+
+/* -------------------------------- 
+   Status Card Styles
+-------------------------------- */
+.status-card {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  gap: 10px;
+}
+
+.status-info {
+  flex: 1;
+  background-color: var(--white);
+  border: 1px solid var(--medium-gray);
+  border-radius: var(--border-radius);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  text-align: center;
+}
+
+.status-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--dark-gray);
+  margin-bottom: 4px;
+}
+
+.status-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--dark-gray);
+}
+
+/* -------------------------------- 
+   Search Bar Styles
+-------------------------------- */
+.search-container {
+  margin-bottom: 12px;
+  position: relative;
+}
+
+.search-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-input input {
+  width: 100%;
+  padding: 8px 30px;
+  border-radius: 16px;
+  border: 1px solid var(--medium-gray);
+  font-size: 12px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 10px;
+  color: #757575;
+  font-size: 12px;
+}
+
+.clear-search {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  color: #757575;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+/* -------------------------------- 
+   Section Styles
+-------------------------------- */
+.section-container {
+  display: none;
+  flex-direction: column;
+  margin-bottom: 12px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.active-section {
+  display: flex;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  position: sticky;
+  top: 0;
+  background-color: var(--white);
+  z-index: 10;
+}
+
+.section-title-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-header h2 {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.group-sort-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.group-sort-controls label {
+  font-size: 11px;
+}
+
+.group-sort-controls select {
+  padding: 4px 8px;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--medium-gray);
+  background-color: var(--white);
+  cursor: pointer;
+  font-size: 11px;
+}
+
+/* -------------------------------- 
+   Groups List Styles
+-------------------------------- */
+.groups-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.groups-list li {
+  background-color: var(--white);
+  border: 1px solid var(--medium-gray);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+}
+
 .folder-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 16px;
-    cursor: pointer;
-    background-color: #f0f0f0;
-    border-top-left-radius: 8px;
-    border-top-right-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background-color: var(--white);
+  border-bottom: 1px solid var(--medium-gray);
 }
-  
+
 .folder-title {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 14px;
 }
-  
-.folder-title i {
-    color: #ffa000;
-}
-  
-.folder-count {
-    font-size: 12px;
-    color: var(--text-secondary);
-    margin-left: 6px;
-}
-  
-.folder-content {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.3s ease;
-}
-  
-.folder-content.expanded {
-    max-height: 500px;
-}
-  
-.folder-content li {
-    margin-bottom: 0;
-    border-radius: 0;
-    border-bottom: 1px solid var(--border-color);
-}
-  
-.folder-content li:last-child {
-    border-bottom: none;
-}
-  
+
 .folder-actions {
-    padding: 12px 16px;
-    display: flex;
-    justify-content: space-between;
-    border-top: 1px solid var(--border-color);
+  display: flex;
+  gap: 6px;
+}
+
+.folder-icon {
+  color: var(--folder-pink);
+  font-size: 16px;
+}
+
+.group-icon {
+  color: var(--folder-blue);
+  font-size: 16px;
+}
+
+.group-item {
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  border-top: 1px solid var(--medium-gray);
+}
+
+.group-title {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 3px;
+}
+
+.group-title-text {
+  font-weight: 600;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.group-meta {
+  color: #666;
+  font-size: 11px;
+  margin-bottom: 8px;
+}
+
+.group-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.group-button {
+  padding: 5px 10px;
+  border: 1px solid var(--medium-gray);
+  border-radius: var(--border-radius);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background-color: var(--white);
+  font-weight: 500;
+  font-size: 11px;
+  transition: var(--transition);
+}
+
+.group-button:hover {
+  background-color: var(--light-gray);
+}
+
+.group-button.primary {
+  background-color: var(--secondary-color);
+  color: var(--white);
+  border: none;
+}
+
+.group-button.primary:hover {
+  background-color: darken(var(--secondary-color), 10%);
+}
+
+/* -------------------------------- 
+   Navigation Tabs
+-------------------------------- */
+.nav-tabs {
+  display: flex;
+  justify-content: space-between;
+  margin-top: auto;
+  background-color: var(--white);
+  border-top: 1px solid var(--medium-gray);
+  position: sticky;
+  bottom: 0;
+  padding: 6px 0;
+}
+
+.nav-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px 0;
+  color: #666;
+  font-size: 10px;
+  gap: 3px;
+  position: relative;
+}
+
+.nav-tab i {
+  font-size: 14px;
+}
+
+.nav-tab.active {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.nav-tab.active::before {
+  content: '';
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 6px;
+  height: 6px;
+  background-color: var(--primary-color);
+  border-radius: 50%;
+}
+
+/* -------------------------------- 
+   Create Folder Button
+-------------------------------- */
+.create-folder-header-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 8px;
+  border-radius: var(--border-radius);
+  background-color: var(--light-gray);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--dark-gray);
+}
+
+.create-folder-header-btn:hover {
+  background-color: var(--medium-gray);
+}
+
+/* -------------------------------- 
+   Modal Styles
+-------------------------------- */
+.dropdown-panel {
+  position: absolute;
+  top: 50px;
+  left: 12px;
+  right: 12px;
+  background-color: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+  max-height: 80%;
+}
+
+.dropdown-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid var(--medium-gray);
+}
+
+.dropdown-header h3 {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.close-btn {
+  font-size: 14px;
+  color: #666;
+}
+
+.dropdown-content {
+  padding: 10px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.full-width-input {
+  width: 100%;
+  padding: 6px 10px;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--medium-gray);
+  font-size: 12px;
+}
+
+.tabs-checklist-container, .group-selection-container {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid var(--medium-gray);
+  border-radius: var(--border-radius);
+}
+
+.tabs-checklist, .group-selection {
+  padding: 8px;
+}
+
+.dropdown-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 10px;
+  border-top: 1px solid var(--medium-gray);
+}
+
+.primary-btn {
+  background-color: var(--primary-color);
+  color: var(--white);
+  padding: 5px 10px;
+  border-radius: var(--border-radius);
+  font-weight: 500;
+  font-size: 12px;
+}
+
+.secondary-btn {
+  background-color: var(--light-gray);
+  color: var(--dark-gray);
+  padding: 5px 10px;
+  border-radius: var(--border-radius);
+  font-weight: 500;
+  font-size: 12px;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-dialog {
+  background-color: var(--white);
+  border-radius: var(--border-radius);
+  width: 90%;
+  max-width: 300px;
+  padding: 15px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.wide-dialog {
+  max-width: 320px;
+}
+
+.modal-message {
+  margin: 10px 0;
+  font-size: 12px;
+}
+
+.modal-input {
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.modal-button {
+  padding: 5px 10px;
+  border-radius: var(--border-radius);
+  font-weight: 500;
+  font-size: 12px;
+}
+
+.modal-button.cancel {
+  background-color: var(--light-gray);
+  color: var(--dark-gray);
+}
+
+.modal-button.confirm {
+  background-color: var(--primary-color);
+  color: var(--white);
+}
+
+/* -------------------------------- 
+   Custom Alert/Confirm Styles
+-------------------------------- */
+.custom-confirm-overlay, .custom-alert-overlay, .custom-choice-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.custom-confirm-dialog, .custom-alert-dialog, .custom-choice-dialog {
+  background-color: var(--white);
+  border-radius: var(--border-radius);
+  width: 90%;
+  max-width: 300px;
+  padding: 15px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  font-size: 12px;
+}
+
+.custom-confirm-buttons, .custom-alert-buttons, .custom-choice-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 15px;
+}
+
+.custom-confirm-button, .custom-alert-button, .custom-choice-button {
+  padding: 5px 10px;
+  border-radius: var(--border-radius);
+  font-weight: 500;
+  font-size: 12px;
+}
+
+.custom-confirm-button.cancel, .custom-choice-button.cancel {
+  background-color: var(--light-gray);
+  color: var(--dark-gray);
+}
+
+.custom-confirm-button.confirm, .custom-alert-button.ok {
+  background-color: var(--primary-color);
+  color: var(--white);
+}
+
+.custom-choice-button.choice1 {
+  background-color: var(--primary-color);
+  color: var(--white);
+}
+
+.custom-choice-button.choice2 {
+  background-color: var(--secondary-color);
+  color: var(--white);
+}
+
+/* -------------------------------- 
+   Edit Tabs List
+-------------------------------- */
+.edit-tabs-list-container {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid var(--medium-gray);
+  border-radius: var(--border-radius);
+  padding: 8px;
+}
+
+.edit-tabs-list-container li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--medium-gray);
+  font-size: 12px;
+}
+
+.edit-tabs-list-container li:last-child {
+  border-bottom: none;
+}
+
+/* -------------------------------- 
+   Action Buttons
+-------------------------------- */
+.action-button {
+  background-color: transparent;
+  color: #666;
+  border-radius: var(--border-radius);
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.action-button:hover {
+  background-color: var(--light-gray);
+}
+
+/* -------------------------------- 
+   Settings Styles
+-------------------------------- */
+.settings-content {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.settings-item {
+  background-color: var(--white);
+  border: 1px solid var(--medium-gray);
+  border-radius: var(--border-radius);
+  padding: 10px;
+}
+
+.settings-item h3 {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.settings-item p {
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.settings-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.settings-note {
+  font-size: 10px;
+  color: #666;
+  margin-top: 6px;
+}
+
+.danger-zone {
+  border-color: var(--danger-color);
+}
+
+.danger-zone h3 {
+  color: var(--danger-color);
+}
+
+.danger-btn {
+  background-color: var(--danger-color);
+  color: var(--white);
+  padding: 5px 10px;
+  border-radius: var(--border-radius);
+  font-weight: 500;
+  font-size: 12px;
+}
+
+.shortcuts-list-container {
+  border: 1px solid var(--medium-gray);
+  border-radius: var(--border-radius);
+  padding: 8px;
+  max-height: 120px;
+  overflow-y: auto;
+  font-size: 11px;
+}
+
+/* -------------------------------- 
+   Todo List Styles
+-------------------------------- */
+.todo-list {
+  margin-bottom: 10px;
+}
+
+.add-todo-form {
+  display: flex;
+  gap: 8px;
+}
+
+.add-todo-form input {
+  flex: 1;
+}
+
+.add-todo-form button {
+  background-color: var(--primary-color);
+  color: var(--white);
+  padding: 5px 10px;
+  border-radius: var(--border-radius);
+  font-weight: 500;
+  font-size: 12px;
+}
+
+/* -------------------------------- 
+   Responsive Adjustments
+-------------------------------- */
+@media (max-width: 350px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .dropdown-footer {
+    flex-direction: column;
+  }
+  
+  .modal-buttons {
+    flex-direction: column;
+  }
+}
+
+
+
+
+/* -------------------------------- 
+   Folder & Group Styles
+-------------------------------- */
+
+/* --- Folder Styling --- */
+
+.folder-item {
+  background-color: var(--white);
+  border: 1px solid var(--medium-gray);
+  border-radius: var(--border-radius);
+  margin-bottom: 10px;
+  overflow: hidden;
+  box-shadow: var(--box-shadow);
+  transition: var(--transition);
+}
+
+.folder-item:hover {
+  border-color: var(--secondary-color);
+}
+
+.folder-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  background-color: var(--light-gray);
+  border-bottom: 1px solid var(--medium-gray);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.folder-header:hover {
+  background-color: #ebebeb;
+}
+
+.folder-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--dark-gray);
+}
+
+.folder-title .fas.fa-folder {
+  color: var(--folder-blue);
+  font-size: 16px;
+}
+
+.folder-count {
+  font-size: 11px;
+  font-weight: 500;
+  color: #555;
+  margin-left: 4px;
 }
 
 .folder-header-actions {
-    display: flex;
-    align-items: center;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
-.edit-folder-btn {
-    margin-right: 10px;
-    color: var(--edit-color);
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 16px;
+.folder-header-actions .action-button {
+  width: 26px;
+  height: 26px;
+  font-size: 13px;
+  color: #555;
 }
 
-.delete-folder-btn {
-    color: var(--delete-hover);
-    padding: 6px 12px;
-    border-radius: 4px;
-    background-color: #f5f5f5;
-    font-size: 13px;
+.folder-header-actions .action-button:hover {
+  background-color: var(--medium-gray);
+  color: var(--dark-gray);
 }
-  
-.delete-folder-btn:hover {
-    background-color: #f0f0f0;
+
+.folder-header-actions .action-button.edit {
+  color: var(--secondary-color);
 }
-  
-.group-selection {
-    max-height: 200px;
-    overflow-y: auto;
-    margin: 12px 0;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 8px;
-    background-color: #f9f9f9;
+
+.folder-header-actions .action-button.edit:hover {
+  background-color: rgba(108, 92, 231, 0.1);
 }
-  
+
+.toggle-folder-btn i {
+  transition: transform 0.2s ease;
+}
+
+.toggle-folder-btn i.rotated {
+  transform: rotate(180deg);
+}
+
+.folder-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+  padding: 0 12px;
+  background-color: var(--white);
+}
+
+.folder-content.expanded {
+  max-height: 1000px;
+  padding: 10px 12px;
+  border-top: 1px solid var(--light-gray);
+}
+
+.folder-content ul {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.folder-actions {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--medium-gray);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.folder-actions .delete-folder-btn {
+  padding: 4px 8px;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.folder-actions .delete-folder-btn i {
+  font-size: 10px;
+}
+
+.empty-folder {
+  font-style: italic;
+  color: #777;
+  font-size: 12px;
+  padding: 10px 0;
+  text-align: center;
+}
+
+/* --- Standalone Group List --- */
+
+.standalone-groups-list {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* --- Group List Item (Shared between folder and standalone) --- */
+
+.group-list-item {
+  background-color: var(--white);
+  border: 1px solid #eee;
+  border-radius: calc(var(--border-radius) - 2px);
+  overflow: hidden;
+  transition: var(--transition);
+}
+
+.group-list-item:hover {
+  border-color: var(--primary-color);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.group-item-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  cursor: default;
+}
+
+.group-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex-grow: 1;
+  margin-right: 10px;
+}
+
+.group-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--dark-gray);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+}
+
+.group-status {
+  font-size: 11px;
+  color: #666;
+}
+
+.group-status span {
+  margin: 0 3px;
+}
+
+.open-group-button.subtle-button {
+  background: none;
+  border: 1px solid var(--medium-gray);
+  color: var(--secondary-color);
+  padding: 3px 8px;
+  border-radius: var(--border-radius);
+  font-size: 10px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  margin-top: 4px;
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.open-group-button.subtle-button i {
+  font-size: 9px;
+}
+
+.open-group-button.subtle-button:hover {
+  background-color: var(--light-gray);
+  border-color: var(--secondary-color);
+  color: var(--secondary-color);
+}
+
+.group-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.group-actions .icon-button {
+  width: 24px;
+  height: 24px;
+  font-size: 12px;
+  border-radius: 50%;
+  color: #555;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+}
+
+.group-actions .icon-button:hover {
+  background-color: var(--light-gray);
+  color: var(--dark-gray);
+  border-color: var(--medium-gray);
+}
+
+.group-actions .icon-button.edit {
+  color: var(--secondary-color);
+}
+
+.group-actions .icon-button.rename {
+  color: #f39c12;
+}
+
+.group-actions .icon-button.danger {
+  color: var(--danger-color);
+}
+
+.group-actions .icon-button.edit:hover {
+  background-color: rgba(108, 92, 231, 0.1);
+  border-color: rgba(108, 92, 231, 0.3);
+}
+
+.group-actions .icon-button.rename:hover {
+  background-color: rgba(243, 156, 18, 0.1);
+  border-color: rgba(243, 156, 18, 0.3);
+}
+
+.group-actions .icon-button.danger:hover {
+  background-color: rgba(255, 77, 77, 0.1);
+  border-color: rgba(255, 77, 77, 0.3);
+}
+
+.expand-group-button i {
+  transition: transform 0.2s ease;
+}
+
+.expand-group-button i.rotated {
+  transform: rotate(180deg);
+}
+
+/* --- Tab List within a Group --- */
+
+.tab-list {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out, padding 0.3s ease-out, border-top-width 0.3s ease-out;
+  background-color: #fafafa;
+  padding: 0 12px;
+  border-top: 0px solid var(--medium-gray);
+  list-style: none;
+  margin: 0;
+}
+
+.tab-list.expanded {
+  max-height: 250px;
+  overflow-y: auto;
+  padding: 10px 12px;
+  border-top: 1px solid var(--medium-gray);
+}
+
+.tab-list-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.tab-list-item:last-child {
+  border-bottom: none;
+}
+
+.tab-list-item:hover {
+  background-color: #f0f0f0;
+}
+
+.tab-list-item .favicon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.tab-details {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex-grow: 1;
+}
+
+.tab-title {
+  font-size: 12px;
+  color: var(--dark-gray);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+
+.tab-url {
+  font-size: 10px;
+  color: #777;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+}
+
+.empty-group-message {
+  font-style: italic;
+  color: #777;
+  font-size: 12px;
+  padding: 10px 0;
+  text-align: center;
+}
+
+/* --- Modal Content Styling (Checklist items) --- */
+
+.tab-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 16px;
+  border-bottom: 1px solid var(--light-gray);
+}
+
+.tab-item:last-child {
+  border-bottom: none;
+}
+
+.tab-item .tab-checkbox {
+  margin-right: 5px;
+  cursor: pointer;
+}
+
+.tab-item .favicon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.tab-item .tab-title {
+  font-size: 12px;
+  color: var(--dark-gray);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-grow: 1;
+  cursor: pointer;
+}
+
+/* Folder Dialog Group Selection */
+
 .group-check-item {
-    display: flex;
-    align-items: center;
-    padding: 8px 10px;
-    border-bottom: 1px solid var(--border-color);
-}
-  
-.group-check-item:last-child {
-    border-bottom: none;
-}
-  
-.group-checkbox {
-    margin-right: 10px;
-}
-  
-.empty-selection {
-    text-align: center;
-    padding: 20px;
-    color: var(--text-secondary);
-    font-size: 14px;
+  display: flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--light-gray);
+  gap: 8px;
 }
 
-.todo-item,
+.group-check-item:last-child {
+  border-bottom: none;
+}
+
+.group-check-item .group-checkbox {
+  cursor: pointer;
+}
+
+.group-check-item .group-name {
+  font-size: 12px;
+  flex-grow: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.origin-folder {
+  font-size: 10px;
+  color: #888;
+  font-style: italic;
+  margin-left: auto;
+  padding-left: 10px;
+}
+
+.empty-selection {
+  font-style: italic;
+  color: #777;
+  font-size: 12px;
+  padding: 15px;
+  text-align: center;
+}
+
+/* --- Edit Tabs Dialog List --- */
+
+.edit-tabs-list-container {
+  padding: 8px 12px;
+}
+
+.edit-tab-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--light-gray);
+  font-size: 12px;
+}
+
+.edit-tab-item:last-child {
+  border-bottom: none;
+}
+
+.edit-tab-favicon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.edit-tab-title {
+  flex-grow: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--dark-gray);
+}
+
+.remove-tab-btn {
+  width: 20px;
+  height: 20px;
+  font-size: 11px;
+  flex-shrink: 0;
+  color: var(--danger-color);
+}
+
+.remove-tab-btn:hover {
+  background-color: rgba(255, 77, 77, 0.1);
+}
+
+/* --- Search & Empty States --- */
+
+.clear-search {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.clear-search.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.no-results,
+.empty-message {
+  text-align: center;
+  padding: 30px 15px;
+  font-size: 13px;
+  color: #777;
+  line-height: 1.5;
+}
+
+.empty-message {
+  font-size: 14px;
+}
+
+/* --- Sort Controls --- */
+
+.group-sort-controls {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.group-sort-controls label {
+  font-size: 11px;
+  font-weight: 500;
+  color: #555;
+}
+
+.group-sort-controls select {
+  padding: 4px 8px;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--medium-gray);
+  background-color: var(--white);
+  cursor: pointer;
+  font-size: 11px;
+  outline: none;
+}
+
+.group-sort-controls select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(255, 99, 132, 0.1);
+}
+
+
+/* --------------------------------
+   Bookmarks List Container (Assuming a parent container exists)
+-------------------------------- */
+/* Style for the main list holding bookmark items (Example - adjust selector if needed) */
+#bookmarks-list { /* Assuming this is the ID used in your HTML */
+  display: flex;
+  flex-direction: column;
+  gap: 10px; /* Spacing between bookmark items */
+  padding: 10px 0; /* Add some padding if needed */
+}
+
+/* --------------------------------
+   Empty State Message
+-------------------------------- */
+.empty-message {
+  padding: 20px;
+  text-align: center;
+  color: #666; /* Softer color for informational text */
+  font-size: 13px;
+  border: 1px dashed var(--medium-gray); /* Optional: visual cue */
+  border-radius: var(--border-radius);
+  background-color: var(--light-gray);
+}
+/* -------------------------------- 
+   Bookmark List Styles
+-------------------------------- */
+#bookmarks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+  overflow-y: auto;
+  
+}
+
 .bookmark-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 15px;
-  border-bottom: 1px solid #f0f0f0;
-  color: var(--popup-text-color); 
+  padding: 8px 10px;
+  background-color: var(--white);
+  border: 1px solid var(--medium-gray);
+  border-radius: var(--border-radius);
+  transition: var(--transition);
+  cursor: pointer; /* Indicate the item is clickable */
+  margin: 4px;
+
 }
 
-.todo-item .todo-content,
-.bookmark-item .bookmark-content {
-  display: flex;
-  align-items: center;
-  flex: 1;
-  overflow: hidden;
+.bookmark-item:last-child {
+  margin-bottom: 0;
 }
 
-.todo-checkbox,
+.bookmark-item:hover {
+  box-shadow: var(--box-shadow);
+  border-color: var(--primary-color);
+}
+
 .bookmark-favicon {
-  margin-right: 12px;
-  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  margin-right: 10px;
+  object-fit: contain;
 }
-.todo-text,
-.bookmark-title,
-.bookmark-url {
+
+.bookmark-content {
   flex: 1;
   overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  display: flex;
+  flex-direction: column;
+}
+
+.bookmark-title {
+  font-weight: 600;
   font-size: 13px;
-  color: inherit; 
-}
-.delete-todo,
-.delete-bookmark-btn {
-  background: none;
-  border: none;
-  color: #888;
-  cursor: pointer;
-  padding: 4px 8px;
-  margin-left: 10px;
-  border-radius: 4px;
-  transition: background-color 0.2s, color 0.2s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--dark-gray);
 }
 
-
-.delete-todo:hover,
-.delete-bookmark-btn:hover {
-  background-color: #f1f1f1;
-  color: #ff5a5a;
-}
-    /* Custom Confirmation Dialog CSS */
-.custom-confirm-overlay {
-    position: fixed; /* Covers the whole viewport */
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5); /* Dim background */
-    display: none; /* Hidden by default */
-    justify-content: center; /* Center horizontally */
-    align-items: center; /* Center vertically */
-    z-index: 1000; /* Make sure it's on top of other content */
+.bookmark-url {
+  font-size: 11px;
+  color: #666;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.custom-confirm-dialog {
-    background-color: #fff; /* White background like your theme */
-    padding: 20px;
-    border-radius: 8px; /* Rounded corners */
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    max-width: 300px; /* Limit width */
-    width: 90%;
+.empty-message {
+  text-align: center;
+  padding: 20px 0;
+  color: #666;
+  font-size: 13px;
+  font-style: italic;
+  background-color: var(--light-gray);
+  border-radius: var(--border-radius);
+  margin: 10px 0;
 }
 
-#customConfirmMessage {
-    margin-bottom: 20px;
-    font-size: 1rem;
-    color: #333; /* Darker text */
-}
-
-.custom-confirm-buttons {
-    display: flex;
-    justify-content: space-around; /* Space out buttons */
-}
-
-.custom-confirm-button {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: background-color 0.2s ease;
-}
-
-.custom-confirm-button.cancel {
-    background-color: #eee; /* Light grey for cancel */
-    color: #333;
-}
-
-.custom-confirm-button.cancel:hover {
-    background-color: #ddd;
-}
-
-.custom-confirm-button.confirm {
-    background-color: #ff6f61; /* A reddish color for delete, similar to the trash icon */
-    color: white;
-}
-
-.custom-confirm-button.confirm:hover {
-    background-color: #e05a4e; /* Slightly darker on hover */
-}
-/* Custom Alert Dialog CSS */
-.custom-alert-overlay {
-    position: fixed; /* Covers the whole viewport */
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5); /* Dim background */
-    display: none; /* Hidden by default */
-    justify-content: center; /* Center horizontally */
-    align-items: center; /* Center vertically */
-    z-index: 1010; /* Slightly higher z-index than confirm if needed, or adjust based on your setup */
-}
-
-.custom-alert-dialog {
-    background-color: #fff; /* White background */
-    padding: 20px;
-    border-radius: 8px; /* Rounded corners */
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    max-width: 300px; /* Limit width */
-    width: 90%;
-}
-
-#customAlertMessage {
-    margin-bottom: 20px;
-    font-size: 1rem;
-    color: #333; /* Darker text */
-}
-
-.custom-alert-buttons {
-     /* Usually just one button, centered or right-aligned */
-     display: flex;
-     justify-content: center; /* Center the single OK button */
-}
-
-.custom-alert-button.ok {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: background-color 0.2s ease;
-    background-color: #007bff; /* Example primary blue, adjust to your theme's primary action color */
-    color: white;
-}
-
-.custom-alert-button.ok:hover {
-     background-color: #0056b3; /* Darker blue on hover */
-}
-
-/* [...] Keep existing styles */
-
-/* --- Group/Folder List Enhancements --- */
-
-#groupsList {
-    padding: 0 5px; /* Add slight horizontal padding */
-  }
-  
-  /* Standalone Group Styling (Base) */
-  #groupsList > .standalone-groups-list > li {
-    margin-bottom: 10px;
-    transition: box-shadow 0.2s ease;
-  }
-  #groupsList > .standalone-groups-list > li:hover {
-     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  }
-  
-  
-  /* Folder Styling */
-  .folder-item {
-    background-color: transparent; /* Remove default background */
-    border: 1px solid var(--border-color); /* Add border */
-    border-radius: 8px;
-    margin-bottom: 15px; /* Increase spacing between folders */
-    box-shadow: none; /* Remove default shadow */
-    overflow: visible; /* Allow potential dropdowns/tooltips */
-  }
-  
-  .folder-header {
-    background-color: #f7f7f7; /* Slightly different header bg */
-    border-bottom: 1px solid var(--border-color);
-    padding: 10px 15px; /* Adjust padding */
-    transition: background-color 0.2s ease;
-  }
-  
-  .folder-header:hover {
-      background-color: #eeeeee; /* Header hover */
-  }
-  
-  .folder-title i.fa-folder {
-    color: #ffb74d; /* Softer folder icon color */
-  }
-  
-  /* Chevron icon transition */
-  .toggle-folder-btn i {
-      transition: transform 0.3s ease;
-  }
-  .folder-content.expanded + .folder-header .toggle-folder-btn i, /* Incorrect: Selector needs fixing in JS toggle */
-  .folder-header .toggle-folder-btn i.rotated { /* Add this class via JS */
-      transform: rotate(180deg);
-  }
-  
-  
-  .folder-content {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.3s ease, padding 0.3s ease; /* Add padding transition */
-    padding: 0 0px; /* Remove padding when collapsed */
-    background-color: var(--card-color); /* White background for content */
-    border-bottom-left-radius: 8px; /* Match parent */
-    border-bottom-right-radius: 8px;
-  }
-  
-  .folder-content.expanded {
-    max-height: 1000px; /* Increase max-height */
-    padding: 10px 0px 0 0px; /* Add padding when expanded */
-  }
-  
-  /* Groups inside folders */
-  .folder-content ul {
-    padding-left: 15px; /* Indent groups within folders */
-    padding-right: 15px;
-  }
-  
-  .folder-content li {
-    margin-bottom: 8px;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
-    border: 1px solid #f0f0f0;
-    padding: 12px 15px; /* Adjust padding */
-    background-color: #feffff; /* Slightly off-white */
-     transition: transform 0.15s ease, box-shadow 0.15s ease;
-  }
-  .folder-content li:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.06);
-  }
-  
-  
-  .folder-content li:last-child {
-    margin-bottom: 0; /* Remove margin for last item */
-  }
-  
-  /* Folder Actions Styling */
-  .folder-actions {
-      padding: 10px 15px; /* Adjust padding */
-      border-top: 1px solid var(--border-color);
-      background-color: #fdfdfd;
-      border-bottom-left-radius: 8px; /* Match parent */
-      border-bottom-right-radius: 8px;
-  }
-  
-  .delete-folder-btn {
-      background-color: transparent;
-      color: var(--delete-hover);
-      padding: 5px 8px;
-      font-size: 12px;
-      border: 1px solid #ffcdd2; /* Light red border */
-  }
-  .delete-folder-btn:hover {
-      background-color: #ffebee; /* Light red background on hover */
-      color: #c62828; /* Darker red text */
-  }
-  
-  
-  /* --- Action Button Enhancements --- */
-  .action-button {
-      padding: 5px; /* Slightly larger click area */
-      border-radius: 4px;
-      transition: background-color 0.2s ease, color 0.2s ease;
-  }
-  .action-button:hover {
-      background-color: #e8e8e8;
-      color: var(--text-color);
-  }
-  .action-button.open-btn:hover {
-      background-color: #dcedc8; /* Light green hover for open */
-      color: #33691e;
-  }
-  .action-button.delete-btn:hover,
-  .delete-folder-btn:hover i, /* Ensure icon color changes too */
-  .action-button.delete-todo:hover,
-  .action-button.delete-bookmark-btn:hover {
-      background-color: #ffebee; /* Light red background */
-      color: var(--delete-hover); /* Use variable for consistency */
-  }
-  .edit-folder-btn:hover {
-      background-color: #fff8e1; /* Light yellow */
-      color: #f57f17; /* Darker yellow */
-  }
-  
-  
-  /* --- Empty State Enhancements --- */
-  .empty-message, .no-results, .empty-folder, .empty-selection {
-      text-align: center;
-      padding: 30px 20px;
-      color: var(--text-secondary);
-      font-size: 14px;
-      background-color: #f9f9f9; /* Slightly different background */
-      border-radius: 8px;
-      margin: 20px 5px;
-      border: 1px dashed var(--border-color);
-  }
-  
-  .empty-folder {
-      margin: 0; /* Reset margin if inside folder */
-      padding: 15px;
-      font-style: italic;
-      border: none;
-      background-color: transparent;
-  }
-  
-/* === Groups Tab - Inline Details & Editing Enhancements === */
-/* Group Item Adjustments */
-li[data-group] .group-item {
-    padding-right: 10px;
-    width: calc(100% - 10px); /* Account for padding */
-    display: flex;
-    align-items: center;
-
-}
-
-li[data-group] .group-info {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    margin-right: 10px;
-    overflow: hidden;
-}
-
-/* Group Actions - Move to be part of the main layout */
-li[data-group] .group-actions {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 5px; /* Space between buttons */
-}
-
-/* Remove original icon */
-.group-icon {
-    display: none;
-}
-
-/* Group Name Display & Editing */
-.group-name-container {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-}
-.group-name-container:hover .edit-group-icon {
-    opacity: 1;
-}
-.group-name {
-    font-size: 15px;
-    font-weight: 500;
-    margin-bottom: 2px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    padding: 3px 5px;
-    border-radius: 3px;
-    transition: background-color 0.2s ease;
-}
-.group-name:hover {
-    background-color: #f0f0f0;
-}
-.edit-group-icon {
-    font-size: 12px;
-    color: var(--edit-color);
-    margin-left: 8px;
-    opacity: 0.6;
-    transition: opacity 0.2s ease;
-    cursor: pointer;
-}
-
-.group-name-edit-container {
-    display: flex;
-    align-items: center;
-    width: 100%;
-}
-.group-name-input {
-    flex-grow: 1;
-    padding: 4px 6px;
-    font-size: 15px;
-    border: 1px solid var(--edit-color);
-    border-radius: 3px;
-    margin-right: 5px;
-    font-family: inherit;
-}
-.edit-actions button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 14px;
-    padding: 4px;
-    margin-left: 3px;
-}
-.edit-actions .save-edit-btn { color: var(--primary-color); }
-.edit-actions .cancel-edit-btn { color: var(--delete-hover); }
-
-/* Toggle Button */
-.toggle-details-btn {
-    color: var(--primary-color);
-}
-.toggle-details-btn i {
-    transition: transform 0.3s ease;
-}
-.toggle-details-btn i.rotated {
-    transform: rotate(180deg);
-}
-
-/* Group Details (Tab List) Container - KEY FIX HERE */
-.group-details {
-    max-height: 0;
-    overflow: hidden; /* Hide initially */
-    transition: max-height 0.35s ease-out, padding 0.35s ease-out;
-    padding: 0 15px;
-    background-color: #fafafa;
-    border-top: 0; /* Remove top border initially */
-    margin-top: 0;
-    width: 100%; /* Take full width */
-    box-sizing: border-box; /* Include padding in width */
-    border-bottom-left-radius: 6px;
-    border-bottom-right-radius: 6px;
-    clear: both; /* Force to next line */
-    /* Position below the group item */
-    display: block; /* Ensure it's a block element */
-}
-.group-details.expanded {
-    max-height: 150px; /* Adjust as needed */
-    padding: 10px 15px;
-    margin-top: 8px;
-    border-top: 1px dashed var(--border-color); /* Add separator when expanded */
-    overflow-y: auto; /* Add scrollbar when expanded */
-}
-
-/* Styling for individual tabs in the details list */
-.detailed-tab-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-.detailed-tab-item {
-    display: flex;
-    align-items: center;
-    padding: 6px 0;
-    font-size: 13px;
-    cursor: pointer;
-    border-bottom: 1px solid #eee;
-    overflow: hidden;
-}
-.detailed-tab-item:last-child {
-    border-bottom: none;
-}
-.detailed-tab-item:hover {
-    background-color: #f0f0f0;
-}
-.detailed-tab-favicon {
-    width: 16px;
-    height: 16px;
-    margin-right: 8px;
-    flex-shrink: 0;
-}
-.detailed-tab-title {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    color: #333;
-}
-.detailed-tab-url { /* Optional feature */
-    font-size: 11px;
-    color: var(--text-secondary);
-    margin-left: 10px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: none;
-}
-.detailed-tab-item:hover .detailed-tab-url {
-    display: block; /* Uncomment if you want to show URL on hover */
-}
-
-#saveDropdown,#editFolderDialog,#dropdown-panel,#folderDialog{
-    display: none;
-}
-
-  /* Save-Group Dropdown Container */
-#saveDropdown {
-    position: absolute;
-    top: 56px;      /* adjust as needed */
-    right: 16px;    /* adjust as needed */
-    width: 320px;
-    background: var(--card-color);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    z-index: 1000;
-    padding: 16px;
-  }
-  
-  /* Header / Title */
-  #saveDropdown .dropdown-header {
-    font-size: 1rem;
-    font-weight: 600;
-    margin-bottom: 12px;
-    color: var(--text-color);
-  }
-  
-  /* Group Name Input */
-  #saveDropdown input[type="text"] {
-    width: 100%;
-    padding: 8px;
-    margin-bottom: 12px;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    font-size: 0.95rem;
-    color: var(--text-color);
-    background: var(--background-color);
-  }
-  
-  /* Tabs Checklist */
-  #saveDropdown .tabs-checklist {
-    max-height: 200px;
-    overflow-y: auto;
-    margin-bottom: 12px;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    background: var(--background-color);
-    padding: 8px;
-  }
-  
-  /* Individual Tab Item */
-  .tab-item {
-    display: flex;
-    align-items: center;
-    margin-bottom: 8px;
-  }
-  .tab-item:last-child {
-    margin-bottom: 0;
-  }
-  .tab-favicon {
-    width: 16px;
-    height: 16px;
-    margin-right: 8px;
-  }
-  .tab-title {
-    flex: 1;
-    font-size: 0.9rem;
-    color: var(--text-color);
-  }
-  
-  /* “Select All” / “Deselect All” Button */
-  #saveDropdown .select-all-btn {
-    display: inline-block;
-    margin-bottom: 12px;
-    background: none;
-    border: none;
-    font-size: 0.9rem;
-    color: var(--primary-color);
-    cursor: pointer;
-  }
-  #saveDropdown .select-all-btn:hover {
-    color: var(--button-hover);
-  }
-  
-  /* Action Buttons */
-  #saveDropdown .actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-  }
-  #saveDropdown .actions button {
-    padding: 8px 14px;
-    font-size: 0.9rem;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-  #saveDropdown .actions .save-tabs-btn {
-    background: var(--primary-color);
-    color: #fff;
-  }
-  #saveDropdown .actions .save-tabs-btn:hover {
-    background: var(--button-hover);
-  }
-  #saveDropdown .actions .cancel-btn {
-    background: var(--delete-hover);
-    color: #fff;
-  }
-  #saveDropdown .actions .cancel-btn:hover {
-    background: #d32f2f;
-  }
-  
-  /* Hide by default */
-  #saveDropdown {
-    display: none;
-  }
-  li[data-group] {
-  flex-direction: column; /* <-- Make sure this is set */
-  }
-  .group-details {
-    width: 100%;         /* Take full width */
-    box-sizing: border-box; /* Include padding in width */
-    clear: both;         /* If floats were used above */
-    /* Ensure no problematic float or position rules */
-    float: none;
-    position: static; /* Or relative if needed inside */
-  
-    /* Styles for hiding/showing */
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.3s ease-out;
-    /* Add padding, background, border-top etc. as needed */
-    padding: 0 10px;
-    background-color: #f9f9f9; /* Example */
-  }
-  
-  .group-details.expanded {
-    max-height: 400px; /* Or enough height */
-    padding: 10px; /* Add padding when expanded */
-    border-top: 1px solid #eee; /* Separator */
-  }
-/* --- Additions for popup.css --- */
-
-/* Style for the "Create Folder" button in the Groups header */
-.section-title-actions {
+/* -------------------------------- 
+   Todo List Item Styles
+-------------------------------- */
+.todo-item {
   display: flex;
   align-items: center;
-  gap: 10px; /* Space between title and button */
-  flex-wrap: wrap; /* Allow button to wrap on small screens if needed */
+  justify-content: space-between;
+  padding: 8px 10px;
+  background-color: var(--white);
+  border: 1px solid var(--medium-gray);
+  border-radius: var(--border-radius);
+  margin-bottom: 8px;
+  transition: var(--transition);
 }
 
-.create-folder-header-btn {
-  padding: 5px 10px;
-  font-size: 0.85em;
-  background-color: #e0e0e0; /* Lighter background */
-  color: #333;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-  display: inline-flex; /* Use flex for icon alignment */
+.todo-item:hover {
+  border-color: var(--secondary-color);
+}
+
+.todo-item.completed {
+  background-color: var(--light-gray);
+  border-color: var(--medium-gray);
+}
+
+.todo-content {
+  display: flex;
   align-items: center;
-  gap: 5px; /* Space between icon and text */
+  flex: 1;
+  overflow: hidden;
 }
 
+.todo-checkbox {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-right: 10px;
+}
+
+.todo-checkbox input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.checkmark {
+  height: 16px;
+  width: 16px;
+  background-color: var(--white);
+  border: 1.5px solid var(--medium-gray);
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+}
+
+.todo-checkbox input[type="checkbox"]:checked ~ .checkmark {
+  background-color: var(--secondary-color);
+  border-color: var(--secondary-color);
+}
+
+.checkmark:after {
+  content: '';
+  display: none;
+  width: 4px;
+  height: 8px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.todo-checkbox input[type="checkbox"]:checked ~ .checkmark:after {
+  display: block;
+}
+
+.todo-text {
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: var(--transition);
+}
+
+.todo-item.completed .todo-text {
+  text-decoration: line-through;
+  color: #666;
+}
+
+.delete-todo {
+  color: #666;
+  background-color: var(--light-gray);
+  transition: var(--transition);
+}
+
+.delete-todo:hover {
+  color: var(--danger-color);
+  background-color: rgba(255, 77, 77, 0.1);
+}
+/* //v2
+
+*/
+
+section-header {
+  display: flex;
+  flex-wrap: wrap; /* Allow wrapping on smaller widths if needed */
+  justify-content: space-between; /* Space between title and controls block */
+  align-items: flex-start; /* Align items to the top */
+  margin-bottom: 15px; /* Increased bottom margin for spacing */
+  padding-bottom: 10px; /* Add some padding below */
+  border-bottom: 1px solid var(--light-gray); /* Add separator */
+}
+
+.section-header h2 {
+  font-size: 16px;
+  font-weight: 700;
+  margin-right: 10px; /* Add some space between title and controls */
+  line-height: 1.3; /* Ensure title aligns well if it wraps */
+  margin-bottom: 5px; /* Add margin below title if controls wrap */
+}
+
+/* Container for right-side controls (Create Folder, Sort) */
+.section-controls {
+    display: flex;
+    flex-direction: column; /* Stack controls vertically */
+    align-items: flex-end; /* Align controls to the right */
+    gap: 8px; /* Space between button and sort */
+    flex-shrink: 0; /* Prevent controls from shrinking */
+}
+
+/* Create Folder Button (in header) - Style moved here */
+.create-folder-header-btn {
+  display: inline-flex; /* Use inline-flex */
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px; /* Slightly more padding */
+  border-radius: var(--border-radius);
+  background-color: var(--light-gray);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--dark-gray);
+  border: 1px solid var(--medium-gray); /* Add subtle border */
+}
 .create-folder-header-btn:hover {
-  background-color: #d5d5d5;
+  background-color: var(--medium-gray);
 }
 
-.create-folder-header-btn i {
-  font-size: 0.9em; /* Slightly smaller icon */
-}
-
-
-/* Styles for the Settings Section */
-#settingsSection {
-    /* Inherits section-container styles */
-    padding-bottom: 60px; /* Ensure space above nav tabs */
-}
-
-.settings-content {
-    padding: 15px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px; /* Space between setting items */
-}
-
-.settings-item {
-    background-color: #f9f9f9; /* Slightly different background for item */
-    padding: 15px;
-    border-radius: 6px;
-    border: 1px solid #eee;
-}
-
-.settings-item h3 {
-    margin-top: 0;
-    margin-bottom: 8px;
-    font-size: 1.1em;
-    color: #333;
-}
-
-.settings-item p {
-    font-size: 0.9em;
-    color: #666;
-    line-height: 1.4;
-    margin-bottom: 15px;
-}
-
-.settings-actions {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap; /* Allow buttons to wrap */
-}
-
-/* Use existing button styles or define specific ones */
-.settings-actions .primary-btn,
-.settings-actions .secondary-btn {
-    /* Assuming you have base styles for these */
-    padding: 8px 15px;
-    font-size: 0.9em;
-}
-
-.settings-actions .primary-btn i,
-.settings-actions .secondary-btn i {
-    margin-right: 6px;
-}
-
-/* Ensure nav tabs have consistent styling */
-.nav-tabs .nav-tab {
-    /* Add any specific styles if needed, e.g., ensuring flex properties */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    flex: 1; /* Make tabs share space equally */
-    padding: 8px 5px; /* Adjust padding */
-    gap: 3px; /* Space between icon and text */
-}
-
-.nav-tabs .nav-tab i {
-    font-size: 1.2em; /* Adjust icon size */
-}
-
-.nav-tabs .nav-tab span {
-    font-size: 0.75em; /* Adjust text size */
-    white-space: nowrap; /* Prevent text wrapping */
-}
-
-/* Adjust search container visibility logic if needed */
-.search-container {
-    /* Ensure it doesn't interfere when hidden */
-    margin-bottom: 10px; /* Add some space below */
-}
-
-/* Adjustments for group list item layout */
-.group-list-item {
-    display: flex; /* Use flexbox for better alignment */
-    justify-content: space-between;
-    align-items: flex-start; /* Align items to the top */
-    padding: 10px;
-    border-bottom: 1px solid #eee;
-    position: relative; /* For potential absolute positioning inside */
-    gap: 10px; /* Space between info and actions */
-}
-
-.group-item {
-    /* Contains info + status */
-    flex-grow: 1; /* Allow info section to take available space */
-    display: flex;
-    flex-direction: column; /* Stack info and status */
-}
-
-.group-info {
-    /* Contains name container + status */
-     display: flex;
-     flex-direction: column; /* Stack name and status */
-     margin-bottom: 5px; /* Space below name/status block */
-}
-
-.group-name-container {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 4px; /* Space between name and status */
-    cursor: pointer;
-}
-
-.group-name {
-    font-weight: 600;
-    color: #333;
-    flex-grow: 1; /* Allow name to take space */
-    word-break: break-word; /* Prevent long names overflowing */
-}
-
-.edit-group-icon {
-    color: #888;
-    font-size: 0.9em;
-    cursor: pointer;
-    transition: color 0.2s ease;
-    visibility: hidden; /* Hide initially */
-    opacity: 0;
-    transition: visibility 0s linear 0.2s, opacity 0.2s ease;
-}
-
-.group-list-item:hover .edit-group-icon {
-    visibility: visible; /* Show on hover */
-    opacity: 1;
-    transition-delay: 0s;
-}
-
-.group-status {
-    font-size: 0.8em;
-    color: #777;
-}
-
-.group-actions {
-    display: flex;
-    align-items: center; /* Align buttons vertically */
-    gap: 5px;
-    flex-shrink: 0; /* Prevent action buttons from shrinking */
-}
-
-.group-actions .action-button {
-    padding: 4px 8px; /* Smaller padding */
-    font-size: 0.85em;
-    background: none;
-    border: 1px solid transparent; /* Keep space consistent */
-    color: #666;
-    border-radius: 4px;
-}
-.group-actions .action-button:hover {
-    background-color: #f0f0f0;
-    border-color: #ddd;
-    color: #333;
-}
-.group-actions .action-button .open-tab-text {
-    display: none; /* Hide text by default */
-}
-.group-actions .action-button i {
-    font-size: 1.1em; /* Slightly larger icons */
-}
-
-/* Make Open text visible on larger screens if desired */
-@media (min-width: 400px) {
-    .group-actions .action-button .open-tab-text {
-        display: inline; /* Show text */
-        margin-left: 4px;
-    }
-    .group-actions .action-button {
-        padding: 4px 10px; /* Adjust padding */
-    }
-}
-
-
-/* Inline Edit Styles */
-.group-name-edit-container {
-    display: flex;
-    align-items: center;
-    width: 100%; /* Take full width */
-    gap: 5px;
-}
-
-.group-name-input {
-    flex-grow: 1;
-    padding: 4px 6px;
-    border: 1px solid #ccc;
-    border-radius: 3px;
-    font-size: 1em; /* Match original name size */
-}
-.group-name-input:focus {
-    outline: none;
-    border-color: #007bff;
-    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-}
-
-.edit-actions {
-    display: flex;
-    gap: 3px;
-}
-
-.edit-actions button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 3px;
-    font-size: 1.1em; /* Adjust icon size */
-    color: #555;
-    border-radius: 3px;
-}
-.edit-actions button:hover {
-    background-color: #eee;
-}
-.edit-actions .save-edit-btn { color: #28a745; } /* Green for save */
-.edit-actions .cancel-edit-btn { color: #dc3545; } /* Red for cancel */
-
-
-/* Group Details (Tab List) */
-.group-details {
-    /* Styles for the hidden tab list container */
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.3s ease-out, padding 0.3s ease-out;
-    width: 100%; /* Span full width below the item */
-    padding: 0 10px; /* Add padding only when expanded */
-    box-sizing: border-box;
-    /* Position it below the main flex item */
-    flex-basis: 100%; /* Make it take full width in flex context */
-
-}
-
-.group-details.expanded {
-    max-height: 300px; /* Adjust as needed, or use 'none' if height is unpredictable */
-    overflow-y: auto; /* Add scroll if content exceeds max-height */
-    padding: 10px; /* Add padding when expanded */
-    border-top: 1px dashed #eee; /* Separator */
-    margin-top: 10px; /* Space above */
-}
-
-.detailed-tab-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.detailed-tab-item {
-    display: flex;
-    align-items: center;
-    padding: 5px 0;
-    gap: 8px;
-    font-size: 0.9em;
-    cursor: pointer;
-    border-radius: 3px;
-    transition: background-color 0.2s ease;
-}
-.detailed-tab-item:hover {
-    background-color: #f0f0f0;
-}
-
-.detailed-tab-favicon {
-    width: 16px;
-    height: 16px;
-    flex-shrink: 0;
-}
-
-.detailed-tab-title {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    color: #555;
-}
-
-.empty-group-message {
-    font-style: italic;
-    color: #888;
-    padding: 5px 0;
-    font-size: 0.9em;
-}
-
-/* Rotate chevron icon */
-.toggle-details-btn i.rotated {
-    transform: rotate(180deg);
-}
-.toggle-details-btn i {
-    transition: transform 0.3s ease-in-out;
-}
-
-/* --- Additions/Modifications for popup.css --- */
-
-/* General Settings Styles */
-.settings-content {
-    padding: 10px 15px 15px 15px; /* Adjusted padding */
-    display: flex;
-    flex-direction: column;
-    gap: 25px; /* Increased space between setting items */
-}
-
-.settings-item {
-    background-color: #fff; /* White background */
-    padding: 15px;
-    border-radius: 8px; /* Slightly more rounded */
-    border: 1px solid #e0e0e0; /* Softer border */
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05); /* Subtle shadow */
-}
-
-.settings-item h3 {
-    margin-top: 0;
-    margin-bottom: 10px;
-    font-size: 1.05em; /* Slightly smaller */
-    color: #333;
-    display: flex; /* Align icon with text */
-    align-items: center;
-    gap: 8px; /* Space between icon and text */
-    border-bottom: 1px solid #eee; /* Separator line */
-    padding-bottom: 8px;
-}
-.settings-item h3 i {
-    color: #555; /* Icon color */
-    font-size: 1em; /* Match text size */
-}
-
-
-.settings-item p {
-    font-size: 0.9em;
-    color: #555; /* Darker grey */
-    line-height: 1.5;
-    margin-bottom: 15px;
-}
-
-.settings-actions {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-top: 10px; /* Add space above buttons */
-}
-
-.settings-note {
-    font-size: 0.8em;
-    color: #777;
-    margin-top: 10px;
-    font-style: italic;
-}
-
-
-/* Shortcut Section Styles */
-.shortcuts-list-container {
-    margin-top: 10px;
-    margin-bottom: 10px;
-    padding: 10px;
-    background-color: #f8f8f8; /* Light background for list */
-    border-radius: 4px;
-    border: 1px solid #eee;
-}
-.shortcuts-list-items {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-.shortcut-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 6px 0;
-    font-size: 0.9em;
-    border-bottom: 1px dashed #ddd; /* Dashed separator */
-}
-.shortcut-item:last-child {
-    border-bottom: none;
-}
-.shortcut-name {
-    color: #333;
-}
-.shortcut-key {
-    font-weight: 600;
-    color: #0056b3; /* Blueish color for key */
-    background-color: #e9ecef; /* Light grey background */
-    padding: 2px 6px;
-    border-radius: 3px;
-    font-family: monospace; /* Monospace font */
-}
-
-/* Danger Zone Styles */
-.danger-zone {
-    border-color: #f5c6cb; /* Reddish border */
-    background-color: #f8d7da; /* Light red background */
-}
-.danger-zone h3 {
-    color: #721c24; /* Dark red text */
-    border-bottom-color: #f1b0b7;
-}
-.danger-zone h3 i {
-    color: #721c24;
-}
-.danger-zone p {
-    color: #721c24;
-}
-.danger-btn {
-    /* Base button styles */
-    padding: 8px 15px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 0.9em;
-    font-weight: 500;
-    transition: background-color 0.2s ease, box-shadow 0.2s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    /* Danger specific styles */
-    background-color: #dc3545; /* Red background */
-    color: white;
-    border: 1px solid #dc3545;
-}
-.danger-btn:hover {
-    background-color: #c82333; /* Darker red on hover */
-    border-color: #bd2130;
-    box-shadow: 0 2px 5px rgba(220, 53, 69, 0.3);
-}
-.danger-btn i {
-    font-size: 1em;
-}
-
-
-/* Custom Choice Dialog Styles */
-.custom-choice-overlay {
-    position: fixed;
-    inset: 0;
-    background-color: rgba(0, 0, 0, 0.6); /* Darker overlay */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1001; /* Ensure it's above confirm/alert */
-}
-
-.custom-choice-dialog {
-    background-color: white;
-    padding: 25px 30px; /* More padding */
-    border-radius: 8px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-    text-align: center;
-    max-width: 350px; /* Limit width */
-    width: 90%;
-}
-
-.custom-choice-dialog p {
-    margin-top: 0;
-    margin-bottom: 20px;
-    font-size: 1em;
-    color: #333;
-    line-height: 1.5;
-}
-
-.custom-choice-buttons {
-    display: flex;
-    flex-direction: column; /* Stack buttons vertically */
-    gap: 10px; /* Space between buttons */
-    margin-top: 15px;
-}
-
-.custom-choice-button {
-    padding: 10px 15px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 0.9em;
-    font-weight: 500;
-    transition: background-color 0.2s ease, border-color 0.2s ease;
-}
-
-.custom-choice-button.choice1 {
-    background-color: #007bff; /* Blue for primary choice */
-    color: white;
-    border-color: #007bff;
-}
-.custom-choice-button.choice1:hover {
-    background-color: #0056b3;
-    border-color: #0056b3;
-}
-
-.custom-choice-button.choice2 {
-    background-color: #ffc107; /* Yellow/Orange for secondary choice */
-    color: #212529;
-    border-color: #ffc107;
-}
-.custom-choice-button.choice2:hover {
-    background-color: #e0a800;
-    border-color: #d39e00;
-}
 
-.custom-choice-button.cancel {
-    background-color: #f8f9fa; /* Light grey for cancel */
-    color: #333;
-    border-color: #ccc;
+.group-sort-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
-.custom-choice-button.cancel:hover {
-    background-color: #e2e6ea;
-    border-color: #adb5bd;
-}
-
-/* Ensure primary/secondary/danger buttons have consistent base styles */
-.primary-btn, .secondary-btn, .danger-btn {
-    padding: 8px 15px;
-    border: 1px solid transparent; /* Base border */
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 0.9em;
-    font-weight: 500;
-    transition: background-color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    text-decoration: none; /* Remove underline if used as link */
-    color: inherit; /* Inherit text color */
-    line-height: 1.2; /* Adjust line height */
-}
-.primary-btn i, .secondary-btn i, .danger-btn i {
-     font-size: 1em; /* Adjust icon size relative to button text */
-}
 
-/* Example primary button style (if not already defined) */
-.primary-btn {
-    background-color: #007bff;
-    color: white;
-    border-color: #007bff;
+.group-sort-controls label {
+  font-size: 11px;
+  color: #555; /* Slightly darker label */
 }
-.primary-btn:hover {
-    background-color: #0056b3;
-    border-color: #0056b3;
-    box-shadow: 0 2px 5px rgba(0, 123, 255, 0.3);
-}
 
-/* Example secondary button style (if not already defined) */
-.secondary-btn {
-    background-color: #6c757d;
-    color: white;
-    border-color: #6c757d;
-}
-.secondary-btn:hover {
-    background-color: #5a6268;
-    border-color: #545b62;
-    box-shadow: 0 2px 5px rgba(108, 117, 125, 0.3);
+.group-sort-controls select {
+  padding: 4px 8px;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--medium-gray);
+  background-color: var(--white);
+  cursor: pointer;
+  font-size: 11px;
 }
-
-
-

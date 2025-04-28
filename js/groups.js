@@ -4,31 +4,44 @@
 
 var app = app || {};
 app.groups = {};
+app.groups.currentlyEditingGroup = null; // Track inline editing state
 
 // --- Group Saving Logic ---
-// (showSaveDropdown, populateTabsChecklist, saveSelectedTabs - remain the same)
+// (showSaveDropdown, populateTabsChecklist, saveSelectedTabs - remain largely the same)
 app.groups.showSaveDropdown = function() {
     app.utils.hideAllModalDialogs(); // Use utility function
     app.groups.populateTabsChecklist();
-    app.elements.saveDropdown.style.display = 'block';
+    // Instead of direct style, use utility to show the modal overlay
+    app.utils.showModal('saveDropdown'); // Assumes saveDropdown is the ID of the modal overlay
     app.elements.groupNameInput.focus();
 };
 
 app.groups.populateTabsChecklist = function() {
     const fragment = document.createDocumentFragment();
     app.state.currentTabs.forEach((tab) => {
+        // Filter out internal chrome pages
+        if (!tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('about:')) {
+            return;
+        }
         const item = document.createElement('div');
-        item.className = 'tab-item';
+        item.className = 'tab-item'; // Used by CSS
+        item.style.display = 'flex';
+        item.style.flexDirection = 'row';
+        item.style.alignItems = 'center';
+        item.style.gap = '10px';
+        item.style.padding = '7px 16px';
+        item.style.borderBottom = '1px solid #f2f2f2';
         item.innerHTML = `
             <input type="checkbox" class="tab-checkbox" checked data-tab-id="${tab.id}" id="tab-check-${tab.id}">
-            <img class="tab-favicon" src="${tab.favIconUrl || 'icon.png'}" onerror="this.src='icon.png'" alt="">
+            <img class="favicon" src="${tab.favIconUrl || 'icon.png'}" onerror="this.src='icon.png'" alt="">
             <label class="tab-title" for="tab-check-${tab.id}">${tab.title || tab.url}</label>
         `;
         fragment.appendChild(item);
     });
-    app.elements.tabsChecklist.innerHTML = '';
+    app.elements.tabsChecklist.innerHTML = ''; // Clear previous
     app.elements.tabsChecklist.appendChild(fragment);
-    app.elements.selectAllBtn.textContent = 'Deselect All'; // Default state when populated
+    app.elements.selectAllBtn.textContent = 'Deselect All'; // Default state
+    app.elements.selectAllBtn.dataset.selected = "true"; // Track state for toggling
 };
 
 app.groups.saveSelectedTabs = function() {
@@ -44,7 +57,12 @@ app.groups.saveSelectedTabs = function() {
         const tabId = parseInt(checkbox.dataset.tabId);
         const tab = app.state.currentTabs.find(t => t.id === tabId);
         if (tab) {
-            selectedTabs.push({ url: tab.url, title: tab.title, favIconUrl: tab.favIconUrl });
+            // Ensure basic tab structure is saved
+            selectedTabs.push({
+                url: tab.url,
+                title: tab.title || tab.url, // Fallback title
+                favIconUrl: tab.favIconUrl || '' // Fallback favicon
+            });
         }
     });
 
@@ -63,7 +81,7 @@ app.groups.saveSelectedTabs = function() {
         tabGroups[groupName] = { tabs: selectedTabs, dateAdded: Date.now() };
 
         chrome.storage.local.set({ tabGroups }, () => {
-            app.elements.saveDropdown.style.display = 'none';
+            app.utils.hideModal('saveDropdown'); // Hide modal using utility
             app.elements.groupNameInput.value = '';
             if (app.state.activeSection === 'groups') {
                  app.groups.loadSavedGroups(); // Refresh
@@ -75,118 +93,123 @@ app.groups.saveSelectedTabs = function() {
 
 
 // --- Group/Folder Rendering & Management ---
-// (createGroupListItem, loadSavedGroups, handleSearchDebounced, openTabGroup, deleteTabGroup, deleteFolder - remain the same)
+
+// *** NEW createGroupListItem function implementing the requested layout ***
 app.groups.createGroupListItem = function(name, group, folderName = null) {
     const li = document.createElement('li');
+    li.className = 'group-list-item'; // Main container class
     li.dataset.group = name;
     if (folderName) {
         li.dataset.folder = folderName;
     }
-    li.className = 'group-list-item'; // Add a class for easier styling/selection
 
-    // Main visible part of the group item
-    const groupItemDiv = document.createElement('div');
-    groupItemDiv.className = 'group-item';
-
-    // Group Info (Name is now editable)
-    const groupInfoDiv = document.createElement('div');
-    groupInfoDiv.className = 'group-info';
-
-    // Container for the name and edit icon/input
-    const groupNameContainer = document.createElement('div');
-    groupNameContainer.className = 'group-name-container';
-    groupNameContainer.innerHTML = `
-        <span class="group-name" title="Click to edit name">${name}</span>
-        <i class="fas fa-pencil-alt edit-group-icon" title="Edit name"></i>
-    `;
-    groupInfoDiv.appendChild(groupNameContainer);
-
-    // Group Status (Tab count and Date)
     const date = new Date(group.dateAdded || Date.now());
     const formattedDate = date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
     const tabCount = group.tabs ? group.tabs.length : 0;
 
-    const groupStatusDiv = document.createElement('div');
-    groupStatusDiv.className = 'group-status';
-    groupStatusDiv.innerHTML = `${tabCount} tab${tabCount !== 1 ? 's' : ''} <span style="color: #bbb; margin: 0 5px;">|</span> ${formattedDate}`;
-    groupInfoDiv.appendChild(groupStatusDiv);
+    // Main visible part (Flex container)
+    const groupItemMain = document.createElement('div');
+    groupItemMain.className = 'group-item-main';
 
-    // Action Buttons
+    // Left side: Info (Name, Status, Open All Button)
+    const groupInfoDiv = document.createElement('div');
+    groupInfoDiv.className = 'group-info';
+    groupInfoDiv.innerHTML = `
+        <span class="group-name">${name}</span>
+        <span class="group-status">${tabCount} tab${tabCount !== 1 ? 's' : ''} <span>|</span> ${formattedDate}</span>
+        <button class="open-group-button subtle-button">
+            <i class="fas fa-external-link-alt"></i> Open All (${tabCount})
+        </button>
+    `;
+
+    // Right side: Actions (Edit Tabs, Rename, Delete, Expand)
     const groupActionsDiv = document.createElement('div');
     groupActionsDiv.className = 'group-actions';
     groupActionsDiv.innerHTML = `
-        <button class="action-button open-btn" title="Open Tabs in New Window">
-            <i class="fas fa-external-link-alt"></i>
-            <span class="open-tab-text">Open</span>
+        <button class="edit-group-button icon-button edit" title="Edit Tabs">
+            <i class="fas fa-list-ul"></i>
         </button>
-        <button class="action-button delete-btn" title="Delete Group">
+        <button class="rename-group-button icon-button rename" title="Rename Group">
+            <i class="fas fa-pencil-alt"></i>
+        </button>
+        <button class="delete-group-button icon-button danger" title="Delete Group">
             <i class="fas fa-trash"></i>
         </button>
-        <button class="action-button toggle-details-btn" title="Show/Hide Tabs List">
+        <button class="expand-group-button icon-button" title="Show/Hide Tabs List">
             <i class="fas fa-chevron-down"></i>
         </button>
     `;
 
     // Assemble the main visible part
-    groupItemDiv.appendChild(groupInfoDiv);
+    groupItemMain.appendChild(groupInfoDiv);
+    groupItemMain.appendChild(groupActionsDiv);
 
-    // Hidden Details Section (Tab List)
-    const groupDetailsDiv = document.createElement('div');
-    groupDetailsDiv.className = 'group-details'; // Initially hidden by CSS (max-height: 0)
-    const tabListUl = document.createElement('ul');
-    tabListUl.className = 'detailed-tab-list';
+    // Hidden Tab List Section (populated on demand or initially)
+    const tabListDiv = document.createElement('ul'); // Use UL for semantic list
+    tabListDiv.className = 'tab-list'; // Initially hidden by CSS (max-height: 0)
 
     if (group.tabs && group.tabs.length > 0) {
         group.tabs.forEach(tab => {
             const tabLi = document.createElement('li');
-            tabLi.className = 'detailed-tab-item';
+            tabLi.className = 'tab-list-item';
             // Store URL directly on the element for easy access on click
             tabLi.dataset.url = tab.url;
             tabLi.innerHTML = `
-                <img class="detailed-tab-favicon" src="${tab.favIconUrl || 'icon.png'}" onerror="this.src='icon.png'" alt="">
-                <span class="detailed-tab-title" title="${tab.title || tab.url}">${tab.title || 'No Title'}</span>
+                <img class="favicon" src="${tab.favIconUrl || 'icon.png'}" onerror="this.src='icon.png'" alt="">
+                <div class="tab-details">
+                     <span class="tab-title" title="${tab.title || tab.url}">${tab.title || 'No Title'}</span>
+                     <span class="tab-url" title="${tab.url}">${tab.url}</span>
+                </div>
             `;
-            tabListUl.appendChild(tabLi);
+            tabListDiv.appendChild(tabLi);
         });
     } else {
-        tabListUl.innerHTML = '<li class="empty-group-message">No tabs in this group.</li>';
+        tabListDiv.innerHTML = '<li class="empty-group-message">No tabs in this group.</li>';
     }
-    groupDetailsDiv.appendChild(tabListUl);
 
     // Add parts to the main list item (li)
-    li.appendChild(groupItemDiv); // Visible part
-    li.appendChild(groupActionsDiv); // Actions next to visible part
-    li.appendChild(groupDetailsDiv); // Hidden details part
+    li.appendChild(groupItemMain); // Visible part
+    li.appendChild(tabListDiv);    // Hidden details part
 
     return li;
 };
+
 
 app.groups.loadSavedGroups = function() {
     chrome.storage.local.get(['tabGroups', 'folders'], ({ tabGroups = {}, folders = {} }) => {
         const sortOrder = app.state.groupSortOrder || 'dateDesc';
 
         const groupComparator = (nameA, nameB, dataA, dataB) => {
+            // Add null/undefined checks for safety
+            const tabsA = dataA?.tabs?.length || 0;
+            const tabsB = dataB?.tabs?.length || 0;
+            const dateA = dataA?.dateAdded || dataA?.dateCreated || 0;
+            const dateB = dataB?.dateAdded || dataB?.dateCreated || 0;
+
             switch (sortOrder) {
                 case 'nameAsc': return nameA.localeCompare(nameB, undefined, { sensitivity: 'base' });
                 case 'nameDesc': return nameB.localeCompare(nameA, undefined, { sensitivity: 'base' });
-                case 'tabsAsc': return (dataA.tabs?.length || 0) - (dataB.tabs?.length || 0);
-                case 'tabsDesc': return (dataB.tabs?.length || 0) - (dataA.tabs?.length || 0);
-                case 'dateAsc': return (dataA.dateAdded || dataA.dateCreated || 0) - (dataB.dateAdded || dataB.dateCreated || 0);
-                case 'dateDesc': default: return (dataB.dateAdded || dataB.dateCreated || 0) - (dataA.dateAdded || dataA.dateCreated || 0);
+                case 'tabsAsc': return tabsA - tabsB;
+                case 'tabsDesc': return tabsB - tabsA;
+                case 'dateAsc': return dateA - dateB;
+                case 'dateDesc': default: return dateB - dateA;
             }
         };
 
         const folderComparator = (nameA, nameB, dataA, dataB) => {
+             const dateA = dataA?.dateCreated || 0;
+             const dateB = dataB?.dateCreated || 0;
+             const countA = dataA?.groups ? Object.keys(dataA.groups).length : 0;
+             const countB = dataB?.groups ? Object.keys(dataB.groups).length : 0;
+
              switch (sortOrder) {
                  case 'nameAsc': return nameA.localeCompare(nameB, undefined, { sensitivity: 'base' });
                  case 'nameDesc': return nameB.localeCompare(nameA, undefined, { sensitivity: 'base' });
-                 case 'dateAsc': return (dataA.dateCreated || 0) - (dataB.dateCreated || 0);
-                 case 'dateDesc': return (dataB.dateCreated || 0) - (dataA.dateCreated || 0);
-                 case 'tabsAsc': case 'tabsDesc':
-                    const countA = dataA.groups ? Object.keys(dataA.groups).length : 0;
-                    const countB = dataB.groups ? Object.keys(dataB.groups).length : 0;
-                    return sortOrder === 'tabsAsc' ? countA - countB : countB - countA;
-                 default: return nameA.localeCompare(nameB, undefined, { sensitivity: 'base' });
+                 case 'dateAsc': return dateA - dateB;
+                 case 'dateDesc': return dateB - dateA;
+                 case 'tabsAsc': return countA - countB; // Sort folders by number of groups inside
+                 case 'tabsDesc': return countB - countA;
+                 default: return nameA.localeCompare(nameB, undefined, { sensitivity: 'base' }); // Fallback to name sort
              }
         };
 
@@ -198,13 +221,14 @@ app.groups.loadSavedGroups = function() {
                 folderComparator(a, b, folders[a], folders[b])
              );
 
+            // Render Folders
             sortedFolderNames.forEach(folderName => {
                 const folder = folders[folderName];
                 const folderElement = document.createElement('div');
                 folderElement.className = 'folder-item';
                 folderElement.dataset.folder = folderName;
                 const folderGroupCount = Object.keys(folder.groups || {}).length;
-                const isExpanded = false; // Default closed
+                const isExpanded = app.state.expandedFolders?.[folderName] || false; // Use state to remember expansion
                 const iconClass = isExpanded ? 'fa-chevron-up rotated' : 'fa-chevron-down';
 
                 folderElement.innerHTML = `
@@ -214,14 +238,14 @@ app.groups.loadSavedGroups = function() {
                         <span>${folderName}<span class="folder-count">(${folderGroupCount})</span></span>
                     </div>
                     <div class="folder-header-actions">
-                        <button class="action-button edit-folder-btn" title="Edit Folder"><i class="fas fa-edit"></i></button>
-                        <button class="action-button toggle-folder-btn" title="Expand/Collapse"><i class="fas ${iconClass}"></i></button>
+                        <button class="action-button edit-folder-btn icon-button edit" title="Edit Folder"><i class="fas fa-edit"></i></button>
+                        <button class="action-button toggle-folder-btn icon-button" title="Expand/Collapse"><i class="fas ${iconClass}"></i></button>
                     </div>
                 </div>
                 <div class="folder-content ${isExpanded ? 'expanded' : ''}">
                     <ul></ul>
                     <div class="folder-actions">
-                        <button class="action-button delete-folder-btn" title="Delete Folder Only (Groups Remain)">
+                        <button class="action-button delete-folder-btn danger-btn" title="Delete Folder Only (Groups Remain)">
                             <i class="fas fa-trash"></i> Delete Folder
                         </button>
                     </div>
@@ -242,8 +266,9 @@ app.groups.loadSavedGroups = function() {
                 fragment.appendChild(folderElement);
             });
 
+            // Render Standalone Groups
             const standaloneGroupList = document.createElement('ul');
-            standaloneGroupList.className = 'standalone-groups-list';
+            standaloneGroupList.className = 'standalone-groups-list groups-list'; // Add groups-list for gap spacing
             let standaloneGroupsExist = false;
 
             const sortedStandaloneGroupNames = Object.keys(tabGroups)
@@ -261,22 +286,24 @@ app.groups.loadSavedGroups = function() {
                 fragment.appendChild(standaloneGroupList);
             }
 
+            // Update DOM
             app.elements.groupsList.innerHTML = '';
             if (fragment.hasChildNodes()) {
                  app.elements.groupsList.appendChild(fragment);
             } else {
-                 if (app.elements.searchInput.value.trim() !== '') {
-                      app.elements.groupsList.innerHTML = '<div class="no-results">No matching groups or folders found.</div>';
-                 } else {
-                      app.elements.groupsList.innerHTML = '<div class="empty-message">No tab groups saved yet. Click the "+" button to save your current tabs, or the "Create Folder" button above to start organizing.</div>';
-                 }
+                 const message = app.elements.searchInput.value.trim() !== ''
+                     ? '<div class="no-results">No matching groups or folders found.</div>'
+                     : '<div class="empty-message">No tab groups saved yet. Click "Save Open Tabs" or "Create Folder" to get started.</div>';
+                 app.elements.groupsList.innerHTML = message;
             }
 
+            // Update counts after rendering
             if(app.utils && app.utils.updateSavedItemsCount) app.utils.updateSavedItemsCount();
         });
     });
 };
 
+// Debounced search handler - modified to use the new createGroupListItem
 app.groups.handleSearchDebounced = app.utils.debounce((searchTerm) => {
     const lowerSearchTerm = searchTerm.trim().toLowerCase();
 
@@ -286,6 +313,7 @@ app.groups.handleSearchDebounced = app.utils.debounce((searchTerm) => {
     }
 
     app.elements.clearSearchBtn.classList.add('visible');
+    app.elements.searchContainer.style.display = 'block'; // Ensure search bar stays visible during search
 
     chrome.storage.local.get(['tabGroups', 'folders'], ({ tabGroups = {}, folders = {} }) => {
         const filteredGroups = {};
@@ -293,133 +321,144 @@ app.groups.handleSearchDebounced = app.utils.debounce((searchTerm) => {
         const groupsInFilteredFolders = new Set();
         const sortOrder = app.state.groupSortOrder || 'dateDesc'; // Use current sort order
 
-        // Comparators (same as in loadSavedGroups)
+        // Re-use comparators from loadSavedGroups
         const groupComparator = (nameA, nameB, dataA, dataB) => { /* ... copy from loadSavedGroups ... */
-             switch (sortOrder) {
-                case 'nameAsc': return nameA.localeCompare(nameB, undefined, { sensitivity: 'base' });
-                case 'nameDesc': return nameB.localeCompare(nameA, undefined, { sensitivity: 'base' });
-                case 'tabsAsc': return (dataA.tabs?.length || 0) - (dataB.tabs?.length || 0);
-                case 'tabsDesc': return (dataB.tabs?.length || 0) - (dataA.tabs?.length || 0);
-                case 'dateAsc': return (dataA.dateAdded || dataA.dateCreated || 0) - (dataB.dateAdded || dataB.dateCreated || 0);
-                case 'dateDesc': default: return (dataB.dateAdded || dataB.dateCreated || 0) - (dataA.dateAdded || dataA.dateCreated || 0);
-            }
-        };
-        const folderComparator = (nameA, nameB, dataA, dataB) => { /* ... copy from loadSavedGroups ... */
+             const tabsA = dataA?.tabs?.length || 0; const tabsB = dataB?.tabs?.length || 0;
+             const dateA = dataA?.dateAdded || dataA?.dateCreated || 0; const dateB = dataB?.dateAdded || dataB?.dateCreated || 0;
              switch (sortOrder) {
                  case 'nameAsc': return nameA.localeCompare(nameB, undefined, { sensitivity: 'base' });
                  case 'nameDesc': return nameB.localeCompare(nameA, undefined, { sensitivity: 'base' });
-                 case 'dateAsc': return (dataA.dateCreated || 0) - (dataB.dateCreated || 0);
-                 case 'dateDesc': return (dataB.dateCreated || 0) - (dataA.dateCreated || 0);
-                 case 'tabsAsc': case 'tabsDesc':
-                    const countA = dataA.groups ? Object.keys(dataA.groups).length : 0;
-                    const countB = dataB.groups ? Object.keys(dataB.groups).length : 0;
-                    return sortOrder === 'tabsAsc' ? countA - countB : countB - countA;
-                 default: return nameA.localeCompare(nameB, undefined, { sensitivity: 'base' });
+                 case 'tabsAsc': return tabsA - tabsB; case 'tabsDesc': return tabsB - tabsA;
+                 case 'dateAsc': return dateA - dateB; case 'dateDesc': default: return dateB - dateA;
              }
-        };
+         };
+        const folderComparator = (nameA, nameB, dataA, dataB) => { /* ... copy from loadSavedGroups ... */
+              const dateA = dataA?.dateCreated || 0; const dateB = dataB?.dateCreated || 0;
+              const countA = dataA?.groups ? Object.keys(dataA.groups).length : 0; const countB = dataB?.groups ? Object.keys(dataB.groups).length : 0;
+              switch (sortOrder) {
+                  case 'nameAsc': return nameA.localeCompare(nameB, undefined, { sensitivity: 'base' });
+                  case 'nameDesc': return nameB.localeCompare(nameA, undefined, { sensitivity: 'base' });
+                  case 'dateAsc': return dateA - dateB; case 'dateDesc': return dateB - dateA;
+                  case 'tabsAsc': return countA - countB; case 'tabsDesc': return countB - countA;
+                  default: return nameA.localeCompare(nameB, undefined, { sensitivity: 'base' });
+              }
+          };
 
-        // Filter folders and their groups
+        // Filter folders and their groups (include folder if name matches OR any group/tab inside matches)
         Object.entries(folders).forEach(([folderName, folder]) => {
             let folderNameMatches = folderName.toLowerCase().includes(lowerSearchTerm);
             let matchingGroupsInFolder = {};
-            let groupMatchFound = false;
+            let groupOrTabMatchFound = false;
              if (folder.groups) {
                 Object.entries(folder.groups).forEach(([groupName, group]) => {
-                    // Check if group name OR any tab title/url within the group matches
+                    let groupNameMatches = groupName.toLowerCase().includes(lowerSearchTerm);
                     let tabMatch = group.tabs?.some(tab =>
                         (tab.title && tab.title.toLowerCase().includes(lowerSearchTerm)) ||
                         (tab.url && tab.url.toLowerCase().includes(lowerSearchTerm))
                     );
-                    if (groupName.toLowerCase().includes(lowerSearchTerm) || tabMatch) {
+                    if (groupNameMatches || tabMatch) {
                         matchingGroupsInFolder[groupName] = group;
-                        groupMatchFound = true;
+                        groupOrTabMatchFound = true;
                     }
                 });
             }
-             if (folderNameMatches || groupMatchFound) {
-                // If folder name matches, include all its groups; otherwise, include only matching groups
-                filteredFolders[folderName] = { ...folder, groups: folderNameMatches ? folder.groups : matchingGroupsInFolder };
-                Object.keys(filteredFolders[folderName].groups || {}).forEach(gn => groupsInFilteredFolders.add(gn));
+             if (folderNameMatches || groupOrTabMatchFound) {
+                 // If folder name matches, keep all original groups; otherwise keep only matching ones
+                 const groupsToShow = folderNameMatches ? (folder.groups || {}) : matchingGroupsInFolder;
+                 if(Object.keys(groupsToShow).length > 0) { // Only add folder if it will contain groups
+                     filteredFolders[folderName] = { ...folder, groups: groupsToShow };
+                     Object.keys(groupsToShow).forEach(gn => groupsInFilteredFolders.add(gn));
+                 }
             }
         });
 
         // Filter standalone groups
         Object.entries(tabGroups).forEach(([name, group]) => {
-            if (!groupsInFilteredFolders.has(name)) { // Avoid duplicates if group was already included via folder search
+            if (!groupsInFilteredFolders.has(name)) { // Avoid duplicates
+                 let groupNameMatches = name.toLowerCase().includes(lowerSearchTerm);
                  let tabMatch = group.tabs?.some(tab =>
                     (tab.title && tab.title.toLowerCase().includes(lowerSearchTerm)) ||
                     (tab.url && tab.url.toLowerCase().includes(lowerSearchTerm))
                  );
-                 if (name.toLowerCase().includes(lowerSearchTerm) || tabMatch) {
+                 if (groupNameMatches || tabMatch) {
                     filteredGroups[name] = group;
                 }
             }
         });
 
         // Render Filtered Results
-        const fragment = document.createDocumentFragment();
-        let resultsFound = false;
+        requestAnimationFrame(() => {
+            const fragment = document.createDocumentFragment();
+            let resultsFound = false;
 
-        // Sort and Render filtered folders
-         const sortedFilteredFolderNames = Object.keys(filteredFolders).sort((a, b) =>
-             folderComparator(a, b, filteredFolders[a], filteredFolders[b])
-         );
-         sortedFilteredFolderNames.forEach(folderName => {
-             resultsFound = true;
-             const folder = filteredFolders[folderName];
-             const folderElement = document.createElement('div');
-             folderElement.className = 'folder-item'; folderElement.dataset.folder = folderName;
-             const folderGroupCount = Object.keys(folder.groups || {}).length;
-             // Expand folders automatically in search results
-             folderElement.innerHTML = `
-                 <div class="folder-header">
-                     <div class="folder-title"><i class="fas fa-folder"></i> <span>${folderName}</span> <span class="folder-count">(${folderGroupCount})</span></div>
-                     <div class="folder-header-actions">
-                        <button class="action-button edit-folder-btn" title="Edit Folder"><i class="fas fa-edit"></i></button>
-                        <button class="action-button toggle-folder-btn" title="Expand/Collapse"><i class="fas fa-chevron-up rotated"></i></button> </div>
-                 </div>
-                 <div class="folder-content expanded"> <ul></ul> <div class="folder-actions"><button class="action-button delete-folder-btn"><i class="fas fa-trash"></i> Delete Folder</button></div> </div>`;
+            // Sort and Render filtered folders
+            const sortedFilteredFolderNames = Object.keys(filteredFolders).sort((a, b) =>
+                folderComparator(a, b, filteredFolders[a], filteredFolders[b])
+            );
+            sortedFilteredFolderNames.forEach(folderName => {
+                resultsFound = true;
+                const folder = filteredFolders[folderName];
+                const folderElement = document.createElement('div');
+                folderElement.className = 'folder-item'; folderElement.dataset.folder = folderName;
+                const folderGroupCount = Object.keys(folder.groups || {}).length;
+                // Expand folders automatically in search results
+                folderElement.innerHTML = `
+                    <div class="folder-header">
+                        <div class="folder-title"><i class="fas fa-folder"></i> <span>${folderName}</span> <span class="folder-count">(${folderGroupCount})</span></div>
+                        <div class="folder-header-actions">
+                            <button class="action-button edit-folder-btn icon-button edit" title="Edit Folder"><i class="fas fa-edit"></i></button>
+                            <button class="action-button toggle-folder-btn icon-button" title="Expand/Collapse"><i class="fas fa-chevron-up rotated"></i></button> </div>
+                    </div>
+                    <div class="folder-content expanded"> <ul></ul> <div class="folder-actions"><button class="action-button delete-folder-btn danger-btn"><i class="fas fa-trash"></i> Delete Folder</button></div> </div>`;
 
-             const folderContentUl = folderElement.querySelector('.folder-content ul');
-            if (folder.groups && folderGroupCount > 0) {
-                 // Sort groups within the filtered folder
-                 const sortedGroupNames = Object.keys(folder.groups).sort((a, b) =>
+                const folderContentUl = folderElement.querySelector('.folder-content ul');
+                // Sort groups within the filtered folder
+                const sortedGroupNames = Object.keys(folder.groups).sort((a, b) =>
                     groupComparator(a, b, folder.groups[a], folder.groups[b])
-                 );
-                 sortedGroupNames.forEach(groupName => {
-                     folderContentUl.appendChild(app.groups.createGroupListItem(groupName, folder.groups[groupName], folderName));
-                 });
-            } else {
-                // This case should ideally not happen if groupMatchFound was true,
-                // but handle it just in case.
-                folderContentUl.innerHTML = '<li class="empty-folder">No matching groups inside.</li>';
-            }
-             fragment.appendChild(folderElement);
-        });
+                );
+                sortedGroupNames.forEach(groupName => {
+                    folderContentUl.appendChild(app.groups.createGroupListItem(groupName, folder.groups[groupName], folderName));
+                });
+                fragment.appendChild(folderElement);
+            });
 
-        // Sort and Render filtered standalone groups
-         const standaloneGroupList = document.createElement('ul'); standaloneGroupList.className = 'standalone-groups-list';
-         const sortedFilteredGroupNames = Object.keys(filteredGroups).sort((a, b) =>
-            groupComparator(a, b, filteredGroups[a], filteredGroups[b])
-         );
-         sortedFilteredGroupNames.forEach(name => {
-             resultsFound = true;
-             standaloneGroupList.appendChild(app.groups.createGroupListItem(name, filteredGroups[name]));
-         });
-         if (standaloneGroupList.hasChildNodes()) { fragment.appendChild(standaloneGroupList); }
+            // Sort and Render filtered standalone groups
+            const standaloneGroupList = document.createElement('ul');
+            standaloneGroupList.className = 'standalone-groups-list groups-list';
+            const sortedFilteredGroupNames = Object.keys(filteredGroups).sort((a, b) =>
+                groupComparator(a, b, filteredGroups[a], filteredGroups[b])
+            );
+            sortedFilteredGroupNames.forEach(name => {
+                resultsFound = true;
+                standaloneGroupList.appendChild(app.groups.createGroupListItem(name, filteredGroups[name]));
+            });
+            if (standaloneGroupList.hasChildNodes()) { fragment.appendChild(standaloneGroupList); }
 
-        // Display results
-         app.elements.groupsList.innerHTML = '';
-         if (resultsFound) { app.elements.groupsList.appendChild(fragment); }
-         else { app.elements.groupsList.innerHTML = '<div class="no-results">No matching groups or folders found.</div>'; }
+            // Display results
+            app.elements.groupsList.innerHTML = '';
+            if (resultsFound) { app.elements.groupsList.appendChild(fragment); }
+            else { app.elements.groupsList.innerHTML = '<div class="no-results">No matching groups or folders found.</div>'; }
+        }); // End requestAnimationFrame
     });
 }, 300); // 300ms debounce
 
 app.groups.openTabGroup = function(group) {
     if (group && group.tabs && group.tabs.length > 0) {
-        chrome.windows.create({ url: group.tabs.map(tab => tab.url) }, (newWindow) => {
-            console.log(`Opened group in new window ${newWindow.id}`);
-        });
+        // Filter out invalid URLs before creating window
+        const validUrls = group.tabs.map(tab => tab.url).filter(url => url && !url.startsWith('chrome://') && !url.startsWith('about:'));
+        if (validUrls.length > 0) {
+             chrome.windows.create({ url: validUrls }, (newWindow) => {
+                 if (chrome.runtime.lastError) {
+                      console.error("Error creating window:", chrome.runtime.lastError.message);
+                      app.utils.showCustomAlert("Could not open group: " + chrome.runtime.lastError.message);
+                 } else {
+                    console.log(`Opened group in new window ${newWindow.id}`);
+                 }
+             });
+        } else {
+            console.warn("No valid, openable URLs found in the group:", group);
+            app.utils.showCustomAlert("This group contains no valid URLs to open.");
+        }
     } else {
         console.warn("Attempted to open an invalid or empty group:", group);
         app.utils.showCustomAlert("Could not open tab group - it might be empty or corrupted.");
@@ -427,28 +466,35 @@ app.groups.openTabGroup = function(group) {
 };
 
 app.groups.deleteTabGroup = function(name, folderName = null) {
-    const message = folderName
-        ? `Permanently delete group "${name}"? It will also be removed from folder "${folderName}". This cannot be undone.`
-        : `Are you sure you want to permanently delete the "${name}" group? This cannot be undone.`;
+    const message = `Are you sure you want to permanently delete the group "${name}"? This cannot be undone.`;
 
     app.utils.showCustomConfirm(message, () => { // Use utility
         chrome.storage.local.get(['tabGroups', 'folders'], ({ tabGroups = {}, folders = {} }) => {
             let changed = false;
-            // Remove from standalone groups if it exists there
+            let updates = {};
+
+            // Check if it's in a folder
+            if (folderName && folders[folderName]?.groups?.[name]) {
+                let updatedFolders = { ...folders };
+                let updatedFolder = { ...updatedFolders[folderName] };
+                updatedFolder.groups = { ...updatedFolder.groups };
+                delete updatedFolder.groups[name];
+                updatedFolder.dateModified = Date.now();
+                updatedFolders[folderName] = updatedFolder;
+                updates.folders = updatedFolders;
+                changed = true;
+            }
+            // Check if it's a standalone group (it could be both if data inconsistent)
             if (tabGroups[name]) {
-                delete tabGroups[name];
-                changed = true;
+                let updatedTabGroups = { ...tabGroups };
+                delete updatedTabGroups[name];
+                updates.tabGroups = updatedTabGroups;
+                 changed = true; // Ensure change is registered even if only standalone
             }
-            // Remove from the specific folder if applicable
-            if (folderName && folders[folderName] && folders[folderName].groups && folders[folderName].groups[name]) {
-                delete folders[folderName].groups[name];
-                changed = true;
-            }
-            // It's possible a group exists standalone AND in a folder if data is inconsistent.
-            // The above logic handles removing it from both potential locations based on context.
+
 
             if (changed) {
-                chrome.storage.local.set({ tabGroups, folders }, () => {
+                chrome.storage.local.set(updates, () => {
                      app.groups.loadSavedGroups(); // Refresh the list
                     app.utils.updateSavedItemsCount(); // Update overall count
                 });
@@ -473,52 +519,67 @@ app.groups.deleteFolder = function(folderName) {
             : `Delete empty folder "${folderName}"?`;
 
          app.utils.showCustomConfirm(message, () => { // Use utility
-            delete folders[folderName];
-            // Note: Groups previously inside the folder remain in the main 'tabGroups' storage.
-            // They will now appear as standalone groups upon refresh.
-            chrome.storage.local.set({ folders }, () => {
-                app.groups.loadSavedGroups(); // Refresh to show groups as standalone
-                app.utils.updateSavedItemsCount(); // Update count
-            });
+             // Get the groups from the folder before deleting it
+             const groupsToMakeStandalone = folder.groups || {};
+
+             // Delete the folder
+             delete folders[folderName];
+
+             // Get current standalone groups to merge
+             chrome.storage.local.get('tabGroups', ({ tabGroups = {} }) => {
+                 let updatedTabGroups = { ...tabGroups };
+                 // Add groups from the deleted folder to standalone, avoiding overwrites
+                 Object.entries(groupsToMakeStandalone).forEach(([name, data]) => {
+                     if (!updatedTabGroups[name]) { // Only add if no standalone group with same name exists
+                         updatedTabGroups[name] = data;
+                     } else {
+                         console.warn(`Group "${name}" from deleted folder "${folderName}" conflicts with existing standalone group. Keeping standalone version.`);
+                     }
+                 });
+
+                 // Save both updated folders and tabGroups
+                 chrome.storage.local.set({ folders, tabGroups: updatedTabGroups }, () => {
+                     app.groups.loadSavedGroups(); // Refresh to show groups as standalone
+                     app.utils.updateSavedItemsCount(); // Update count
+                 });
+             });
         });
     });
 };
 
 
 // --- Folder Dialog Logic ---
-// (populateGroupSelection, createNewFolder, openEditFolderDialog, saveEditedFolder, renameTabGroup - mostly same, check folder logic)
-
+// (populateGroupSelection, createNewFolder, openEditFolderDialog, saveEditedFolder - remain largely the same)
 app.groups.populateGroupSelection = function(containerElement, selectedGroups = [], currentFolderName = null) {
     const selectedSet = new Set(selectedGroups);
     chrome.storage.local.get(['tabGroups', 'folders'], ({ tabGroups = {}, folders = {} }) => {
-         const fragment = document.createDocumentFragment();
-         let availableGroups = {}; // Combine standalone and groups from *other* folders
+        const fragment = document.createDocumentFragment();
+        let availableGroups = {}; // Groups eligible to be added/included
 
-         // Add all standalone groups
-         Object.assign(availableGroups, tabGroups);
+        // Add standalone groups first
+        Object.entries(tabGroups).forEach(([name, data]) => {
+             availableGroups[name] = { ...data, origin: 'standalone' };
+        });
 
-         // Add groups from other folders (unless editing the current folder)
-         Object.entries(folders).forEach(([fName, folderData]) => {
-             if (fName !== currentFolderName && folderData.groups) {
-                 Object.entries(folderData.groups).forEach(([gName, groupData]) => {
-                     // Avoid adding if a standalone group with the same name exists (prefer standalone)
-                     if (!availableGroups[gName]) {
-                         // Add with an indicator of its origin folder? Optional.
-                         // availableGroups[gName] = { ...groupData, originFolder: fName };
-                         // For now, just add the group data. If names clash across folders, this might need refinement.
-                         availableGroups[gName] = groupData;
-                     }
-                 });
-             }
-         });
-
+        // Add groups from the *current* folder being edited (to allow deselection)
+        if (currentFolderName && folders[currentFolderName]?.groups) {
+            Object.entries(folders[currentFolderName].groups).forEach(([name, data]) => {
+                 // Add only if not already present (e.g., wasn't also standalone)
+                 if (!availableGroups[name]) {
+                    availableGroups[name] = { ...data, origin: 'currentFolder' };
+                 }
+             });
+        }
 
         const sortedGroupNames = Object.keys(availableGroups).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
 
-        if (sortedGroupNames.length === 0) {
-            containerElement.innerHTML = '<div class="empty-selection">No other tab groups available to add.</div>';
+        if (sortedGroupNames.length === 0 && !currentFolderName) { // Show empty message only when creating new folder with no groups
+            containerElement.innerHTML = '<div class="empty-selection">No tab groups available to add.</div>';
             return;
+        } else if (sortedGroupNames.length === 0 && currentFolderName) {
+            containerElement.innerHTML = '<div class="empty-selection">No other groups to add. Uncheck items to remove them.</div>';
         }
+
 
         sortedGroupNames.forEach((name, index) => {
             const item = document.createElement('div');
@@ -527,62 +588,34 @@ app.groups.populateGroupSelection = function(containerElement, selectedGroups = 
             item.innerHTML = `
                 <input type="checkbox" class="group-checkbox" data-name="${name}" id="${checkboxId}" ${selectedSet.has(name) ? 'checked' : ''}>
                 <label for="${checkboxId}" class="group-name">${name}</label>
-                ${availableGroups[name].originFolder ? `<span class="origin-folder">(in ${availableGroups[name].originFolder})</span>` : ''}
+                ${availableGroups[name].origin === 'currentFolder' && selectedSet.has(name) ? '<span class="origin-folder">(current)</span>' : ''}
             `;
             fragment.appendChild(item);
         });
-         containerElement.innerHTML = '';
+        containerElement.innerHTML = ''; // Clear previous content
         containerElement.appendChild(fragment);
     });
 };
 
-
 app.groups.createNewFolder = function() {
     const folderName = app.elements.folderNameInput.value.trim();
-    if (!folderName) {
-         app.utils.showCustomAlert("Please enter a name for the folder.");
-        app.elements.folderNameInput.focus();
-        return;
-    }
+    if (!folderName) { app.utils.showCustomAlert("Please enter a name for the folder."); app.elements.folderNameInput.focus(); return; }
 
-    const selectedGroupNames = Array.from(app.elements.groupSelection.querySelectorAll('.group-checkbox:checked'))
-        .map(checkbox => checkbox.dataset.name);
+    const selectedGroupNames = Array.from(app.elements.groupSelection.querySelectorAll('.group-checkbox:checked')).map(checkbox => checkbox.dataset.name);
 
     chrome.storage.local.get(['folders', 'tabGroups'], ({ folders = {}, tabGroups = {} }) => {
-        if (folders[folderName]) {
-            app.utils.showCustomAlert(`A folder named "${folderName}" already exists. Please choose a different name.`);
-             app.elements.folderNameInput.focus();
-            return;
-        }
+        if (folders[folderName]) { app.utils.showCustomAlert(`A folder named "${folderName}" already exists.`); app.elements.folderNameInput.focus(); return; }
 
         const newFolderGroups = {};
         let groupsToRemoveFromStandalone = [];
 
         selectedGroupNames.forEach(groupName => {
-            // Find the group data (could be standalone or from another folder - though populate logic aims for standalone first)
-            let groupData = tabGroups[groupName];
-            // If not found standalone, check if it was listed from another folder (less common scenario now)
-            if (!groupData) {
-                 for (const f of Object.values(folders)) {
-                     if (f.groups && f.groups[groupName]) {
-                         groupData = f.groups[groupName];
-                         // Decide if you want to *move* it from the other folder or *copy* it.
-                         // Current logic implies moving from standalone if present. Let's stick to that.
-                         console.warn(`Group "${groupName}" selected for new folder was found in another folder, but not standalone. Prioritizing standalone.`);
-                         break;
-                     }
-                 }
-            }
-
-
-            if (groupData) {
-                 newFolderGroups[groupName] = groupData;
-                 // If the group existed as a standalone group, mark it for removal from the top level
-                 if (tabGroups[groupName]) {
-                     groupsToRemoveFromStandalone.push(groupName);
-                 }
+            // Primarily get data from standalone groups
+            if (tabGroups[groupName]) {
+                 newFolderGroups[groupName] = tabGroups[groupName];
+                 groupsToRemoveFromStandalone.push(groupName); // Mark for removal from top level
             } else {
-                 console.warn(`Selected group "${groupName}" not found in available groups during folder creation.`);
+                 console.warn(`Selected group "${groupName}" not found in standalone groups during folder creation.`);
             }
         });
 
@@ -590,493 +623,519 @@ app.groups.createNewFolder = function() {
         folders[folderName] = { groups: newFolderGroups, dateCreated: Date.now() };
 
         // Remove the groups from the top-level 'tabGroups' if they were moved
-        groupsToRemoveFromStandalone.forEach(groupName => {
-            delete tabGroups[groupName];
-        });
-
-        // Save both potentially modified structures
-        chrome.storage.local.set({ folders, tabGroups }, () => {
-            app.utils.hideCreateFolderDialog(); // Use utility
-            app.groups.loadSavedGroups(); // Refresh the view
-            app.utils.updateSavedItemsCount(); // Update count
-        });
+        if (groupsToRemoveFromStandalone.length > 0) {
+            let updatedTabGroups = { ...tabGroups };
+            groupsToRemoveFromStandalone.forEach(groupName => { delete updatedTabGroups[groupName]; });
+            // Save both potentially modified structures
+            chrome.storage.local.set({ folders, tabGroups: updatedTabGroups }, () => {
+                app.utils.hideModal('folderDialog'); // Use utility
+                app.groups.loadSavedGroups(); // Refresh the view
+                app.utils.updateSavedItemsCount(); // Update count
+            });
+        } else {
+             // Only need to save the folders object
+            chrome.storage.local.set({ folders }, () => {
+                app.utils.hideModal('folderDialog'); // Use utility
+                app.groups.loadSavedGroups(); // Refresh the view
+                app.utils.updateSavedItemsCount(); // Update count
+            });
+        }
     });
 };
-
 
 app.groups.openEditFolderDialog = function(folderName) {
      app.utils.hideAllModalDialogs(); // Use utility
      chrome.storage.local.get(['folders'], ({ folders = {} }) => {
         const folder = folders[folderName];
-        if (!folder) {
-            console.error("Folder not found for editing:", folderName);
-            app.utils.showCustomAlert("Could not find the folder to edit.");
-            return;
-        }
+        if (!folder) { console.error("Folder not found for editing:", folderName); app.utils.showCustomAlert("Could not find the folder to edit."); return; }
 
-        app.state.currentEditingFolderOriginalName = folderName; // Store original name in global state
+        app.state.currentEditingFolderOriginalName = folderName; // Store original name
         app.elements.editFolderName.value = folderName;
 
         const currentGroupNames = folder.groups ? Object.keys(folder.groups) : [];
-        // Pass the current folder name to exclude its own groups from the "available" list initially
+        // Pass the current folder name to populate correctly
         app.groups.populateGroupSelection(app.elements.editGroupSelection, currentGroupNames, folderName);
 
-        // Update select all button state based on populated checkboxes
-        const allCheckboxes = app.elements.editGroupSelection.querySelectorAll('.group-checkbox');
-        const checkedCheckboxes = app.elements.editGroupSelection.querySelectorAll('.group-checkbox:checked');
-        app.elements.selectAllEditGroupsBtn.textContent = (allCheckboxes.length > 0 && checkedCheckboxes.length === allCheckboxes.length) ? 'Deselect All' : 'Select All';
+        // Update select all button state
+        app.utils.updateSelectAllButtonState(app.elements.editGroupSelection, app.elements.selectAllEditGroupsBtn, '.group-checkbox');
 
-
-        app.elements.editFolderDialog.style.display = 'block';
+        app.utils.showModal('editFolderDialog'); // Use utility
         app.elements.editFolderName.focus();
         app.elements.editFolderName.select();
     });
 };
-
 
 app.groups.saveEditedFolder = function() {
      const newFolderName = app.elements.editFolderName.value.trim();
      const originalFolderName = app.state.currentEditingFolderOriginalName;
 
      if (!newFolderName) { app.utils.showCustomAlert('Folder name cannot be empty.'); app.elements.editFolderName.focus(); return; }
-     if (!originalFolderName) { console.error("Original folder name state missing."); app.utils.showCustomAlert("Error: Could not determine original folder name."); app.utils.hideEditFolderDialog(); return; }
+     if (!originalFolderName) { console.error("Original folder name state missing."); app.utils.showCustomAlert("Error: Could not determine original folder name."); app.utils.hideModal('editFolderDialog'); return; }
 
-    const selectedGroupNames = Array.from(app.elements.editGroupSelection.querySelectorAll('.group-checkbox:checked'))
-        .map(checkbox => checkbox.dataset.name);
+    const selectedGroupNames = Array.from(app.elements.editGroupSelection.querySelectorAll('.group-checkbox:checked')).map(checkbox => checkbox.dataset.name);
 
     chrome.storage.local.get(['folders', 'tabGroups'], ({ folders = {}, tabGroups = {} }) => {
          // Check for name conflict only if the name actually changed
-         if (newFolderName !== originalFolderName && folders[newFolderName]) {
-             app.utils.showCustomAlert(`A folder named "${newFolderName}" already exists.`); app.elements.editFolderName.focus(); return;
-         }
-         // Ensure the original folder still exists (e.g., wasn't deleted in another tab)
-         if (!folders[originalFolderName]) {
-             console.error("Original folder not found during save:", originalFolderName); app.utils.showCustomAlert("Error: Original folder seems to have been deleted."); app.utils.hideEditFolderDialog(); app.groups.loadSavedGroups(); return;
-         }
+         if (newFolderName !== originalFolderName && folders[newFolderName]) { app.utils.showCustomAlert(`A folder named "${newFolderName}" already exists.`); app.elements.editFolderName.focus(); return; }
+         // Ensure the original folder still exists
+         if (!folders[originalFolderName]) { console.error("Original folder not found during save:", originalFolderName); app.utils.showCustomAlert("Error: Original folder seems to have been deleted."); app.utils.hideModal('editFolderDialog'); app.groups.loadSavedGroups(); return; }
 
          const originalFolderGroups = folders[originalFolderName].groups || {};
          const updatedFolderGroups = {};
-         let groupsToAddFromStandalone = [];
-         let groupsToRemoveFromFolder = []; // Groups unchecked in the dialog
+         let groupsToAddFromStandalone = []; // Names of groups newly added to folder from standalone
+         let groupsToRemoveFromFolder = []; // Names of groups unchecked (will become standalone)
 
-         // Identify groups that were originally in the folder
          const originalGroupNamesSet = new Set(Object.keys(originalFolderGroups));
-         // Identify groups selected in the dialog
          const selectedGroupNamesSet = new Set(selectedGroupNames);
 
-         // Process selected groups: keep existing, add new ones
+         // Process selected groups
          selectedGroupNames.forEach(groupName => {
              if (originalGroupNamesSet.has(groupName)) {
                  // Group was already in the folder, keep it
                  updatedFolderGroups[groupName] = originalFolderGroups[groupName];
              } else {
-                 // Group is newly selected, find its data (should be standalone)
-                 let groupData = tabGroups[groupName];
-                 if (groupData) {
-                     updatedFolderGroups[groupName] = groupData;
+                 // Group is newly selected, must be from standalone
+                 if (tabGroups[groupName]) {
+                     updatedFolderGroups[groupName] = tabGroups[groupName];
                      groupsToAddFromStandalone.push(groupName); // Mark for removal from standalone
                  } else {
                      console.warn(`Newly selected group "${groupName}" not found in standalone groups during folder edit.`);
-                     // Optionally try finding it in other folders, but this complicates the move/copy logic.
-                     // Best practice is likely that populateGroupSelection only shows available standalone groups.
                  }
              }
          });
 
-         // Identify groups to remove (were in original, but not in selected)
+         // Identify groups removed from the folder
          originalGroupNamesSet.forEach(groupName => {
              if (!selectedGroupNamesSet.has(groupName)) {
                  groupsToRemoveFromFolder.push(groupName);
              }
          });
 
-         // Prepare the final folder data
-         const folderDataToSave = {
-            groups: updatedFolderGroups,
-            dateCreated: folders[originalFolderName].dateCreated, // Preserve original creation date
-            dateModified: Date.now() // Update modified date
-         };
+         // Prepare final folder data
+         const folderDataToSave = { groups: updatedFolderGroups, dateCreated: folders[originalFolderName].dateCreated, dateModified: Date.now() };
 
-         // Update the folders object
+         // --- Prepare Storage Updates ---
+         let storageUpdates = {};
+
+         // 1. Update Folders Object
          let updatedFolders = { ...folders };
-         if (newFolderName !== originalFolderName) {
-             delete updatedFolders[originalFolderName]; // Remove old entry if renamed
+         if (newFolderName !== originalFolderName) { delete updatedFolders[originalFolderName]; }
+         updatedFolders[newFolderName] = folderDataToSave;
+         storageUpdates.folders = updatedFolders;
+
+         // 2. Update Standalone Groups Object (if changes occurred)
+         if (groupsToAddFromStandalone.length > 0 || groupsToRemoveFromFolder.length > 0) {
+             let updatedTabGroups = { ...tabGroups };
+             groupsToAddFromStandalone.forEach(name => { delete updatedTabGroups[name]; });
+             groupsToRemoveFromFolder.forEach(name => {
+                 if (originalFolderGroups[name] && !updatedTabGroups[name]) { // Ensure data exists and no conflict
+                     updatedTabGroups[name] = originalFolderGroups[name];
+                 }
+             });
+             storageUpdates.tabGroups = updatedTabGroups;
          }
-         updatedFolders[newFolderName] = folderDataToSave; // Add/update the folder
-
-         // Update the standalone tabGroups object
-         let updatedTabGroups = { ...tabGroups };
-         // Remove groups added to the folder from standalone
-         groupsToAddFromStandalone.forEach(groupName => {
-             delete updatedTabGroups[groupName];
-         });
-         // Add groups removed from the folder back to standalone
-         groupsToRemoveFromFolder.forEach(groupName => {
-             if (originalFolderGroups[groupName]) { // Ensure we have the data
-                 updatedTabGroups[groupName] = originalFolderGroups[groupName];
-             }
-         });
-
 
          // Save all changes
-         chrome.storage.local.set({ folders: updatedFolders, tabGroups: updatedTabGroups }, () => {
-            app.utils.hideEditFolderDialog(); // Use utility
+         chrome.storage.local.set(storageUpdates, () => {
+            app.utils.hideModal('editFolderDialog'); // Use utility
             app.groups.loadSavedGroups(); // Refresh view
             app.utils.updateSavedItemsCount(); // Update count
         });
     });
 };
 
+
+// --- Rename/Edit Tabs Modals ---
+
+// Rename function (remains mostly the same, ensure alerts are used)
 app.groups.renameTabGroup = function(oldName, newName, folderName, callback) {
     newName = newName.trim();
-    if (!newName || newName === oldName) {
-        console.log("Rename cancelled: Name unchanged or empty.");
-        if (callback) callback(false, "Name unchanged or empty.");
-        return;
-    }
+    if (!newName || newName === oldName) { if (callback) callback(false, "Name unchanged or empty."); return; }
 
     chrome.storage.local.get(['tabGroups', 'folders'], ({ tabGroups = {}, folders = {} }) => {
         let groupData;
-        let storageUpdates = {}; // Object to hold changes for chrome.storage.local.set
+        let storageUpdates = {};
 
-        if (folderName) {
-            // --- Renaming within a folder ---
-            if (!folders[folderName] || !folders[folderName].groups) {
-                 console.error(`Folder "${folderName}" not found for renaming group.`);
-                 if (callback) callback(false, "Parent folder not found.");
-                 return;
-            }
-            // Check for name conflict within the *same* folder
-            if (folders[folderName].groups[newName]) {
-                app.utils.showCustomAlert(`A group named "${newName}" already exists in the folder "${folderName}".`);
-                if (callback) callback(false, "Name conflict in folder.");
-                return;
-            }
-            if (!folders[folderName].groups[oldName]) {
-                 console.error(`Group "${oldName}" not found in folder "${folderName}".`);
-                 if (callback) callback(false, "Original group not found in folder.");
-                 return;
-            }
+        if (folderName) { // Renaming within folder
+            if (!folders[folderName]?.groups) { if (callback) callback(false, "Parent folder not found."); return; }
+            if (folders[folderName].groups[newName]) { app.utils.showCustomAlert(`A group named "${newName}" already exists in folder "${folderName}".`); if (callback) callback(false, "Name conflict in folder."); return; }
+            if (!folders[folderName].groups[oldName]) { if (callback) callback(false, "Original group not found in folder."); return; }
 
             groupData = folders[folderName].groups[oldName];
-            // Prepare update for the 'folders' storage key
-            let updatedFolder = { ...folders[folderName] }; // Clone folder data
-            updatedFolder.groups = { ...updatedFolder.groups }; // Clone groups within folder
-            delete updatedFolder.groups[oldName]; // Remove old name
-            updatedFolder.groups[newName] = groupData; // Add new name
-            updatedFolder.dateModified = Date.now(); // Update folder modified time
+            let updatedFolder = { ...folders[folderName], groups: { ...folders[folderName].groups }, dateModified: Date.now() };
+            delete updatedFolder.groups[oldName];
+            updatedFolder.groups[newName] = groupData;
+            storageUpdates.folders = { ...folders, [folderName]: updatedFolder };
 
-            storageUpdates.folders = { ...folders, [folderName]: updatedFolder }; // Update the specific folder in the main folders object
-
-        } else {
-            // --- Renaming a standalone group ---
-            // Check for conflict with other *standalone* groups
-            if (tabGroups[newName]) {
-                app.utils.showCustomAlert(`A standalone group named "${newName}" already exists.`);
-                if (callback) callback(false, "Name conflict (standalone).");
-                return;
-            }
-             if (!tabGroups[oldName]) {
-                 console.error(`Standalone group "${oldName}" not found.`);
-                 if (callback) callback(false, "Original standalone group not found.");
-                 return;
-             }
+        } else { // Renaming standalone group
+            if (tabGroups[newName]) { app.utils.showCustomAlert(`A standalone group named "${newName}" already exists.`); if (callback) callback(false, "Name conflict (standalone)."); return; }
+            if (!tabGroups[oldName]) { if (callback) callback(false, "Original standalone group not found."); return; }
 
             groupData = tabGroups[oldName];
-            // Prepare update for the 'tabGroups' storage key
-            let updatedTabGroups = { ...tabGroups }; // Clone standalone groups
-            delete updatedTabGroups[oldName]; // Remove old name
-            updatedTabGroups[newName] = groupData; // Add new name
-            // Note: Standalone groups don't have a 'dateModified' field in this structure
-
-            storageUpdates.tabGroups = updatedTabGroups; // Update the standalone groups object
+            let updatedTabGroups = { ...tabGroups };
+            delete updatedTabGroups[oldName];
+            updatedTabGroups[newName] = groupData;
+            storageUpdates.tabGroups = updatedTabGroups;
         }
 
-        // Save the changes
         chrome.storage.local.set(storageUpdates, () => {
-            if (chrome.runtime.lastError) {
-                console.error("Error saving renamed group:", chrome.runtime.lastError);
-                 app.utils.showCustomAlert("An error occurred while saving the name change.");
-                if (callback) callback(false, "Storage error");
-            } else {
-                console.log(`Group "${oldName}" successfully renamed to "${newName}" ${folderName ? 'in folder "' + folderName + '"' : '(standalone)'}.`);
-                if (callback) callback(true); // Indicate success
-            }
+            if (chrome.runtime.lastError) { console.error("Error saving renamed group:", chrome.runtime.lastError); app.utils.showCustomAlert("An error occurred saving the name."); if (callback) callback(false, "Storage error"); }
+            else { console.log(`Group renamed to "${newName}"`); if (callback) callback(true); }
         });
     });
 };
 
 
-app.groups.clearSearch = function() {
-    app.elements.searchInput.value = '';
-    app.elements.clearSearchBtn.classList.remove('visible');
-    // Only reload if the groups section is currently active
-    if (app.state.activeSection === 'groups') {
-        app.groups.loadSavedGroups(); // Reload all groups
-    }
+// Open Rename Dialog (Make sure HTML IDs match popup.html)
+app.groups.openRenameGroupDialog = function(originalName, folderName) {
+    app.utils.hideAllModalDialogs();
+    if (!app.elements.renameGroupDialog || !app.elements.renameGroupInput || !app.elements.renameGroupSaveBtn || !app.elements.renameGroupCancelBtn || !app.elements.renameGroupOriginalName) { console.error("Rename Dialog elements missing"); return; }
+
+    app.elements.renameGroupOriginalName.value = originalName;
+    app.elements.renameGroupDialog.dataset.folderName = folderName || '';
+    app.elements.renameGroupInput.value = originalName;
+    app.utils.showModal('rename-group-dialog'); // Use ID from HTML
+    app.elements.renameGroupInput.focus();
+    app.elements.renameGroupInput.select();
+
+    // Define handlers INSIDE this function to capture correct context
+    const saveHandler = () => {
+        const newName = app.elements.renameGroupInput.value.trim();
+        const storedOriginalName = app.elements.renameGroupOriginalName.value;
+        const storedFolderName = app.elements.renameGroupDialog.dataset.folderName || null;
+        if (newName && newName !== storedOriginalName) {
+            app.groups.renameTabGroup(storedOriginalName, newName, storedFolderName, (success) => { if (success) { app.utils.hideModal('rename-group-dialog'); app.groups.loadSavedGroups(); } });
+        } else if (!newName) { app.utils.showCustomAlert("Group name cannot be empty."); }
+        else { app.utils.hideModal('rename-group-dialog'); } // Name unchanged, just close
+    };
+    const cancelHandler = () => app.utils.hideModal('rename-group-dialog');
+
+    // Assign handlers (ensure previous are removed if necessary - simple assignment overwrites)
+    app.elements.renameGroupSaveBtn.onclick = saveHandler;
+    app.elements.renameGroupCancelBtn.onclick = cancelHandler;
+    app.elements.renameGroupInput.onkeydown = (e) => { if (e.key === 'Enter') saveHandler(); else if (e.key === 'Escape') cancelHandler(); };
 };
 
 
-// --- Event Handlers (Specific to Groups section, initialized in main.js) ---
+// Open Edit Tabs Dialog (Make sure HTML IDs match popup.html)
+app.groups.openEditTabsDialog = function(groupName, folderName) {
+    app.utils.hideAllModalDialogs();
+    if (!app.elements.editTabsDialog || !app.elements.editTabsDialogTitle || !app.elements.editTabsList || !app.elements.editTabsSaveBtn || !app.elements.editTabsCancelBtn) { console.error("Edit Tabs Dialog elements missing"); return; }
+
+    app.elements.editTabsDialog.dataset.groupName = groupName;
+    app.elements.editTabsDialog.dataset.folderName = folderName || '';
+    app.elements.editTabsDialogTitle.textContent = `Edit Tabs in Group: "${groupName}"`;
+    app.groups.populateEditTabsSelection(groupName, folderName); // Populate the list
+    app.utils.showModal('edit-tabs-dialog'); // Use ID from HTML
+
+    // Assign handlers
+    app.elements.editTabsSaveBtn.onclick = app.groups.saveEditedTabs;
+    app.elements.editTabsCancelBtn.onclick = () => app.utils.hideModal('edit-tabs-dialog');
+};
+
+// Populate Edit Tabs Dialog List
+app.groups.populateEditTabsSelection = function(groupName, folderName) {
+    const listElement = app.elements.editTabsList;
+    if (!listElement) return;
+    listElement.innerHTML = '<li>Loading...</li>'; // Placeholder
+
+    chrome.storage.local.get(['tabGroups', 'folders'], ({ tabGroups = {}, folders = {} }) => {
+        const groupData = folderName ? folders[folderName]?.groups?.[groupName] : tabGroups[groupName];
+        listElement.innerHTML = ''; // Clear loading/previous
+
+        if (!groupData || !groupData.tabs || groupData.tabs.length === 0) { listElement.innerHTML = '<li class="empty-list">This group has no tabs.</li>'; return; }
+
+        const fragment = document.createDocumentFragment();
+        groupData.tabs.forEach((tab, index) => {
+            const item = document.createElement('li');
+            item.className = 'edit-tab-item';
+            // Store essential data on the element
+            item.dataset.url = tab.url || '';
+            item.dataset.title = tab.title || tab.url || ''; // Use URL as fallback title
+            item.dataset.favIconUrl = tab.favIconUrl || '';
+
+            item.innerHTML = `
+                <img class="edit-tab-favicon" src="${tab.favIconUrl || 'icon.png'}" onerror="this.src='icon.png'" alt="">
+                <span class="edit-tab-title" title="${item.dataset.title}">${item.dataset.title}</span>
+                <button class="remove-tab-btn icon-button danger" data-index="${index}" title="Remove Tab"><i class="fas fa-times"></i></button>
+            `;
+            item.querySelector('.remove-tab-btn').addEventListener('click', (e) => { e.target.closest('li.edit-tab-item').remove(); });
+            fragment.appendChild(item);
+        });
+        listElement.appendChild(fragment);
+    });
+};
+
+// Save Edited Tabs
+app.groups.saveEditedTabs = function() {
+    const groupName = app.elements.editTabsDialog.dataset.groupName;
+    const folderName = app.elements.editTabsDialog.dataset.folderName || null;
+    const listElement = app.elements.editTabsList;
+    if (!groupName || !listElement) { console.error("Cannot save tabs: context missing."); return; }
+
+    const updatedTabs = [];
+    listElement.querySelectorAll('li.edit-tab-item').forEach(item => {
+        updatedTabs.push({ url: item.dataset.url, title: item.dataset.title, favIconUrl: item.dataset.favIconUrl });
+    });
+
+    console.log(`Saving ${updatedTabs.length} tabs for group: ${groupName}`);
+
+    chrome.storage.local.get(['tabGroups', 'folders'], ({ tabGroups = {}, folders = {} }) => {
+        let storageUpdates = {};
+        let groupDataRef = null;
+
+        if (folderName) {
+            if (folders[folderName]?.groups?.[groupName]) {
+                groupDataRef = folders[folderName].groups[groupName];
+                let updatedFolder = { ...folders[folderName], groups: { ...folders[folderName].groups }, dateModified: Date.now() };
+                updatedFolder.groups[groupName] = { ...updatedFolder.groups[groupName], tabs: updatedTabs };
+                storageUpdates.folders = { ...folders, [folderName]: updatedFolder };
+            }
+        } else {
+            if (tabGroups[groupName]) {
+                groupDataRef = tabGroups[groupName];
+                let updatedTabGroups = { ...tabGroups };
+                updatedTabGroups[groupName] = { ...updatedTabGroups[groupName], tabs: updatedTabs };
+                // Optionally add dateModified to standalone group
+                // updatedTabGroups[groupName].dateModified = Date.now();
+                storageUpdates.tabGroups = updatedTabGroups;
+            }
+        }
+
+        if (!groupDataRef) { console.error("Original group data not found during save."); app.utils.showCustomAlert("Error saving: Original group data missing."); return; }
+
+        chrome.storage.local.set(storageUpdates, () => {
+            if (chrome.runtime.lastError) { console.error("Error saving edited tabs:", chrome.runtime.lastError); app.utils.showCustomAlert("Error saving tab changes."); }
+            else { console.log(`Tabs updated for "${groupName}".`); app.utils.hideModal('edit-tabs-dialog'); app.groups.loadSavedGroups(); }
+        });
+    });
+};
+
+// --- Clear Search ---
+app.groups.clearSearch = function() {
+    app.elements.searchInput.value = '';
+    app.elements.clearSearchBtn.classList.remove('visible');
+    app.elements.searchContainer.style.display = 'none'; // Hide search bar when cleared
+    if (app.state.activeSection === 'groups') { app.groups.loadSavedGroups(); }
+};
+
+// --- Event Handlers (Specific to Groups section) ---
 app.groups.setupEventListeners = function() {
 
     // Event Delegation for Dynamic Group/Folder List
     app.elements.groupsList.addEventListener('click', (e) => {
         const target = e.target;
         // Find closest relevant elements
-        const groupLi = target.closest('li.group-list-item[data-group]'); // More specific selector
+        const groupLi = target.closest('li.group-list-item[data-group]');
         const folderItem = target.closest('.folder-item[data-folder]');
         const folderHeader = target.closest('.folder-header');
-        const detailedTab = target.closest('.detailed-tab-item');
-        const groupNameSpan = target.closest('.group-name');
-        const editIcon = target.closest('.edit-group-icon');
+        const tabListItem = target.closest('.tab-list-item'); // For clicking tabs in expanded list
 
-        // Action Buttons
-        const openBtn = target.closest('.open-btn');
-        const deleteGroupBtn = target.closest('.delete-btn');
-        const toggleDetailsBtn = target.closest('.toggle-details-btn');
-        const editFolderBtn = target.closest('.edit-folder-btn');
+        // Folder Actions
         const toggleFolderBtn = target.closest('.toggle-folder-btn');
+        const editFolderBtn = target.closest('.edit-folder-btn');
         const deleteFolderBtn = target.closest('.delete-folder-btn');
 
-        // Inline Edit Buttons
-        const saveEditBtn = target.closest('.save-edit-btn');
-        const cancelEditBtn = target.closest('.cancel-edit-btn');
+        // Group Actions (within groupLi or its children)
+        const openGroupBtn = target.closest('.open-group-button');
+        const editGroupTabsBtn = target.closest('.edit-group-button'); // Edit Tabs button
+        const renameGroupBtn = target.closest('.rename-group-button'); // Rename button
+        const deleteGroupBtn = target.closest('.delete-group-button'); // Delete button
+        const expandGroupBtn = target.closest('.expand-group-button'); // Expand/collapse button
 
-        // Prevent actions if editing (unless it's save/cancel)
-        if (groupLi && groupLi.classList.contains('editing')) {
-             if (!saveEditBtn && !cancelEditBtn && !target.closest('.group-name-input')) {
-                 e.stopPropagation();
-                 return;
-             }
-        }
-
-        // Handle clicking a tab in the detailed list
-        if (detailedTab && detailedTab.dataset.url) {
+        // Handle clicking a tab in the expanded list
+        if (tabListItem && tabListItem.dataset.url) {
             e.stopPropagation();
-            const urlToOpen = detailedTab.dataset.url;
+            const urlToOpen = tabListItem.dataset.url;
             console.log('Opening individual tab:', urlToOpen);
             chrome.tabs.create({ url: urlToOpen, active: true });
             return;
         }
 
-        // Handle Folder Toggles
-         const handleToggleFolder = (contentElement, iconElement) => {
-              if (contentElement && iconElement) {
-                 const isExpanding = !contentElement.classList.contains('expanded');
-                 contentElement.classList.toggle('expanded', isExpanding);
-                 iconElement.classList.toggle('rotated', isExpanding);
-                 iconElement.classList.toggle('fa-chevron-down', !isExpanding);
-                 iconElement.classList.toggle('fa-chevron-up', isExpanding);
-             }
-         };
-         if (toggleFolderBtn && folderItem) { e.stopPropagation(); const fc = folderItem.querySelector('.folder-content'); const i = toggleFolderBtn.querySelector('i'); handleToggleFolder(fc, i); return; }
-         if (folderHeader && folderItem && !target.closest('.folder-header-actions button')) { const fc = folderItem.querySelector('.folder-content'); const i = folderHeader.querySelector('.toggle-folder-btn i'); handleToggleFolder(fc, i); return; }
+        // Handle Folder Toggles/Actions
+        if (folderItem) {
+            const folderName = folderItem.dataset.folder;
+            // Toggle Expand/Collapse (Click header or button)
+            const handleToggleFolder = () => {
+                 const contentElement = folderItem.querySelector('.folder-content');
+                 const iconElement = folderItem.querySelector('.toggle-folder-btn i');
+                 if (contentElement && iconElement) {
+                    const isExpanding = !contentElement.classList.contains('expanded');
+                    contentElement.classList.toggle('expanded', isExpanding);
+                    iconElement.classList.toggle('rotated', isExpanding);
+                    iconElement.classList.toggle('fa-chevron-down', !isExpanding);
+                    iconElement.classList.toggle('fa-chevron-up', isExpanding);
+                    // Store expanded state
+                    app.state.expandedFolders = app.state.expandedFolders || {};
+                    app.state.expandedFolders[folderName] = isExpanding;
+                 }
+            };
+             if (toggleFolderBtn) { e.stopPropagation(); handleToggleFolder(); return; }
+             if (folderHeader && !target.closest('.folder-header-actions button')) { handleToggleFolder(); return; } // Allow click on header itself
 
-         // Handle Folder Edit/Delete
-         if (editFolderBtn && folderItem) { e.stopPropagation(); const fn=folderItem.dataset.folder; if(fn) app.groups.openEditFolderDialog(fn); return; }
-         if (deleteFolderBtn && folderItem) { e.stopPropagation(); const fn=folderItem.dataset.folder; if(fn) app.groups.deleteFolder(fn); return; }
-
+             // Edit Folder
+             if (editFolderBtn) { e.stopPropagation(); app.groups.openEditFolderDialog(folderName); return; }
+             // Delete Folder
+             if (deleteFolderBtn) { e.stopPropagation(); app.groups.deleteFolder(folderName); return; }
+        }
 
         // --- Handle Group-Specific Actions (Requires groupLi) ---
-        if (!groupLi) return;
+        if (groupLi) {
+            const groupName = groupLi.dataset.group;
+            const folderName = groupLi.dataset.folder; // null if standalone
 
-        const groupName = groupLi.dataset.group;
-        const folderName = groupLi.dataset.folder; // null if standalone
-
-        // Toggle Group Details List
-        if (toggleDetailsBtn) {
-            e.stopPropagation();
-            const detailsDiv = groupLi.querySelector('.group-details');
-            const icon = toggleDetailsBtn.querySelector('i');
-            if (detailsDiv && icon) {
-                const isExpanding = !detailsDiv.classList.contains('expanded');
-                detailsDiv.classList.toggle('expanded', isExpanding);
-                icon.classList.toggle('rotated', isExpanding);
-                icon.classList.toggle('fa-chevron-down', !isExpanding);
-                icon.classList.toggle('fa-chevron-up', isExpanding);
+            // Open All Tabs Button
+            if (openGroupBtn) {
+                e.stopPropagation();
+                console.log("Open All clicked for group:", groupName);
+                chrome.storage.local.get(['tabGroups', 'folders'], ({ tabGroups = {}, folders = {} }) => {
+                    const groupData = folderName ? folders[folderName]?.groups?.[groupName] : tabGroups[groupName];
+                    if (groupData) app.groups.openTabGroup(groupData);
+                    else console.error(`Data not found for group: ${groupName}`);
+                });
+                return;
             }
-            return;
-        }
 
-        // Initiate Inline Group Name Edit
-        if (editIcon || groupNameSpan) {
-            e.stopPropagation();
-            const nameContainer = groupLi.querySelector('.group-name-container');
-            const currentNameSpan = nameContainer.querySelector('.group-name');
-            if (!currentNameSpan) return; // Already editing
-            const currentName = currentNameSpan.textContent;
+             // Edit Tabs Button
+             if (editGroupTabsBtn) { e.stopPropagation(); app.groups.openEditTabsDialog(groupName, folderName); return; }
+             // Rename Group Button
+             if (renameGroupBtn) { e.stopPropagation(); app.groups.openRenameGroupDialog(groupName, folderName); return; }
+             // Delete Group Button
+             if (deleteGroupBtn) { e.stopPropagation(); app.groups.deleteTabGroup(groupName, folderName); return; }
 
-            if (groupLi.classList.contains('editing')) return;
-            groupLi.classList.add('editing');
-
-            nameContainer.innerHTML = `
-                <div class="group-name-edit-container">
-                    <input type="text" class="group-name-input" value="${currentName}" />
-                    <div class="edit-actions">
-                        <button class="save-edit-btn" title="Save Name"><i class="fas fa-check"></i></button>
-                        <button class="cancel-edit-btn" title="Cancel Edit"><i class="fas fa-times"></i></button>
-                    </div>
-                </div>
-            `;
-            const inputField = nameContainer.querySelector('.group-name-input');
-            inputField.focus();
-            inputField.select();
-
-             const handleEditKeydown = (keyEvent) => {
-                 if (keyEvent.key === 'Enter') {
-                     keyEvent.preventDefault(); // Prevent form submission if applicable
-                     nameContainer.querySelector('.save-edit-btn')?.click();
-                 } else if (keyEvent.key === 'Escape') {
-                     nameContainer.querySelector('.cancel-edit-btn')?.click();
-                 }
-             };
-             inputField.addEventListener('keydown', handleEditKeydown);
-             // Store handler reference for removal
-             inputField.dataset.keydownHandlerAttached = 'true';
-             inputField._handleEditKeydown = handleEditKeydown;
-
-
-            return;
-        }
-
-        // Save Inline Group Name Edit
-        if (saveEditBtn) {
-            e.stopPropagation();
-            const nameContainer = groupLi.querySelector('.group-name-container');
-            const inputField = nameContainer.querySelector('.group-name-input');
-            const newName = inputField.value.trim();
-            const originalName = groupLi.dataset.group;
-
-            if (newName && newName !== originalName) {
-                 app.groups.renameTabGroup(originalName, newName, folderName, (success, errorMsg) => {
-                     if (success) {
-                         // Reloading is the safest way to ensure UI consistency after rename
-                         app.groups.loadSavedGroups();
-                         // If not reloading, manually update UI:
-                         // nameContainer.innerHTML = `<span class="group-name" title="Click to edit name">${newName}</span><i class="fas fa-pencil-alt edit-group-icon" title="Edit name"></i>`;
-                         // groupLi.dataset.group = newName;
-                         // groupLi.classList.remove('editing');
-                         // if(inputField && inputField.dataset.keydownHandlerAttached === 'true') {
-                         //    inputField.removeEventListener('keydown', inputField._handleEditKeydown);
-                         // }
-                     } else {
-                         console.error("Rename failed:", errorMsg);
-                         // Error alert is shown by renameTabGroup, keep input focused
-                         inputField.focus();
-                     }
-                 });
-
-            } else if (newName === originalName) { // Name didn't change, just cancel
-                 cancelEditBtn?.click(); // Simulate cancel click
-                 // Or manually revert UI:
-                 // nameContainer.innerHTML = `<span class="group-name" title="Click to edit name">${originalName}</span><i class="fas fa-pencil-alt edit-group-icon" title="Edit name"></i>`;
-                 // groupLi.classList.remove('editing');
-                 // if(inputField && inputField.dataset.keydownHandlerAttached === 'true') {
-                 //    inputField.removeEventListener('keydown', inputField._handleEditKeydown);
-                 // }
-            } else {
-                app.utils.showCustomAlert("Group name cannot be empty.");
-                 inputField.focus();
+            // Toggle Group Details (Expand/Collapse Tab List)
+            if (expandGroupBtn) {
+                e.stopPropagation();
+                const tabListDiv = groupLi.querySelector('.tab-list');
+                const icon = expandGroupBtn.querySelector('i');
+                if (tabListDiv && icon) {
+                    const isExpanding = !tabListDiv.classList.contains('expanded');
+                    tabListDiv.classList.toggle('expanded', isExpanding);
+                    icon.classList.toggle('rotated', isExpanding);
+                    icon.classList.toggle('fa-chevron-down', !isExpanding);
+                    icon.classList.toggle('fa-chevron-up', isExpanding);
+                }
+                return;
             }
-            return;
-        }
-
-        // Cancel Inline Group Name Edit
-        if (cancelEditBtn) {
-            e.stopPropagation();
-            const nameContainer = groupLi.querySelector('.group-name-container');
-            const originalName = groupLi.dataset.group;
-            const inputField = nameContainer.querySelector('.group-name-input');
-
-            nameContainer.innerHTML = `
-                <span class="group-name" title="Click to edit name">${originalName}</span>
-                <i class="fas fa-pencil-alt edit-group-icon" title="Edit name"></i>
-            `;
-            groupLi.classList.remove('editing');
-            if(inputField && inputField.dataset.keydownHandlerAttached === 'true') {
-               inputField.removeEventListener('keydown', inputField._handleEditKeydown);
-            }
-            return;
-        }
-
-        // Handle Standard Group Open/Delete
-        if (openBtn) {
-             console.log("Open button clicked for group:", groupName);
-             chrome.storage.local.get(['tabGroups', 'folders'], ({ tabGroups = {}, folders = {} }) => {
-                 const groupData = folderName ? folders[folderName]?.groups?.[groupName] : tabGroups[groupName];
-                 if (groupData) app.groups.openTabGroup(groupData);
-                 else { console.error(`Data not found for group: ${groupName} in folder: ${folderName}`); app.utils.showCustomAlert("Error: Could not find data for this group."); }
-             });
-             return;
-         }
-         if (deleteGroupBtn) {
-            console.log("Delete button clicked for group:", groupName);
-             app.groups.deleteTabGroup(groupName, folderName);
-             return;
-         }
+        } // End if(groupLi)
 
     }); // End of groupsList listener
 
+
     // --- Listeners for static elements ---
 
-    // Add Group Dropdown listeners
+    // Add Group Dropdown (using modal logic now)
     app.elements.addButton.addEventListener('click', app.groups.showSaveDropdown);
-    app.elements.closeDropdownBtn.addEventListener('click', () => app.elements.saveDropdown.style.display = 'none');
-    app.elements.saveTabsButton.addEventListener('click', app.groups.saveSelectedTabs);
-    app.elements.selectAllBtn.addEventListener('click', () => app.utils.toggleSelectAll(app.elements.tabsChecklist, app.elements.selectAllBtn, '.tab-checkbox'));
+    // Assuming 'saveDropdown' is the modal overlay ID
+    const saveDropdownModal = document.getElementById('saveDropdown');
+    if (saveDropdownModal) {
+        saveDropdownModal.querySelector('.close-btn')?.addEventListener('click', () => app.utils.hideModal('saveDropdown'));
+        saveDropdownModal.querySelector('#saveTabsButton')?.addEventListener('click', app.groups.saveSelectedTabs);
+        saveDropdownModal.querySelector('#selectAllBtn')?.addEventListener('click', () => app.utils.toggleSelectAll(app.elements.tabsChecklist, app.elements.selectAllBtn, '.tab-checkbox'));
+        // Close on overlay click
+        saveDropdownModal.addEventListener('click', (e) => { if (e.target === saveDropdownModal) app.utils.hideModal('saveDropdown'); });
+    }
 
-    // Create Folder Dialog listeners (triggered by header button now)
-    app.elements.closeFolderBtn.addEventListener('click', app.utils.hideCreateFolderDialog);
-    app.elements.selectAllGroupsBtn.addEventListener('click', () => app.utils.toggleSelectAll(app.elements.groupSelection, app.elements.selectAllGroupsBtn, '.group-checkbox'));
-    app.elements.createFolderBtn.addEventListener('click', app.groups.createNewFolder);
 
-    // Edit Folder Dialog listeners
-    app.elements.closeEditFolderBtn.addEventListener('click', app.utils.hideEditFolderDialog);
-    app.elements.selectAllEditGroupsBtn.addEventListener('click', () => app.utils.toggleSelectAll(app.elements.editGroupSelection, app.elements.selectAllEditGroupsBtn, '.group-checkbox'));
-    app.elements.saveEditFolderBtn.addEventListener('click', app.groups.saveEditedFolder);
-
-    // Search listeners
-    app.elements.searchInput.addEventListener('input', (e) => app.groups.handleSearchDebounced(e.target.value));
-    app.elements.clearSearchBtn.addEventListener('click', app.groups.clearSearch);
-
-     // NEW: Listener for the "Create Folder" button in the Groups section header
-     app.elements.createFolderHeaderBtn.addEventListener('click', () => {
-         app.utils.hideAllModalDialogs(); // Close others first
+    // Create Folder Dialog (using modal logic now)
+    const folderDialogModal = document.getElementById('folderDialog');
+    if (folderDialogModal) {
+        folderDialogModal.querySelector('.close-btn')?.addEventListener('click', () => app.utils.hideModal('folderDialog'));
+        folderDialogModal.querySelector('#selectAllGroupsBtn')?.addEventListener('click', () => app.utils.toggleSelectAll(app.elements.groupSelection, app.elements.selectAllGroupsBtn, '.group-checkbox'));
+        folderDialogModal.querySelector('#createFolderBtn')?.addEventListener('click', app.groups.createNewFolder);
+        // Close on overlay click
+        folderDialogModal.addEventListener('click', (e) => { if (e.target === folderDialogModal) app.utils.hideModal('folderDialog'); });
+    }
+     // Listener for the header "Create Folder" button
+     app.elements.createFolderHeaderBtn?.addEventListener('click', () => {
+         app.utils.hideAllModalDialogs();
          app.groups.populateGroupSelection(app.elements.groupSelection); // Populate with available standalone groups
-         app.elements.selectAllGroupsBtn.textContent = 'Select All'; // Reset button text
-         app.elements.folderDialog.style.display = 'block';
-         app.elements.folderNameInput.value = ''; // Clear previous input
+         app.utils.updateSelectAllButtonState(app.elements.groupSelection, app.elements.selectAllGroupsBtn, '.group-checkbox');
+         app.elements.folderNameInput.value = '';
+         app.utils.showModal('folderDialog'); // Show the modal
          app.elements.folderNameInput.focus();
      });
+
+
+    // Edit Folder Dialog (using modal logic now)
+    const editFolderDialogModal = document.getElementById('editFolderDialog');
+    if (editFolderDialogModal) {
+         editFolderDialogModal.querySelector('.close-btn')?.addEventListener('click', () => app.utils.hideModal('editFolderDialog'));
+         editFolderDialogModal.querySelector('#selectAllEditGroupsBtn')?.addEventListener('click', () => app.utils.toggleSelectAll(app.elements.editGroupSelection, app.elements.selectAllEditGroupsBtn, '.group-checkbox'));
+         editFolderDialogModal.querySelector('#saveEditFolderBtn')?.addEventListener('click', app.groups.saveEditedFolder);
+         // Close on overlay click
+         editFolderDialogModal.addEventListener('click', (e) => { if (e.target === editFolderDialogModal) app.utils.hideModal('editFolderDialog'); });
+    }
+
+    // Rename Group Dialog (Event listeners assigned when dialog opens in openRenameGroupDialog)
+    const renameDialogModal = document.getElementById('rename-group-dialog');
+     if (renameDialogModal) {
+        renameDialogModal.addEventListener('click', (e) => { if (e.target === renameDialogModal) app.utils.hideModal('rename-group-dialog'); });
+     }
+
+    // Edit Tabs Dialog (Event listeners assigned when dialog opens in openEditTabsDialog)
+    const editTabsDialogModal = document.getElementById('edit-tabs-dialog');
+     if (editTabsDialogModal) {
+        editTabsDialogModal.addEventListener('click', (e) => { if (e.target === editTabsDialogModal) app.utils.hideModal('edit-tabs-dialog'); });
+     }
+
+
+    // Search listeners
+    app.elements.searchInput.addEventListener('input', (e) => {
+        const term = e.target.value;
+        app.groups.handleSearchDebounced(term);
+        // Show search container and clear button based on input
+        if (term.trim()) {
+            app.elements.searchContainer.style.display = 'block';
+            app.elements.clearSearchBtn.classList.add('visible');
+        } else {
+            // Optionally hide search bar if input is cleared, or keep it visible
+            // app.elements.searchContainer.style.display = 'none';
+            app.elements.clearSearchBtn.classList.remove('visible');
+        }
+    });
+    app.elements.clearSearchBtn.addEventListener('click', app.groups.clearSearch);
+    // Initial state for search bar (show if search term exists, e.g., on popup reload)
+    if (app.elements.searchInput.value.trim()){
+         app.elements.searchContainer.style.display = 'block';
+         app.elements.clearSearchBtn.classList.add('visible');
+     } else {
+         app.elements.searchContainer.style.display = 'none'; // Hide initially if empty
+     }
+
 
      // Sort Select Listener
      const sortSelect = document.getElementById('sortGroupsSelect');
      if (sortSelect) {
          const sortControls = document.querySelector('.group-sort-controls');
-         if(sortControls) sortControls.style.display = 'flex'; // Ensure visible
+         if(sortControls) sortControls.style.display = 'flex'; // Make sure it's visible
 
-         sortSelect.value = app.state.groupSortOrder || 'dateDesc'; // Set initial value
+         // Load saved sort order or default
+         chrome.storage.local.get('groupSortOrder', ({ groupSortOrder }) => {
+             app.state.groupSortOrder = groupSortOrder || 'dateDesc';
+             sortSelect.value = app.state.groupSortOrder;
+             console.log("Initial sort order set to:", app.state.groupSortOrder);
+         });
+
 
          sortSelect.addEventListener('change', (e) => {
-             app.state.groupSortOrder = e.target.value; // Update global state
+             const newSortOrder = e.target.value;
+             app.state.groupSortOrder = newSortOrder; // Update global state
              console.log("Sort order changed to:", app.state.groupSortOrder);
+
+             // Save the selected sort order
+             chrome.storage.local.set({ groupSortOrder: newSortOrder });
 
              const searchTerm = app.elements.searchInput.value.trim();
              if (searchTerm) {
-                 // Re-run search which now uses the updated sort order
-                 console.log("Re-applying search with new sort");
-                 app.groups.handleSearchDebounced(searchTerm);
+                 app.groups.handleSearchDebounced(searchTerm); // Re-run search with new sort
              } else {
-                 // Reload the full list with the new sort order
-                 console.log("Reloading group list with new sort");
-                 app.groups.loadSavedGroups();
+                 app.groups.loadSavedGroups(); // Reload the full list with new sort
              }
          });
-         console.log("Sort controls listener added.");
      } else {
-         console.warn("Sort select element (#sortGroupsSelect) not found in the DOM.");
+         console.warn("Sort select element (#sortGroupsSelect) not found.");
      }
 };
 
-console.log("groups.js loaded");
+console.log("groups.js updated and loaded");

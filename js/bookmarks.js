@@ -69,3 +69,4 @@ app.bookmarks.setupEventListeners = function() {
 };
 
 console.log("bookmarks.js loaded"); // For debugging load order
+

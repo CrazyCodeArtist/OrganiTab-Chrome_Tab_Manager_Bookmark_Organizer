@@ -81,7 +81,19 @@ document.addEventListener('DOMContentLoaded', () => {
         customChoiceMessage: document.getElementById('customChoiceMessage'),
         customChoiceBtn1: document.getElementById('customChoiceBtn1'),
         customChoiceBtn2: document.getElementById('customChoiceBtn2'),
-        customChoiceCancel: document.getElementById('customChoiceCancel')
+        customChoiceCancel: document.getElementById('customChoiceCancel'),
+
+        renameGroupDialog: document.getElementById('rename-group-dialog'),
+        renameGroupInput: document.getElementById('rename-group-input'),
+        renameGroupSaveBtn: document.getElementById('rename-group-save-btn'),
+        renameGroupCancelBtn: document.getElementById('rename-group-cancel-btn'),
+        renameGroupOriginalName: document.getElementById('rename-group-original-name'),
+        editTabsDialog: document.getElementById('edit-tabs-dialog'),
+        editTabsDialogTitle: document.getElementById('edit-tabs-dialog-title'),
+        editTabsList: document.getElementById('edit-tabs-list'),
+        editTabsSaveBtn: document.getElementById('edit-tabs-save-btn'),
+        editTabsCancelBtn: document.getElementById('edit-tabs-cancel-btn'),
+
     };
     console.log("Elements cached");
 
@@ -96,6 +108,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // --- Core Logic Functions (Main Application Flow) ---
+
+
+
 
     function switchSection(sectionName) {
         console.log("Switching section to:", sectionName);
@@ -119,6 +134,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Toggle UI elements based on section
         const isGroupsSection = sectionName === 'groups';
+        const statusCard = document.querySelector('.status-card');
+        if (statusCard) {
+            statusCard.style.display = isGroupsSection ? 'flex' : 'none'; // Assuming status-card uses flex display
+        }
+
         app.elements.searchContainer.style.display = isGroupsSection ? 'block' : 'none';
         // Ensure createFolderHeaderBtn exists before trying to style it
         if (app.elements.createFolderHeaderBtn) {
@@ -127,20 +147,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
         if (!isGroupsSection && app.elements.searchInput.value) {
-             if (app.groups && app.groups.clearSearch) {
+            if (app.groups && app.groups.clearSearch) {
                 app.groups.clearSearch();
             } else {
-                 app.elements.searchInput.value = '';
-                 if (app.elements.clearSearchBtn) app.elements.clearSearchBtn.classList.remove('visible');
+                app.elements.searchInput.value = '';
+                if (app.elements.clearSearchBtn) app.elements.clearSearchBtn.classList.remove('visible');
             }
         }
 
         // Load content for the new section
-app.loadSectionContent(sectionName);
+        app.loadSectionContent(sectionName);
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     // Renamed from loadSectionContent to avoid conflict with global variable if any
-    app.loadSectionContent = function(section) {
+    app.loadSectionContent = function (section) {
         console.log("Loading content for section:", section);
 
         switch (section) {
@@ -149,12 +188,12 @@ app.loadSectionContent(sectionName);
                 else console.error("app.groups.loadSavedGroups not available!");
                 break;
             case 'bookmarks':
-                 if (app.bookmarks && app.bookmarks.loadBookmarks) app.bookmarks.loadBookmarks();
-                 else console.error("app.bookmarks.loadBookmarks not available!");
+                if (app.bookmarks && app.bookmarks.loadBookmarks) app.bookmarks.loadBookmarks();
+                else console.error("app.bookmarks.loadBookmarks not available!");
                 break;
             case 'todo':
                 if (app.todo && app.todo.renderTodos) app.todo.renderTodos();
-                 else console.error("app.todo.renderTodos not available!");
+                else console.error("app.todo.renderTodos not available!");
                 break;
             case 'settings':
                 console.log("Settings section activated.");
@@ -200,14 +239,43 @@ app.loadSectionContent(sectionName);
         console.log("Base Event Listeners setup complete.");
     }
 
+    // --- Add button disabling for Save/Folder dialogs ---
+    function updateSaveTabGroupButtonState() {
+        const name = app.elements.groupNameInput.value.trim();
+        const checked = app.elements.tabsChecklist.querySelectorAll('.tab-checkbox:checked').length;
+        app.elements.saveTabsButton.disabled = !name || !checked;
+    }
+    function updateCreateFolderButtonState() {
+        const name = app.elements.folderNameInput.value.trim();
+        const checked = app.elements.groupSelection.querySelectorAll('.group-checkbox:checked').length;
+        app.elements.createFolderBtn.disabled = !name || !checked;
+    }
+    function updateEditFolderButtonState() {
+        const name = app.elements.editFolderName.value.trim();
+        const checked = app.elements.editGroupSelection.querySelectorAll('.group-checkbox:checked').length;
+        app.elements.saveEditFolderBtn.disabled = !name || !checked;
+    }
+    // Attach to relevant inputs
+    if (app.elements.groupNameInput && app.elements.tabsChecklist && app.elements.saveTabsButton) {
+        app.elements.groupNameInput.addEventListener('input', updateSaveTabGroupButtonState);
+        app.elements.tabsChecklist.addEventListener('change', updateSaveTabGroupButtonState);
+    }
+    if (app.elements.folderNameInput && app.elements.groupSelection && app.elements.createFolderBtn) {
+        app.elements.folderNameInput.addEventListener('input', updateCreateFolderButtonState);
+        app.elements.groupSelection.addEventListener('change', updateCreateFolderButtonState);
+    }
+    if (app.elements.editFolderName && app.elements.editGroupSelection && app.elements.saveEditFolderBtn) {
+        app.elements.editFolderName.addEventListener('input', updateEditFolderButtonState);
+        app.elements.editGroupSelection.addEventListener('change', updateEditFolderButtonState);
+    }
 
     // --- Initialization ---
     function init() {
         console.log("Initializing...");
         if (app.utils && app.utils.updateTabCount && app.utils.updateSavedItemsCount) {
-           app.utils.updateTabCount();
-           app.utils.updateSavedItemsCount();
-           console.log("Counts updated.");
+            app.utils.updateTabCount();
+            app.utils.updateSavedItemsCount();
+            console.log("Counts updated.");
         } else {
             console.error("Count update utilities not available!");
         }
@@ -217,28 +285,28 @@ app.loadSectionContent(sectionName);
         // Load initial section
         const defaultSection = app.state.activeSection;
         // Check if the necessary load function exists before calling switchSection
-         let canLoadDefault = false;
-         switch (defaultSection) {
-             case 'groups': canLoadDefault = !!(app.groups && app.groups.loadSavedGroups); break;
-             case 'bookmarks': canLoadDefault = !!(app.bookmarks && app.bookmarks.loadBookmarks); break;
-             case 'todo': canLoadDefault = !!(app.todo && app.todo.renderTodos); break;
-             case 'settings': canLoadDefault = !!(app.settings && app.settings.displayShortcuts); break; // Settings needs its display func
-         }
+        let canLoadDefault = false;
+        switch (defaultSection) {
+            case 'groups': canLoadDefault = !!(app.groups && app.groups.loadSavedGroups); break;
+            case 'bookmarks': canLoadDefault = !!(app.bookmarks && app.bookmarks.loadBookmarks); break;
+            case 'todo': canLoadDefault = !!(app.todo && app.todo.renderTodos); break;
+            case 'settings': canLoadDefault = !!(app.settings && app.settings.displayShortcuts); break; // Settings needs its display func
+        }
 
-         if (canLoadDefault) {
-             switchSection(defaultSection); // This will also call app.loadSectionContent
-             console.log(`Initial section '${defaultSection}' set.`);
-         } else {
-             console.error(`Cannot load default section '${defaultSection}', required functions missing.`);
-             // Fallback to groups if possible
-             if (app.groups && app.groups.loadSavedGroups) {
-                 switchSection('groups');
-                 console.warn("Default section failed, switched to 'groups'.");
-             } else {
-                 console.error("Fallback to 'groups' also failed. Check script loading and functions.");
-                 // Display an error message in the UI?
-             }
-         }
+        if (canLoadDefault) {
+            switchSection(defaultSection); // This will also call app.loadSectionContent
+            console.log(`Initial section '${defaultSection}' set.`);
+        } else {
+            console.error(`Cannot load default section '${defaultSection}', required functions missing.`);
+            // Fallback to groups if possible
+            if (app.groups && app.groups.loadSavedGroups) {
+                switchSection('groups');
+                console.warn("Default section failed, switched to 'groups'.");
+            } else {
+                console.error("Fallback to 'groups' also failed. Check script loading and functions.");
+                // Display an error message in the UI?
+            }
+        }
 
         console.log("Initialization Complete.");
     }
