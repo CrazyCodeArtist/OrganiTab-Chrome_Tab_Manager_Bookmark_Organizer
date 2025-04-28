@@ -32,9 +32,9 @@ app.utils.dialogState = {
 /**
  * Debounce function to limit the rate at which a function can fire.
  */
-app.utils.debounce = function(func, wait) {
+app.utils.debounce = function (func, wait) {
     let timeout;
-    return function(...args) {
+    return function (...args) {
         clearTimeout(timeout);
         timeout = setTimeout(() => func.apply(this, args), wait);
     };
@@ -47,16 +47,27 @@ app.utils.debounce = function(func, wait) {
  * Assumes the element uses 'display: flex' when visible.
  * @param {string} modalId - The ID of the modal overlay element.
  */
-app.utils.showModal = function(modalId) {
+app.utils.showModal = function (modalId) {
     const modalElement = document.getElementById(modalId);
     if (modalElement) {
         // Ensure necessary classes are present
         modalElement.classList.add('modal-overlay'); // Ensure overlay styling applies
         modalElement.classList.add('visible');      // For potential CSS transitions/visibility rules
-        modalElement.style.display = 'Block';        // Set display flex for centering
+        
+      if (modalElement.id) {
+        if (modalElement.id=='saveDropdown') {
+            modalElement.style.display = 'block';        // Set display flex for centering
+
+        }else{        modalElement.style.display = 'flex';        // Set display flex for centering
+        }
+        
+      }else{
+        modalElement.style.display = 'flex';        // Set display flex for centering
+      }
+      
         // Add overlay click listener to hide modal (optional, can be added per modal if needed)
         // Be cautious adding generic listeners here if some modals shouldn't close on overlay click.
-        console.log("Model Called")
+    console.log("Model Called")
     } else {
         console.error(`Modal element with ID "${modalId}" not found.`);
     }
@@ -66,7 +77,7 @@ app.utils.showModal = function(modalId) {
  * Hides a modal overlay element by its ID and performs cleanup.
  * @param {string} modalId - The ID of the modal overlay element.
  */
-app.utils.hideModal = function(modalId) {
+app.utils.hideModal = function (modalId) {
     const modalElement = document.getElementById(modalId);
     if (modalElement) {
         modalElement.style.display = 'none';
@@ -90,14 +101,14 @@ app.utils.hideModal = function(modalId) {
             if (state.overlayClickListenerChoice) modalElement.removeEventListener('click', state.overlayClickListenerChoice);
             state.choice1Listener = state.choice2Listener = state.choiceCancelListener = state.overlayClickListenerChoice = state.choiceDialogChoice1Callback = state.choiceDialogChoice2Callback = state.choiceDialogCancelCallback = null;
         } else if (modalId === 'rename-group-dialog') {
-             // Remove listeners added specifically in openRenameGroupDialog
-             if(app.elements.renameGroupSaveBtn) app.elements.renameGroupSaveBtn.onclick = null;
-             if(app.elements.renameGroupCancelBtn) app.elements.renameGroupCancelBtn.onclick = null;
-             if(app.elements.renameGroupInput) app.elements.renameGroupInput.onkeydown = null;
+            // Remove listeners added specifically in openRenameGroupDialog
+            if (app.elements.renameGroupSaveBtn) app.elements.renameGroupSaveBtn.onclick = null;
+            if (app.elements.renameGroupCancelBtn) app.elements.renameGroupCancelBtn.onclick = null;
+            if (app.elements.renameGroupInput) app.elements.renameGroupInput.onkeydown = null;
         } else if (modalId === 'edit-tabs-dialog') {
-             // Remove listeners added specifically in openEditTabsDialog
-             if(app.elements.editTabsSaveBtn) app.elements.editTabsSaveBtn.onclick = null;
-             if(app.elements.editTabsCancelBtn) app.elements.editTabsCancelBtn.onclick = null;
+            // Remove listeners added specifically in openEditTabsDialog
+            if (app.elements.editTabsSaveBtn) app.elements.editTabsSaveBtn.onclick = null;
+            if (app.elements.editTabsCancelBtn) app.elements.editTabsCancelBtn.onclick = null;
         }
         // Add cleanup for other modals (saveDropdown, folderDialog, editFolderDialog) if necessary
 
@@ -110,7 +121,7 @@ app.utils.hideModal = function(modalId) {
 /**
  * Hides all known modal dialog overlays.
  */
-app.utils.hideAllModalDialogs = function() {
+app.utils.hideAllModalDialogs = function () {
     if (!app.elements) return;
 
     // List all known modal overlay IDs from popup.html
@@ -129,7 +140,7 @@ app.utils.hideAllModalDialogs = function() {
         const dialog = document.getElementById(id);
         // Check if the dialog exists and is currently visible
         if (dialog && (dialog.style.display !== 'none' || dialog.classList.contains('visible'))) {
-             app.utils.hideModal(id); // Use the generic hide function which includes cleanup
+            app.utils.hideModal(id); // Use the generic hide function which includes cleanup
         }
     });
 
@@ -143,10 +154,10 @@ app.utils.hideAllModalDialogs = function() {
     });
     // Clear dynamic list containers
     ['groupSelection', 'editGroupSelection', 'tabsChecklist', 'editTabsList'].forEach(listId => {
-         if (app.elements && app.elements[listId]) {
-             app.elements[listId].innerHTML = '';
-         }
-     });
+        if (app.elements && app.elements[listId]) {
+            app.elements[listId].innerHTML = '';
+        }
+    });
 };
 
 // --- Custom Dialog Functions ---
@@ -159,7 +170,7 @@ app.utils.hideAllModalDialogs = function() {
  * @param {string} [confirmText='Yes'] - Text for the confirm button.
  * @param {string} [cancelText='Cancel'] - Text for the cancel button.
  */
-app.utils.showCustomConfirm = function(message, onConfirm, onCancel = null, confirmText = 'Yes', cancelText = 'Cancel') {
+app.utils.showCustomConfirm = function (message, onConfirm, onCancel = null, confirmText = 'Yes', cancelText = 'Cancel') {
     const modalId = 'customConfirmOverlay';
     if (!app.elements || !app.elements[modalId]) { console.error("Confirm dialog elements missing!"); return; }
     const state = app.utils.dialogState;
@@ -196,7 +207,7 @@ app.utils.showCustomConfirm = function(message, onConfirm, onCancel = null, conf
  * Shows a custom alert dialog (OK).
  * @param {string} message - The message to display.
  */
-app.utils.showCustomAlert = function(message) {
+app.utils.showCustomAlert = function (message) {
     const modalId = 'customAlertOverlay';
     if (!app.elements || !app.elements[modalId]) { console.error("Alert dialog elements missing!"); alert(message); return; }
     const state = app.utils.dialogState;
@@ -230,9 +241,9 @@ app.utils.showCustomAlert = function(message) {
  * @param {string} [cancelText='Cancel'] - Text for the cancel button.
  * @param {function} [onCancel=null] - Callback for cancel.
  */
-app.utils.showCustomChoiceDialog = function(message, choice1Text, onChoice1, choice2Text, onChoice2, cancelText = 'Cancel', onCancel = null) {
+app.utils.showCustomChoiceDialog = function (message, choice1Text, onChoice1, choice2Text, onChoice2, cancelText = 'Cancel', onCancel = null) {
     const modalId = 'customChoiceOverlay';
-     if (!app.elements || !app.elements[modalId]) { console.error("Custom choice dialog elements not found!"); return; }
+    if (!app.elements || !app.elements[modalId]) { console.error("Custom choice dialog elements not found!"); return; }
     const state = app.utils.dialogState;
     const elements = app.elements;
 
@@ -270,14 +281,14 @@ app.utils.showCustomChoiceDialog = function(message, choice1Text, onChoice1, cho
 
 // --- Specific Dialog Hide Functions (Legacy/Wrappers - can be removed if direct hideModal is used everywhere) ---
 // It's often cleaner to call app.utils.hideModal('folderDialog') directly where needed.
-app.utils.hideCreateFolderDialog = function() {
+app.utils.hideCreateFolderDialog = function () {
     app.utils.hideModal('folderDialog'); // Use generic hide
     // Specific cleanup if needed
     if (app.elements.folderNameInput) app.elements.folderNameInput.value = '';
     if (app.elements.groupSelection) app.elements.groupSelection.innerHTML = '';
 };
 
-app.utils.hideEditFolderDialog = function() {
+app.utils.hideEditFolderDialog = function () {
     app.utils.hideModal('editFolderDialog'); // Use generic hide
     // Specific cleanup if needed
     if (app.state) app.state.currentEditingFolderOriginalName = '';
@@ -288,7 +299,7 @@ app.utils.hideEditFolderDialog = function() {
 // --- Other Utilities ---
 
 // Function to get a relevant Font Awesome icon class based on name (example)
-app.utils.getIconClass = function(name) {
+app.utils.getIconClass = function (name) {
     const lowerName = name.toLowerCase();
     if (lowerName.includes('work') || lowerName.includes('job')) return 'fas fa-briefcase';
     if (lowerName.includes('shop') || lowerName.includes('buy') || lowerName.includes('store')) return 'fas fa-shopping-cart';
@@ -304,31 +315,31 @@ app.utils.getIconClass = function(name) {
 /**
  * Updates the count of currently open tabs displayed in the UI.
  */
-app.utils.updateTabCount = function() {
+app.utils.updateTabCount = function () {
     if (!app.elements || !app.state) return;
-    chrome.tabs.query({currentWindow: true}, (tabs) => {
-         if (chrome.runtime.lastError) { console.error("Error querying tabs:", chrome.runtime.lastError); return; }
+    chrome.tabs.query({ currentWindow: true }, (tabs) => {
+        if (chrome.runtime.lastError) { console.error("Error querying tabs:", chrome.runtime.lastError); return; }
         // Filter out chrome:// and about: pages from count and state if needed
         const userTabs = tabs.filter(tab => tab.url && !tab.url.startsWith('chrome://') && !tab.url.startsWith('about:'));
         app.state.currentTabs = userTabs; // Store only user-accessible tabs in state for saving
         if (app.elements.tabCountLabel) {
-           app.elements.tabCountLabel.textContent = userTabs.length;
+            app.elements.tabCountLabel.textContent = userTabs.length;
         }
         // Refresh save dropdown checklist if open
-         const saveDropdown = document.getElementById('saveDropdown'); // Re-select element safely
-         if (saveDropdown && saveDropdown.style.display === 'Block' && app.groups && app.groups.populateTabsChecklist) {
-             app.groups.populateTabsChecklist();
-         }
+        const saveDropdown = document.getElementById('saveDropdown'); // Re-select element safely
+        if (saveDropdown && (saveDropdown.style.display === 'flex' || saveDropdown.style.display === 'block'  )&& app.groups && app.groups.populateTabsChecklist) {
+            app.groups.populateTabsChecklist();
+        }
     });
 };
 
 /**
  * Updates the total count of saved items (groups, folders, bookmarks, todos) displayed in the UI.
  */
-app.utils.updateSavedItemsCount = function() {
-     if (!app.elements) return;
+app.utils.updateSavedItemsCount = function () {
+    if (!app.elements) return;
     chrome.storage.local.get(['tabGroups', 'bookmarks', 'todos', 'folders'], ({ tabGroups = {}, bookmarks = [], todos = [], folders = {} }) => {
-         if (chrome.runtime.lastError) { console.error("Error getting storage for count:", chrome.runtime.lastError); return; }
+        if (chrome.runtime.lastError) { console.error("Error getting storage for count:", chrome.runtime.lastError); return; }
         let groupsInFolders = new Set();
         Object.values(folders).forEach(folder => { if (folder.groups) Object.keys(folder.groups).forEach(name => groupsInFolders.add(name)); });
         const standaloneGroupCount = Object.keys(tabGroups).filter(name => !groupsInFolders.has(name)).length;
@@ -338,8 +349,8 @@ app.utils.updateSavedItemsCount = function() {
         // Count = Folders + Standalone Groups + Bookmarks + Todos
         const count = folderCount + standaloneGroupCount + bookmarkCount + todoCount;
 
-        if(app.elements.savedItemsLabel) {
-           app.elements.savedItemsLabel.textContent = count;
+        if (app.elements.savedItemsLabel) {
+            app.elements.savedItemsLabel.textContent = count;
         }
     });
 };
@@ -351,7 +362,7 @@ app.utils.updateSavedItemsCount = function() {
  * @param {HTMLButtonElement} buttonElement - The "Select All/Deselect All" button.
  * @param {string} checkboxSelector - The CSS selector for the checkboxes.
  */
-app.utils.toggleSelectAll = function(container, buttonElement, checkboxSelector) {
+app.utils.toggleSelectAll = function (container, buttonElement, checkboxSelector) {
     if (!container || !buttonElement) return;
     const checkboxes = container.querySelectorAll(checkboxSelector);
     if (checkboxes.length === 0) {
@@ -380,7 +391,7 @@ app.utils.toggleSelectAll = function(container, buttonElement, checkboxSelector)
  * @param {HTMLButtonElement} buttonElement - The "Select All/Deselect All" button.
  * @param {string} checkboxSelector - The CSS selector for the checkboxes.
  */
-app.utils.updateSelectAllButtonState = function(container, buttonElement, checkboxSelector) {
+app.utils.updateSelectAllButtonState = function (container, buttonElement, checkboxSelector) {
     if (!container || !buttonElement) return;
     const checkboxes = container.querySelectorAll(checkboxSelector);
     if (checkboxes.length === 0) {

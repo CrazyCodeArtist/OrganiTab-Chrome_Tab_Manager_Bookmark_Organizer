@@ -309,7 +309,8 @@ app.settings.displayShortcuts = function() {
 
             const keySpan = document.createElement('span');
             keySpan.className = 'shortcut-key';
-            keySpan.textContent = command.shortcut || 'Not set'; // Display shortcut or "Not set"
+            
+            keySpan.textContent = command.shortcut  || '  Not set'; // Display shortcut or "Not set"
 
             li.appendChild(nameSpan);
             li.appendChild(keySpan);

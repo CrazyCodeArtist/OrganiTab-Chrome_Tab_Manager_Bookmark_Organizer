@@ -8,11 +8,16 @@
 </head>
 <body>
   <div id="app">
-    <div class="header">
-      <h1>OrganiTab</h1> <div class="header-buttons">
-        <button class="add-button" id="addButton"><i class="fas fa-plus"></i> Save Open Tabs</button>
-      </div>
-    </div>
+
+<div class="header">
+  <h1>OrganiTab</h1>
+  <div class="header-buttons">
+    <button class="add-button" id="addButton">
+      <i class="fas fa-plus"></i>
+      Save Open Tabs
+    </button>
+  </div>
+</div>
 
     <div class="status-card">
       <div class="status-info">
@@ -34,6 +39,7 @@
     </div>
 
     <div id="saveDropdown" class="dropdown-panel">
+
       <div class="dropdown-header">
         <h3>Save tabs</h3>
         <button id="closeDropdownBtn" class="close-btn"><i class="fas fa-times"></i></button>
@@ -51,6 +57,7 @@
     </div>
 
     <div id="editFolderDialog" class="dropdown-panel" style="display: none;">
+
       <div class="dropdown-header">
         <h3>Edit Folder</h3>
         <button id="closeEditFolderBtn" class="close-btn"><i class="fas fa-times"></i></button>
@@ -60,6 +67,7 @@
         <div class="group-selection-container">
           <div class="group-selection" id="editGroupSelection"></div>
         </div>
+
       </div>
       <div class="dropdown-footer">
         <button id="selectAllEditGroupsBtn" class="secondary-btn">Select All</button>
@@ -72,7 +80,7 @@
         <div class="section-title-actions">
              <h2>Saved Groups</h2>
              <button class="action-button create-folder-header-btn" id="createFolderHeaderBtn" title="Create New Folder">
-                 <i class="fas fa-folder-plus"></i> Create Folder
+            </p><i class="fas fa-folder-plus"></i><p> Create Folder</p><p>
              </button>
         </div>
         <div class="group-sort-controls">
@@ -87,7 +95,9 @@
           </select>
         </div>
       </div>
+
       <ul id="groupsList" class="groups-list"></ul>
+
     </div>
 
     <div id="bookmarksSection" class="section-container">
@@ -102,11 +112,13 @@
       <div class="section-header todo-header">
         <h2>Todo List</h2>
       </div>
-      <div id="todoList" class="todo-list"></div>
+
       <div id="addTodoForm" class="add-todo-form">
         <input type="text" id="newTodoInput" placeholder="Add new task..." />
         <button id="submitTodoBtn">Add</button>
       </div>
+      <div id="todoList" class="todo-list"></div>
+    
     </div>
 
     <div id="settingsSection" class="section-container">
@@ -115,8 +127,8 @@
         </div>
         <div class="settings-content">
             <div class="settings-item">
-                <h3><i class="fas fa-database"></i> Data Management</h3>
-                <p>Export all your saved data to a JSON file, or import data from a backup file. You can choose to merge imported data with existing data or overwrite everything.</p>
+                <h3><i class="fas fa-database"></i> Import Or Export Data</h3>
+                <p>Export your  data , or import data from a backup file. You can also  choose to merge data with existing data or overwrite everything.</p>
                 <div class="settings-actions">
                     <button id="exportDataBtn" class="primary-btn"><i class="fas fa-file-export"></i> Export Data</button>
                     <button id="importDataBtn" class="secondary-btn"><i class="fas fa-file-import"></i> Import Data</button>
@@ -126,14 +138,14 @@
 
             <div class="settings-item">
                 <h3><i class="fas fa-keyboard"></i> Keyboard Shortcuts</h3>
-                <p>View default shortcuts and configure them in Chrome's settings.</p>
+                <p></p>
                 <div id="shortcutsList" class="shortcuts-list-container">
                     <p>Loading shortcuts...</p>
                 </div>
                 <div class="settings-actions">
                      <button id="configureShortcutsBtn" class="secondary-btn"><i class="fas fa-cog"></i> Configure Shortcuts</button>
                 </div>
-                 <p class="settings-note">Note: Shortcuts are configured via Chrome's extensions page (<code>chrome://extensions/shortcuts</code>).</p>
+                 <p class="settings-note">or if not working configure Your Shortcuts from here  (<code>chrome://extensions/shortcuts</code>).</p>
             </div>
 
              <div class="settings-item danger-zone">
@@ -185,7 +197,7 @@
     </div>
   </div>
 
-  <div id="customConfirmOverlay" class="custom-confirm-overlay" style="display: none;">
+  <div id="customConfirmOverlay" class="custom-confirm-overlay dpNone" style="display: none;">
     <div id="customConfirmDialog" class="custom-confirm-dialog">
       <p id="customConfirmMessage"></p>
       <div class="custom-confirm-buttons">

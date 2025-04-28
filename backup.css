@@ -1,0 +1,1772 @@
+/* Light theme lives in :root as before */
+:root {
+    --primary-color:    #2B7A78;
+    --primary-hover:    #3AAFA9;
+    --secondary-color:  #3AAFA9;
+    --secondary-hover:  #45CFC1;
+  
+    --light-gray:       #DEF2F1;
+    --medium-gray:      #B2BEC3;
+    --dark-gray:        #17252A;
+    --white:            #FEFFFF;
+  
+    --folder-teal:      #3AAFA9;
+    --folder-navy:      #17252A;
+  
+    --success-color:    #06D6A0;
+    --danger-color:     #FF595E;
+  
+    --border-radius:    8px;
+    --box-shadow:       0 2px 6px rgba(23, 37, 42, 0.1);
+    --transition:       all 0.2s ease;
+  }
+  
+  /* Dark theme overrides: */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      /* Swap backgrounds & text */
+      --light-gray:       #17252A;  /* dark panel bg */
+      --medium-gray:      #2B7A78;  /* borders / muted text */
+      --dark-gray:        #FEFFFF;  /* text on dark bg */
+      --white:            #FEFFFF;  /* stays light for cards */
+      
+      /* Buttons & accents */
+      --primary-color:    #45CFC1;  /* a bit brighter on dark bg */
+      --primary-hover:    #2B7A78;  /* invert hover logic */
+      --secondary-color:  #3AAFA9;
+      --secondary-hover:  #2B7A78;
+      
+      /* Folder markers */
+      --folder-teal:      #45CFC1;
+      --folder-navy:      #2B7A78;
+      
+      /* Status (tweak if needed) */
+      --success-color:    #06D6A0;
+      --danger-color:     #FF857A;  /* softer coral on dark */
+      
+      /* Shadows fade more subtle on dark */
+      --box-shadow:       0 2px 6px rgba(0, 0, 0, 0.5);
+    }
+  }
+  
+  
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  }
+  
+  body {
+    width: 350px;
+    height: 500px;
+    background-color: var(--white);
+    overflow-x: hidden;
+    overflow-y: auto;
+    color: var(--dark-gray);
+    font-size: 13px;
+  }
+  
+  #app {
+    padding: 12px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  button {
+    cursor: pointer;
+    border: none;
+    outline: none;
+    background: none;
+    transition: var(--transition);
+    font-size: 12px;
+  }
+  
+  ul, li {
+    list-style: none;
+  }
+  
+  input {
+    outline: none;
+    border: 1px solid var(--medium-gray);
+    border-radius: var(--border-radius);
+    padding: 6px 10px;
+    font-size: 12px;
+    transition: var(--transition);
+  }
+  
+  input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(255, 99, 132, 0.1);
+  }
+  
+  /* -------------------------------- 
+     Header Styles
+  -------------------------------- */
+  
+  .header {
+    /* 1) set up a flex container… */
+    display: flex;
+    align-items: center;           /* vertical centering */
+    justify-content: space-between;/* h1↔buttons spread to ends */
+    
+    /* 2) make it span the full width of its parent */
+    width: 100%;
+    box-sizing: border-box;
+    
+    /* 3) optional: horizontal padding */
+    padding: 0 16px;
+    
+    margin-bottom: 12px;
+  }
+  
+  .header h1 {
+    /* remove default top/bottom and left/right margins */
+    margin: 0;
+    
+    /* your typography */
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--dark-gray);
+    
+    /* if your header container is somehow constrained,
+       you can force the title to take up all remaining space: */
+    /* flex: 1; */
+  }
+  
+  .header-buttons {
+    display: flex;
+    gap: 8px;
+    margin: 0; /* reset if you’ve got any stray margins */
+  }
+  
+  .add-button {
+    background-color: var(--primary-color);
+    color: var(--white);
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-weight: 600;
+    font-size: 12px;
+    box-shadow: var(--box-shadow);
+    
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    
+    transition: var(--transition);
+    border: none;
+    cursor: pointer;
+  }
+  
+  .add-button i {
+    font-size: 10px;
+  }
+  
+  .add-button:hover {
+    /* CSS-native darken without Sass */
+    filter: brightness(0.9);
+    transform: translateY(-1px);
+  }
+  
+  /* -------------------------------- 
+     Status Card Styles
+  -------------------------------- */
+  .status-card {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    gap: 5px;
+  }
+  
+  .status-info {
+    flex: 1;
+    background-color: var(--white);
+    border: 0.5px solid var(--folder-pink);
+    border-radius: var(--border-radius);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1px;
+    text-align: center;
+  }
+  
+  .status-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--dark-gray);
+    margin-bottom: 1px;
+  }
+  
+  .status-value {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--dark-gray);
+  }
+  
+  /* -------------------------------- 
+     Search Bar Styles
+  -------------------------------- */
+  .search-container {
+    margin-bottom: 12px;
+    position: relative;
+  }
+  
+  .search-input {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  
+  .search-input input {
+    width: 100%;
+    padding: 8px 30px;
+    border-radius: 16px;
+    border: 1px solid var(--medium-gray);
+    font-size: 12px;
+  }
+  
+  .search-icon {
+    position: absolute;
+    left: 10px;
+    color: #757575;
+    font-size: 12px;
+  }
+  
+  .clear-search {
+    position: absolute;
+    right: 10px;
+    background: none;
+    border: none;
+    color: #757575;
+    cursor: pointer;
+    font-size: 12px;
+  }
+  
+  /* -------------------------------- 
+     Section Styles
+  -------------------------------- */
+  .section-container {
+    display: none;
+    flex-direction: column;
+    margin-bottom: 12px;
+    flex: 1;
+    overflow-y: auto;
+  }
+  
+  .active-section {
+    display: flex;
+  }
+  
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    position: sticky;
+    top: 0;
+    background-color: var(--white);
+    z-index: 10;
+  }
+  
+  .section-title-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .section-header h2 {
+    font-size: 16px;
+    font-weight: 700;
+  }
+  
+  .group-sort-controls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  
+  .group-sort-controls label {
+    font-size: 11px;
+  }
+  
+  .group-sort-controls select {
+    padding: 4px 8px;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--medium-gray);
+    background-color: var(--white);
+    cursor: pointer;
+    font-size: 11px;
+  }
+  
+  /* -------------------------------- 
+     Groups List Styles
+  -------------------------------- */
+  .groups-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .groups-list li {
+    background-color: var(--white);
+    border: 1px solid var(--medium-gray);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+  }
+  
+  .folder-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background-color: var(--white);
+    border-bottom: 1px solid var(--medium-gray);
+  }
+  
+  .folder-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    font-size: 14px;
+  }
+  
+  .folder-actions {
+    display: flex;
+    gap: 6px;
+  }
+  
+  .folder-icon {
+    color: var(--folder-pink);
+    font-size: 16px;
+  }
+  
+  .group-icon {
+    color: var(--danger-color);
+    font-size: 16px;
+  }
+  
+  .group-item {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    border-top: 1px solid var(--medium-gray);
+  }
+  
+  .group-title {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 3px;
+  }
+  
+  .group-title-text {
+    font-weight: 600;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  
+  .group-meta {
+    color: #666;
+    font-size: 11px;
+    margin-bottom: 8px;
+  }
+  
+  .group-buttons {
+    display: flex;
+    gap: 8px;
+  }
+  
+  .group-button {
+    padding: 5px 10px;
+    border: 1px solid var(--medium-gray);
+    border-radius: var(--border-radius);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background-color: var(--white);
+    font-weight: 500;
+    font-size: 11px;
+    transition: var(--transition);
+  }
+  
+  .group-button:hover {
+    background-color: var(--light-gray);
+  }
+  
+  .group-button.primary {
+    background-color: var(--secondary-color);
+    color: var(--white);
+    border: none;
+  }
+  
+  .group-button.primary:hover {
+    background-color: darken(var(--secondary-color), 10%);
+  }
+  
+  /* -------------------------------- 
+     Navigation Tabs
+  -------------------------------- */
+  .nav-tabs {
+    display: flex;
+    justify-content: space-between;
+    margin-top: auto;
+    background-color: var(--white);
+    border-top: 1px solid var(--medium-gray);
+    position: sticky;
+    bottom: 0;
+    padding: 2px 0;
+  }
+  
+  .nav-tab {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 3.5px 0;
+    color: #666;
+    font-size: 10px;
+    gap: 3px;
+    position: relative;
+  }
+  
+  .nav-tab i {
+    font-size: 14px;
+  }
+  
+  .nav-tab.active {
+    color: var(--primary-color);
+    font-weight: 600;
+  }
+  
+  .nav-tab.active::before {
+    content: '';
+    position: absolute;
+    top: -7px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 6px;
+    height: 6px;
+    background-color: var(--primary-color);
+    border-radius: 50%;
+  }
+  
+  /* -------------------------------- 
+     Create Folder Button
+  -------------------------------- */
+  .create-folder-header-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 8px;
+    border-radius: var(--border-radius);
+    background-color: var(--light-gray);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--dark-gray);
+  }
+  
+  .create-folder-header-btn:hover {
+    background-color: var(--medium-gray);
+  }
+  
+  /* -------------------------------- 
+     Modal Styles
+  -------------------------------- */
+  .dropdown-panel {
+    position: absolute;
+    top: 50px;
+    left: 12px;
+    right: 12px;
+    background-color: var(--white);
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    z-index: 100;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    max-height: 80%;
+  }
+  
+  .dropdown-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid var(--medium-gray);
+  }
+  
+  .dropdown-header h3 {
+    font-size: 14px;
+    font-weight: 600;
+  }
+  
+  .close-btn {
+    font-size: 14px;
+    color: #666;
+  }
+  
+  .dropdown-content {
+    padding: 10px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .full-width-input {
+    width: 100%;
+    padding: 6px 10px;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--medium-gray);
+    font-size: 12px;
+  }
+  
+  .tabs-checklist-container, .group-selection-container {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid var(--medium-gray);
+    border-radius: var(--border-radius);
+  }
+  
+  .tabs-checklist, .group-selection {
+    padding: 8px;
+  }
+  
+  .dropdown-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 10px;
+    border-top: 1px solid var(--medium-gray);
+  }
+  
+  .primary-btn {
+    background-color: var(--primary-color);
+    color: var(--white);
+    padding: 5px 10px;
+    border-radius: var(--border-radius);
+    font-weight: 500;
+    font-size: 12px;
+  }
+  
+  .secondary-btn {
+    background-color: var(--light-gray);
+    color: var(--dark-gray);
+    padding: 5px 10px;
+    border-radius: var(--border-radius);
+    font-weight: 500;
+    font-size: 12px;
+  }
+  
+  .modal-overlay {
+    position: fixed;
+  margin: auto;
+    background-color: rgba(255, 255, 255, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  
+  .modal-dialog {
+    background-color: var(--white);
+    border-radius: var(--border-radius);
+    width: 90%;
+    max-width: 300px;
+    padding: 15px;
+    box-shadow: 0 4px 20px rgba(255, 255, 255, 0.15);
+  }
+  
+  .wide-dialog {
+    max-width: 320px;
+  }
+  
+  .modal-message {
+    margin: 10px 0;
+    font-size: 12px;
+  }
+  
+  .modal-input {
+    width: 100%;
+    margin-bottom: 15px;
+  }
+  
+  .modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+  
+  .modal-button {
+    padding: 5px 10px;
+    border-radius: var(--border-radius);
+    font-weight: 500;
+    font-size: 12px;
+  }
+  
+  .modal-button.cancel {
+    background-color: var(--light-gray);
+    color: var(--dark-gray);
+  }
+  
+  .modal-button.confirm {
+    background-color: var(--primary-color);
+    color: var(--white);
+  }
+  
+  /* -------------------------------- 
+     Custom Alert/Confirm Styles
+  -------------------------------- */
+  .custom-confirm-overlay, .custom-alert-overlay, .custom-choice-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    z-index: 1000;
+  }
+  
+  .custom-confirm-dialog, .custom-alert-dialog, .custom-choice-dialog {
+    background-color: var(--white);
+    border-radius: var(--border-radius);
+    width: 90%;
+    max-width: 300px;
+    padding: 15px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    font-size: 12px;
+     top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+  
+  
+  }
+  
+  .custom-confirm-buttons, .custom-alert-buttons, .custom-choice-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 15px;
+  }
+  
+  .custom-confirm-button, .custom-alert-button, .custom-choice-button {
+    padding: 5px 10px;
+    border-radius: var(--border-radius);
+    font-weight: 500;
+    font-size: 12px;
+  }
+  
+  .custom-confirm-button.cancel, .custom-choice-button.cancel {
+    background-color: var(--light-gray);
+    color: var(--dark-gray);
+  }
+  
+  .custom-confirm-button.confirm, .custom-alert-button.ok {
+    background-color: var(--primary-color);
+    color: var(--white);
+  }
+  
+  .custom-choice-button.choice1 {
+    background-color: var(--primary-color);
+    color: var(--white);
+  }
+  
+  .custom-choice-button.choice2 {
+    background-color: var(--secondary-color);
+    color: var(--white);
+  }
+  
+  /* -------------------------------- 
+     Edit Tabs List
+  -------------------------------- */
+  .edit-tabs-list-container {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid var(--medium-gray);
+    border-radius: var(--border-radius);
+    padding: 8px;
+  }
+  
+  .edit-tabs-list-container li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--medium-gray);
+    font-size: 12px;
+  }
+  
+  .edit-tabs-list-container li:last-child {
+    border-bottom: none;
+  }
+  
+  /* -------------------------------- 
+     Action Buttons
+  -------------------------------- */
+  .action-button {
+    background-color: transparent;
+    color: #666;
+    border-radius: var(--border-radius);
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+  }
+  
+  .action-button:hover {
+    background-color: var(--light-gray);
+  }
+  
+  /* -------------------------------- 
+     Settings Styles
+  -------------------------------- */
+  .settings-content {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .settings-item {
+    background-color: var(--white);
+    border: 1px solid var(--medium-gray);
+    border-radius: var(--border-radius);
+    padding: 10px;
+  }
+  
+  .settings-item h3 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .settings-item p {
+    font-size: 12px;
+    line-height: 1.4;
+  }
+  
+  .settings-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  
+  .settings-note {
+    font-size: 10px;
+    color: #666;
+    margin-top: 6px;
+  }
+  
+  .danger-zone {
+    border-color: var(--danger-color);
+  }
+  
+  .danger-zone h3 {
+    color: var(--danger-color);
+  }
+  
+  .danger-btn {
+    background-color: var(--danger-color);
+    color: var(--white);
+    padding: 5px 10px;
+    border-radius: var(--border-radius);
+    font-weight: 500;
+    font-size: 12px;
+  }
+  
+  .shortcuts-list-container {
+    border: 1px solid var(--medium-gray);
+    border-radius: var(--border-radius);
+    padding: 8px;
+    max-height: 120px;
+    overflow-y: auto;
+    font-size: 11px;
+  }
+  
+  /* -------------------------------- 
+     Todo List Styles
+  -------------------------------- */
+  .todo-list {
+    margin-bottom: 10px;
+  }
+  
+  .add-todo-form {
+    display: flex;
+    gap: 8px;
+  }
+  
+  .add-todo-form input {
+    flex: 1;
+  }
+  
+  .add-todo-form button {
+    background-color: var(--primary-color);
+    color: var(--white);
+    padding: 5px 15px;
+    border-radius: var(--border-radius);
+    font-weight: 500;
+    font-size: 12px;
+  }
+  
+  /* -------------------------------- 
+     Responsive Adjustments
+  -------------------------------- */
+  @media (max-width: 350px) {
+    .header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    
+    .section-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    
+    .dropdown-footer {
+      flex-direction: column;
+    }
+    
+    .modal-buttons {
+      flex-direction: column;
+    }
+  }
+  
+  
+  
+  
+  /* -------------------------------- 
+     Folder & Group Styles
+  -------------------------------- */
+  
+  /* --- Folder Styling --- */
+  
+  .folder-item {
+    background-color: var(--white);
+    border: 1px solid var(--medium-gray);
+    border-radius: var(--border-radius);
+    margin-bottom: 10px;
+    overflow: hidden;
+    box-shadow: var(--box-shadow);
+    transition: var(--transition);
+  }
+  
+  .folder-item:hover {
+    border-color: var(--secondary-color);
+  }
+  
+  .folder-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    background-color: var(--light-gray);
+    border-bottom: 1px solid var(--medium-gray);
+    cursor: pointer;
+    transition: var(--transition);
+  }
+  
+  .folder-header:hover {
+    background-color: #ebebeb;
+  }
+  
+  .folder-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--dark-gray);
+  }
+  
+  .folder-title .fas.fa-folder {
+    color: var(--danger-color);
+    font-size: 16px;
+  }
+  
+  .folder-count {
+    font-size: 11px;
+    font-weight: 500;
+    color: #555;
+    margin-left: 4px;
+  }
+  
+  .folder-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  
+  .folder-header-actions .action-button {
+    width: 26px;
+    height: 26px;
+    font-size: 13px;
+    color: #555;
+  }
+  
+  .folder-header-actions .action-button:hover {
+    background-color: var(--medium-gray);
+    color: var(--dark-gray);
+  }
+  
+  .folder-header-actions .action-button.edit {
+    color: var(--secondary-color);
+  }
+  
+  .folder-header-actions .action-button.edit:hover {
+    background-color: rgba(108, 92, 231, 0.1);
+  }
+  
+  .toggle-folder-btn i {
+    transition: transform 0.2s ease;
+  }
+  
+  .toggle-folder-btn i.rotated {
+    transform: rotate(180deg);
+  }
+  
+  .folder-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+    padding: 0 12px;
+    background-color: var(--white);
+  }
+  
+  .folder-content.expanded {
+    max-height: 1000px;
+    padding: 10px 12px;
+    border-top: 1px solid var(--light-gray);
+  }
+  
+  .folder-content ul {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .folder-actions {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--medium-gray);
+    display: flex;
+    justify-content: flex-end;
+  }
+  
+  .folder-actions .delete-folder-btn {
+    padding: 4px 8px;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  
+  .folder-actions .delete-folder-btn i {
+    font-size: 10px;
+  }
+  
+  .empty-folder {
+    font-style: italic;
+    color: #777;
+    font-size: 12px;
+    padding: 10px 0;
+    text-align: center;
+  }
+  
+  /* --- Standalone Group List --- */
+  
+  .standalone-groups-list {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  /* --- Group List Item (Shared between folder and standalone) --- */
+  
+  .group-list-item {
+    background-color: var(--white);
+    border: 1px solid #eee;
+    border-radius: calc(var(--border-radius) - 2px);
+    overflow: hidden;
+    transition: var(--transition);
+  }
+  
+  .group-list-item:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  }
+  
+  .group-item-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    cursor: default;
+  }
+  
+  .group-info {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex-grow: 1;
+    margin-right: 10px;
+  }
+  
+  .group-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--dark-gray);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 180px;
+  }
+  
+  .group-status {
+    font-size: 11px;
+    color: #666;
+  }
+  
+  .group-status span {
+    margin: 0 3px;
+  }
+  
+  .open-group-button.subtle-button {
+    background: none;
+    border: 1px solid var(--medium-gray);
+    color: var(--secondary-color);
+    padding: 3px 8px;
+    border-radius: var(--border-radius);
+    font-size: 10px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    margin-top: 4px;
+    align-self: flex-start;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  
+  .open-group-button.subtle-button i {
+    font-size: 9px;
+  }
+  
+  .open-group-button.subtle-button:hover {
+    background-color: var(--light-gray);
+    border-color: var(--secondary-color);
+    color: var(--secondary-color);
+  }
+  
+  .group-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  
+  .group-actions .icon-button {
+    width: 24px;
+    height: 24px;
+    font-size: 12px;
+    border-radius: 50%;
+    color: #555;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid transparent;
+  }
+  
+  .group-actions .icon-button:hover {
+    background-color: var(--light-gray);
+    color: var(--dark-gray);
+    border-color: var(--medium-gray);
+  }
+  
+  .group-actions .icon-button.edit {
+    color: var(--secondary-color);
+  }
+  
+  .group-actions .icon-button.rename {
+    color: #f39c12;
+  }
+  
+  .group-actions .icon-button.danger {
+    color: var(--danger-color);
+  }
+  
+  .group-actions .icon-button.edit:hover {
+    background-color: rgba(108, 92, 231, 0.1);
+    border-color: rgba(108, 92, 231, 0.3);
+  }
+  
+  .group-actions .icon-button.rename:hover {
+    background-color: rgba(243, 156, 18, 0.1);
+    border-color: rgba(243, 156, 18, 0.3);
+  }
+  
+  .group-actions .icon-button.danger:hover {
+    background-color: rgba(255, 77, 77, 0.1);
+    border-color: rgba(255, 77, 77, 0.3);
+  }
+  
+  .expand-group-button i {
+    transition: transform 0.2s ease;
+  }
+  
+  .expand-group-button i.rotated {
+    transform: rotate(180deg);
+  }
+  
+  /* --- Tab List within a Group --- */
+  
+  .tab-list {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out, padding 0.3s ease-out, border-top-width 0.3s ease-out;
+    background-color: #fafafa;
+    padding: 0 12px;
+    border-top: 0px solid var(--medium-gray);
+    list-style: none;
+    margin: 0;
+  }
+  
+  .tab-list.expanded {
+    max-height: 250px;
+    overflow-y: auto;
+    padding: 10px 12px;
+    border-top: 1px solid var(--medium-gray);
+  }
+  
+  .tab-list-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+  }
+  
+  .tab-list-item:last-child {
+    border-bottom: none;
+  }
+  
+  .tab-list-item:hover {
+    background-color: #f0f0f0;
+  }
+  
+  .tab-list-item .favicon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+  
+  .tab-details {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    flex-grow: 1;
+  }
+  
+  .tab-title {
+    font-size: 12px;
+    color: var(--dark-gray);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.3;
+  }
+  
+  .tab-url {
+    font-size: 10px;
+    color: #777;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+  }
+  
+  .empty-group-message {
+    font-style: italic;
+    color: #777;
+    font-size: 12px;
+    padding: 10px 0;
+    text-align: center;
+  }
+  
+  /* --- Modal Content Styling (Checklist items) --- */
+  
+  .tab-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 16px;
+    border-bottom: 1px solid var(--light-gray);
+  }
+  
+  .tab-item:last-child {
+    border-bottom: none;
+  }
+  
+  .tab-item .tab-checkbox {
+    margin-right: 5px;
+    cursor: pointer;
+  }
+  
+  .tab-item .favicon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+  
+  .tab-item .tab-title {
+    font-size: 12px;
+    color: var(--dark-gray);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-grow: 1;
+    cursor: pointer;
+  }
+  
+  /* Folder Dialog Group Selection */
+  
+  .group-check-item {
+    display: flex;
+    align-items: center;
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--light-gray);
+    gap: 8px;
+  }
+  
+  .group-check-item:last-child {
+    border-bottom: none;
+  }
+  
+  .group-check-item .group-checkbox {
+    cursor: pointer;
+  }
+  
+  .group-check-item .group-name {
+    font-size: 12px;
+    flex-grow: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+  }
+  
+  .origin-folder {
+    font-size: 10px;
+    color: #888;
+    font-style: italic;
+    margin-left: auto;
+    padding-left: 10px;
+  }
+  
+  .empty-selection {
+    font-style: italic;
+    color: #777;
+    font-size: 12px;
+    padding: 15px;
+    text-align: center;
+  }
+  
+  /* --- Edit Tabs Dialog List --- */
+  
+  .edit-tabs-list-container {
+    padding: 8px 12px;
+  }
+  
+  .edit-tab-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--light-gray);
+    font-size: 12px;
+  }
+  
+  .edit-tab-item:last-child {
+    border-bottom: none;
+  }
+  
+  .edit-tab-favicon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+  
+  .edit-tab-title {
+    flex-grow: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--dark-gray);
+  }
+  
+  .remove-tab-btn {
+    width: 20px;
+    height: 20px;
+    font-size: 11px;
+    flex-shrink: 0;
+    color: var(--danger-color);
+  }
+  
+  .remove-tab-btn:hover {
+    background-color: rgba(255, 77, 77, 0.1);
+  }
+  
+  /* --- Search & Empty States --- */
+  
+  .clear-search {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+  
+  .clear-search.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  
+  .no-results,
+  .empty-message {
+    text-align: center;
+    padding: 30px 15px;
+    font-size: 13px;
+    color: #777;
+    line-height: 1.5;
+  }
+  
+  .empty-message {
+    font-size: 14px;
+  }
+  
+  /* --- Sort Controls --- */
+  
+  .group-sort-controls {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+  }
+  
+  .group-sort-controls label {
+    font-size: 11px;
+    font-weight: 500;
+    color: #555;
+  }
+  
+  .group-sort-controls select {
+    padding: 4px 8px;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--medium-gray);
+    background-color: var(--white);
+    cursor: pointer;
+    font-size: 11px;
+    outline: none;
+  }
+  
+  .group-sort-controls select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(255, 99, 132, 0.1);
+  }
+  
+  
+  /* --------------------------------
+     Bookmarks List Container (Assuming a parent container exists)
+  -------------------------------- */
+  /* Style for the main list holding bookmark items (Example - adjust selector if needed) */
+  #bookmarks-list { /* Assuming this is the ID used in your HTML */
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Spacing between bookmark items */
+    padding: 10px 0; /* Add some padding if needed */
+  }
+  
+  /* --------------------------------
+     Empty State Message
+  -------------------------------- */
+  .empty-message {
+    padding: 20px;
+    text-align: center;
+    color: #666; /* Softer color for informational text */
+    font-size: 13px;
+    border: 1px dashed var(--medium-gray); /* Optional: visual cue */
+    border-radius: var(--border-radius);
+    background-color: var(--light-gray);
+  }
+  /* -------------------------------- 
+     Bookmark List Styles
+  -------------------------------- */
+  #bookmarks-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
+    overflow-y: auto;
+    
+  }
+  
+  .bookmark-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 10px;
+    background-color: var(--white);
+    border: 1px solid var(--medium-gray);
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+    cursor: pointer; /* Indicate the item is clickable */
+    margin: 4px;
+  
+  }
+  
+  .bookmark-item:last-child {
+    margin-bottom: 0;
+  }
+  
+  .bookmark-item:hover {
+    box-shadow: var(--box-shadow);
+    border-color: var(--primary-color);
+  }
+  
+  .bookmark-favicon {
+    width: 16px;
+    height: 16px;
+    margin-right: 10px;
+    object-fit: contain;
+  }
+  
+  .bookmark-content {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .bookmark-title {
+    font-weight: 600;
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--dark-gray);
+  }
+  
+  .bookmark-url {
+    font-size: 11px;
+    color: #666;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .empty-message {
+    text-align: center;
+    padding: 20px 0;
+    color: #666;
+    font-size: 13px;
+    font-style: italic;
+    background-color: var(--light-gray);
+    border-radius: var(--border-radius);
+    margin: 10px 0;
+  }
+  
+  /* -------------------------------- 
+     Todo List Item Styles
+  -------------------------------- */
+  .todo-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 10px;
+    background-color: var(--white);
+    border: 1px solid var(--medium-gray);
+    border-radius: var(--border-radius);
+    margin: 3px;
+    margin-bottom: 8px;
+    transition: var(--transition);
+  }
+  
+  .todo-item:hover {
+    border-color: var(--secondary-color);
+  }
+  
+  .todo-item.completed {
+    background-color: var(--light-gray);
+    border-color: var(--medium-gray);
+  }
+  
+  .todo-content {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    overflow: hidden;
+  }
+  
+  .todo-checkbox {
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin-right: 10px;
+  }
+  
+  .todo-checkbox input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+  }
+  
+  .checkmark {
+    height: 16px;
+    width: 16px;
+    background-color: var(--white);
+    border: 1.5px solid var(--medium-gray);
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+  }
+  
+  .todo-checkbox input[type="checkbox"]:checked ~ .checkmark {
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
+  }
+  
+  .checkmark:after {
+    content: '';
+    display: none;
+    width: 4px;
+    height: 8px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+  
+  .todo-checkbox input[type="checkbox"]:checked ~ .checkmark:after {
+    display: block;
+  }
+  
+  .todo-text {
+    font-size: 13px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    transition: var(--transition);
+  }
+  
+  .todo-item.completed .todo-text {
+    text-decoration: line-through;
+    color: #666;
+  }
+  
+  .delete-todo {
+    color: #666;
+    background-color: var(--light-gray);
+    transition: var(--transition);
+  }
+  
+  .delete-todo:hover {
+    color: var(--danger-color);
+    background-color: rgba(255, 77, 77, 0.1);
+  }
+  /* //v2
+  
+  */
+  
+  section-header {
+    display: flex;
+    flex-wrap: wrap; /* Allow wrapping on smaller widths if needed */
+    justify-content: space-between; /* Space between title and controls block */
+    align-items: flex-start; /* Align items to the top */
+    margin-bottom: 15px; /* Increased bottom margin for spacing */
+    padding-bottom: 10px; /* Add some padding below */
+    border-bottom: 1px solid var(--light-gray); /* Add separator */
+  }
+  
+  .section-header h2 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-right: 10px; /* Add some space between title and controls */
+    line-height: 1.3; /* Ensure title aligns well if it wraps */
+    margin-bottom: 5px; /* Add margin below title if controls wrap */
+  }
+  
+  /* Container for right-side controls (Create Folder, Sort) */
+  .section-controls {
+      display: flex;
+      flex-direction: column; /* Stack controls vertically */
+      align-items: flex-end; /* Align controls to the right */
+      gap: 8px; /* Space between button and sort */
+      flex-shrink: 0; /* Prevent controls from shrinking */
+  }
+  
+  /* Create Folder Button (in header) - Style moved here */
+  .create-folder-header-btn {
+    display: inline-flex; /* Use inline-flex */
+    align-items: center;
+    gap: 4px;
+    padding: 5px 10px; /* Slightly more padding */
+    border-radius: var(--border-radius);
+    background-color: var(--light-gray);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--dark-gray);
+    border: 1px solid var(--medium-gray); /* Add subtle border */
+  }
+  .create-folder-header-btn:hover {
+    background-color: var(--medium-gray);
+  }
+  
+  
+  .group-sort-controls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  
+  .group-sort-controls label {
+    font-size: 11px;
+    color: #555; /* Slightly darker label */
+  }
+  
+  .group-sort-controls select {
+    padding: 4px 8px;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--medium-gray);
+    background-color: var(--white);
+    cursor: pointer;
+    font-size: 11px;
+  }
+  .header {
+    display: flex !important;             /* ensure flex is on */
+    flex-direction: row !important;       /* force left-to-right layout */
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0 16px;
+    margin-bottom: 12px;
+    gap: 0;                               /* optional: remove any extra gap */
+  }
+  
+  .header h1 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--dark-gray);
+    flex: 1;                              /* push button to the far right */
+  }
+  
+  
+  
+  .add-button:hover {
+    filter: brightness(0.9);
+    transform: translateY(-1px);
+  }
+  .shortcut-key{
+  font-weight: bold ;
+  padding-left: 2px;
+  
+  }
+  #saveDropdown{
+    display: block;
+    background: white;
+      
+    border: 1px solid var(--secondary-color);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+  }
+  #editFolderDialog{
+    display: flex;
+    align-items: normal;
+    background: white;
+    
+    border: 1px solid var(--secondary-color);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+  
+  
+  }
+  
+  .delete-folder-btn {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: var(--primary-color);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--box-shadow);
+    cursor: pointer;
+    transition: var(--transition);
+    overflow: hidden;
+    position: relative;
+  }
+  
+  .delete-svgIcon {
+    width: 10px;
+    transition: var(--transition);
+  }
+  
+  .delete-svgIcon path {
+    fill: var(--white);
+  }
+  
+  .delete-folder-btn:hover {
+    width: 48px;
+    border-radius: var(--border-radius);
+    background-color: var(--danger-color);
+  }
+  
+  .delete-folder-btn:hover .delete-svgIcon {
+    width: 14px;
+    transform: rotate(360deg) translateY(30%);
+    transition: var(--transition);
+  }
+  
+  .delete-folder-btn::before {
+    display: none;
+    content: "Delete";
+    color: var(--white);
+    font-size: 0;
+    transition: var(--transition);
+  }
+  
+  .delete-folder-btn:hover::before {
+    display: block;
+    padding-right: 6px;
+    font-size: 10px;
+    opacity: 1;
+    transform: translateY(0);
+    transition: var(--transition);
+  }
+  .folder-title .fas.fa-folder {
+    color: var(--danger-color);
+    font-size: 16px;
+  }
+  
