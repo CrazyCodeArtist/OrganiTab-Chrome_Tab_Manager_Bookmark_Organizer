@@ -1751,3 +1751,20 @@ padding-left: 2px;
   transform: translateY(0);
   transition: var(--transition);
 }
+
+#folderDialog{
+  background: var(--white);
+  justify-content: unset;
+}
+#closeFolderBtn{
+  margin-left: 20px;
+  font-size: 18px;
+}
+#closeFolderBtn .fa-times{
+  color: red;
+}
+
+#folderDialog .dropdown-header{
+  justify-content: space-between;
+  width: 100%; 
+}
