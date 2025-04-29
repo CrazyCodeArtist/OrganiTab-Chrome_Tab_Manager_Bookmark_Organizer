@@ -98,12 +98,10 @@ app.settings.importData = function(event) {
                 "Choose how to import the data:",
                 "Merge with Existing Data", // Choice 1 Text
                 () => { // onChoice1 (Merge)
-                    console.log("User chose Merge.");
                     app.settings.mergeData(importedData, fileInput);
                 },
-                "Overwrite All Existing Data", // Choice 2 Text
+                "Clear & load import", // Choice 2 Text
                 () => { // onChoice2 (Overwrite)
-                    console.log("User chose Overwrite.");
                     app.settings.overwriteData(importedData, fileInput);
                 },
                 "Cancel", // Cancel Text

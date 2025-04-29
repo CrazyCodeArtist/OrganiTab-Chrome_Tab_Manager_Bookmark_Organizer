@@ -1,6 +1,4 @@
-/**
- * groups.js - Tab Group and Folder Management Logic
- */
+/*Tab Group and Folder Management Logic*/
 
 var app = app || {};
 app.groups = {};
@@ -12,7 +10,7 @@ app.groups.showSaveDropdown = function() {
     app.utils.hideAllModalDialogs(); // Use utility function
     app.groups.populateTabsChecklist();
     // Instead of direct style, use utility to show the modal overlay
-    app.utils.showModal('saveDropdown'); // Assumes saveDropdown is the ID of the modal overlay
+    app.utils.showModal('saveDropdown'); 
     app.elements.groupNameInput.focus();
 };
 

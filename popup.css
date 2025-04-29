@@ -1,44 +1,54 @@
-/* Light theme lives in :root as before */
+/* ----------------------------------------
+   Base & Global Styles
+---------------------------------------- */
+
 :root {
-  /* — main accents — */
-  --primary-color:     #ff7a00;   /* bright orange for “Save Open Tabs”, active nav, etc. */
-  --secondary-color:   #4caf50;   /* green for Add buttons */
-  
-  /* — neutrals — */
-  --light-gray:        #f5f5f5;   /* page/card backgrounds */
-  --medium-gray:       #e0e0e0;   /* borders, dividers */
-  --dark-gray:         #333333;   /* primary text */
-  --white:             #ffffff;   /* card background, text on colored buttons */
+  /* — Colors: Main Accents — */
+  --primary-color:     #ff7a00; /* Bright orange (e.g., save buttons, active nav) */
+  --secondary-color:   #4caf50; /* Green (e.g., add buttons, success states) */
 
-  /* — folder/icon helpers — */
-  --folder-blue:       #4a86ff;   /* if you still need a “blue” folder style elsewhere */
-  --folder-pink:       #ff7a00;   /* alias to primary for any pink-folder use */
+  /* — Colors: Neutrals — */
+  --light-gray:        #f5f5f5; /* Page/card backgrounds */
+  --medium-gray:       #e0e0e0; /* Borders, dividers */
+  --dark-gray:         #333333; /* Primary text */
+  --white:             #ffffff; /* Card backgrounds, text on colored buttons */
 
-  /* — feedback states — */
-  --danger-color:      #ff4d4d;   /* delete/alert states */
-  --success-color:     #4caf50;   /* success states (Add button also uses this) */
+  /* — Colors: Semantic States — */
+  --danger-color:      #ff4d4d; /* Error, delete, alert states */
+  --success-color:     var(--secondary-color); /* Alias for consistency */
+  --warning-color:     #f39c12; /* Warning states (e.g., rename icon) */
+  --info-color:        #4a86ff; /* Informational elements (e.g., blue icons) */
+  --subtle-text-color: #666666; /* Secondary text, placeholders */
 
-  /* — layout & motion — */
+  /* — Layout & Typography — */
+  --base-font-size:    13px;
+  --small-font-size:   11px;
+  --large-font-size:   16px;
+  --xl-font-size:      24px;
+  --font-family:       'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
   --border-radius:     8px;
+  --small-border-radius: 4px; /* For smaller elements */
   --box-shadow:        0 2px 6px rgba(0, 0, 0, 0.1);
   --transition:        all 0.2s ease;
+  --popup-width:       350px;
+  --popup-height:      500px;
 }
 
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  font-family: var(--font-family);
 }
 
 body {
-  width: 350px;
-  height: 500px;
+  width: var(--popup-width);
+  height: var(--popup-height);
   background-color: var(--white);
   overflow-x: hidden;
   overflow-y: auto;
   color: var(--dark-gray);
-  font-size: 13px;
+  font-size: var(--base-font-size);
 }
 
 #app {
@@ -48,161 +58,250 @@ body {
   flex-direction: column;
 }
 
+ul, li {
+  list-style: none;
+}
+
+/* ----------------------------------------
+   Common Elements (Buttons, Inputs)
+---------------------------------------- */
+
 button {
   cursor: pointer;
   border: none;
   outline: none;
   background: none;
   transition: var(--transition);
-  font-size: 12px;
+  font-size: 12px; /* Default button font size */
+  text-align: center;
+  vertical-align: middle;
+  white-space: nowrap;
 }
 
-ul, li {
-  list-style: none;
-}
-
-input {
+input[type="text"],
+input[type="search"],
+select {
   outline: none;
   border: 1px solid var(--medium-gray);
   border-radius: var(--border-radius);
   padding: 6px 10px;
   font-size: 12px;
   transition: var(--transition);
+  width: 100%; /* Default to full width */
 }
 
-input:focus {
+input:focus,
+select:focus {
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 2px rgba(255, 99, 132, 0.1);
+  box-shadow: 0 0 0 2px rgba(255, 122, 0, 0.1); /* Adjusted focus shadow */
 }
 
-/* -------------------------------- 
-   Header Styles
--------------------------------- */
+input::placeholder {
+  color: var(--subtle-text-color);
+  opacity: 0.8;
+}
+
+/* --- Button Variations --- */
+
+.primary-btn,
+.add-button, /* Includes the header "Add Group" button */
+.modal-button.confirm,
+.custom-confirm-button.confirm,
+.custom-alert-button.ok,
+.custom-choice-button.choice1,
+.add-todo-form button {
+  background-color: var(--primary-color);
+  color: var(--white);
+  padding: 6px 12px;
+  border-radius: var(--border-radius);
+  font-weight: 600;
+  box-shadow: var(--box-shadow);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+.primary-btn:hover,
+.add-button:hover,
+.modal-button.confirm:hover,
+.custom-confirm-button.confirm:hover,
+.custom-alert-button.ok:hover,
+.custom-choice-button.choice1:hover,
+.add-todo-form button:hover {
+  filter: brightness(0.9);
+  transform: translateY(-1px);
+}
+
+.secondary-btn,
+.modal-button.cancel,
+.custom-confirm-button.cancel,
+.custom-choice-button.cancel {
+  background-color: var(--light-gray);
+  color: var(--dark-gray);
+  padding: 5px 10px;
+  border-radius: var(--border-radius);
+  font-weight: 500;
+  border: 1px solid var(--medium-gray);
+}
+.secondary-btn:hover,
+.modal-button.cancel:hover,
+.custom-confirm-button.cancel:hover,
+.custom-choice-button.cancel:hover {
+  background-color: var(--medium-gray);
+}
+
+.success-btn,
+.group-button.primary,
+.custom-choice-button.choice2 {
+  background-color: var(--secondary-color);
+  color: var(--white);
+  padding: 5px 10px;
+  border-radius: var(--border-radius);
+  font-weight: 500;
+}
+.success-btn:hover,
+.group-button.primary:hover,
+.custom-choice-button.choice2:hover {
+   filter: brightness(0.9);
+}
+
+.danger-btn,
+.folder-actions .delete-folder-btn { /* Only style the non-animated state here */
+  background-color: var(--danger-color);
+  color: var(--white);
+  padding: 5px 10px;
+  border-radius: var(--border-radius);
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.danger-btn:hover,
+.folder-actions .delete-folder-btn:hover { /* Basic hover for consistency */
+  filter: brightness(0.9);
+}
+
+.action-button,
+.icon-button { /* General style for small icon-only buttons */
+  background-color: transparent;
+  color: var(--subtle-text-color);
+  border-radius: 50%; /* Make icon buttons circular */
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  border: 1px solid transparent;
+}
+.action-button:hover,
+.icon-button:hover {
+  background-color: var(--light-gray);
+  color: var(--dark-gray);
+  border-color: var(--medium-gray);
+}
+
+/* Specific icon button color overrides */
+.icon-button.edit { color: var(--secondary-color); }
+.icon-button.rename { color: var(--warning-color); }
+.icon-button.danger,
+.remove-tab-btn { color: var(--danger-color); } /* Ensure remove tab btn inherits icon style */
+
+.icon-button.edit:hover { background-color: rgba(76, 175, 80, 0.1); border-color: rgba(76, 175, 80, 0.3); }
+.icon-button.rename:hover { background-color: rgba(243, 156, 18, 0.1); border-color: rgba(243, 156, 18, 0.3); }
+.icon-button.danger:hover,
+.remove-tab-btn:hover { background-color: rgba(255, 77, 77, 0.1); border-color: rgba(255, 77, 77, 0.3); }
+
+
+/* ----------------------------------------
+   Header
+---------------------------------------- */
 
 .header {
-  /* 1) set up a flex container… */
   display: flex;
-  align-items: center;           /* vertical centering */
-  justify-content: space-between;/* h1↔buttons spread to ends */
-  
-  /* 2) make it span the full width of its parent */
+  align-items: center;
+  justify-content: space-between;
   width: 100%;
-  box-sizing: border-box;
-  
-  /* 3) optional: horizontal padding */
-  padding: 0 16px;
-  
+  padding: 0 16px; /* Add horizontal padding directly */
   margin-bottom: 12px;
 }
 
 .header h1 {
-  /* remove default top/bottom and left/right margins */
-  margin: 0;
-  
-  /* your typography */
-  font-size: 24px;
+  font-size: var(--xl-font-size);
   font-weight: 700;
   color: var(--dark-gray);
-  
-  /* if your header container is somehow constrained,
-     you can force the title to take up all remaining space: */
-  /* flex: 1; */
+  flex: 1; /* Push buttons to the right */
+  margin: 0; /* Remove default margin */
 }
 
 .header-buttons {
   display: flex;
   gap: 8px;
-  margin: 0; /* reset if you’ve got any stray margins */
+  flex-shrink: 0; /* Prevent shrinking */
 }
 
-.add-button {
-  background-color: var(--primary-color);
-  color: var(--white);
-  padding: 6px 12px;
-  border-radius: 16px;
-  font-weight: 600;
-  font-size: 12px;
-  box-shadow: var(--box-shadow);
-  
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  
-  transition: var(--transition);
-  border: none;
-  cursor: pointer;
-}
-
-.add-button i {
+.add-button i { /* Specific icon size for header add button */
   font-size: 10px;
 }
 
-.add-button:hover {
-  /* CSS-native darken without Sass */
-  filter: brightness(0.9);
-  transform: translateY(-1px);
-}
+/* ----------------------------------------
+   Status Card
+---------------------------------------- */
 
-/* -------------------------------- 
-   Status Card Styles
--------------------------------- */
 .status-card {
   display: flex;
   justify-content: space-between;
-  margin-bottom:9px;
+  margin-bottom: 9px;
   gap: 5px;
 }
+
 .status-info {
   flex: 1;
   background-color: var(--white);
-  border: 0.5px solid var(--folder-pink);
+  border: 1px solid var(--medium-gray); /* Simplified border */
   border-radius: var(--border-radius);
   display: flex;
-  flex-direction: row;
   align-items: center;
   justify-content: center;
   padding: 9px;
   text-align: center;
 }
+.status-info:first-child { /* Add subtle primary border to first status */
+  border-left: 3px solid var(--primary-color);
+}
+
+.status-label,
+.status-value {
+  font-size: 17px; /* Consistent large size */
+  font-weight: 500;
+  color: var(--dark-gray);
+}
 
 .status-label {
-  font-size: 17px;
-  font-weight: 500;
-  color: var(--dark-gray);
-  margin-bottom: 1px;
+  margin-right: 3px; /* Use margin instead of separate span */
 }
 
-.status-value {
-  font-size: 17px;
-  margin-left: 3px;
-  font-weight: 500;
-  color: var(--dark-gray);
-}
+/* ----------------------------------------
+   Search Bar
+---------------------------------------- */
 
-/* -------------------------------- 
-   Search Bar Styles
--------------------------------- */
 .search-container {
   margin-bottom: 12px;
-  position: relative;
+  position: relative; /* For icon positioning */
 }
 
-.search-input {
+.search-input { /* Wrapper div if needed, otherwise apply to input directly */
   position: relative;
   display: flex;
   align-items: center;
 }
 
 .search-input input {
-  width: 100%;
-  padding: 8px 30px;
-  border-radius: 16px;
-  border: 1px solid var(--medium-gray);
-  font-size: 12px;
+  padding: 8px 35px 8px 30px; /* Adjust padding for icons */
+  border-radius: 16px; /* Pill shape */
 }
 
-.search-input input:hover
-{
+.search-input input:hover {
   box-shadow: var(--box-shadow);
   border-color: var(--primary-color);
 }
@@ -210,29 +309,40 @@ input:focus {
 .search-icon {
   position: absolute;
   left: 10px;
-  color: #757575;
+  color: var(--subtle-text-color);
   font-size: 12px;
+  pointer-events: none; /* Prevent icon intercepting clicks */
 }
 
 .clear-search {
   position: absolute;
   right: 10px;
-  background: none;
-  border: none;
-  color: #757575;
+  color: var(--subtle-text-color);
   cursor: pointer;
   font-size: 12px;
+  opacity: 0; /* Hidden by default */
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  background: none; /* Ensure no button background */
+  border: none; /* Ensure no button border */
+  padding: 5px; /* Make it easier to click */
 }
 
-/* -------------------------------- 
-   Section Styles
--------------------------------- */
+.clear-search.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ----------------------------------------
+   Sections & Section Header
+---------------------------------------- */
+
 .section-container {
-  display: none;
+  display: none; /* Controlled by JS/active class */
   flex-direction: column;
   margin-bottom: 12px;
-  flex: 1;
-  overflow-y: auto;
+  flex: 1; /* Take remaining space */
+  overflow-y: auto; /* Allow scrolling within section */
 }
 
 .active-section {
@@ -241,603 +351,85 @@ input:focus {
 
 .section-header {
   display: flex;
+  flex-wrap: wrap; /* Allow wrapping */
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
+  align-items: flex-start; /* Align top */
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--light-gray);
   position: sticky;
   top: 0;
   background-color: var(--white);
   z-index: 10;
 }
 
-.section-title-actions {
-  display: flex;
-  justify-content: space-between;  
-  gap: 8px;
-  width: 96%;
+.section-header h2 {
+  font-size: var(--large-font-size);
+  font-weight: 700;
+  margin-right: 10px;
+  margin-bottom: 5px; /* Space if controls wrap */
+  line-height: 1.3;
 }
 
-.section-header h2 {
-  font-size: 16px;
-  font-weight: 700;
+.section-controls {
+  display: flex;
+  flex-direction: column; /* Stack controls */
+  align-items: flex-end; /* Align right */
+  gap: 8px;
+  flex-shrink: 0;
 }
+
+#folderDialog{
+  display: block;
+}
+
 
 .group-sort-controls {
-  display: flex;
+  display: flex; /* Will be shown via JS when needed */
   align-items: center;
-  gap: 4px;
+  gap: 6px;
+  margin-left: auto; /* Push to right if needed in flex layout */
 }
 
 .group-sort-controls label {
-  font-size: 11px;
+  font-size: var(--small-font-size);
+  font-weight: 500;
+  color: var(--subtle-text-color);
 }
 
 .group-sort-controls select {
   padding: 4px 8px;
-  border-radius: var(--border-radius);
-  border: 1px solid var(--medium-gray);
+  border-radius: var(--small-border-radius); /* Slightly smaller radius */
+  font-size: var(--small-font-size);
   background-color: var(--white);
   cursor: pointer;
-  font-size: 11px;
 }
 
-/* -------------------------------- 
-   Groups List Styles
--------------------------------- */
-.groups-list {
+/* ----------------------------------------
+   Folders & Groups List
+---------------------------------------- */
+
+.groups-list,
+.standalone-groups-list,
+#bookmarks-list,
+.todo-list { /* Common list container styling */
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.groups-list li {
-  background-color: var(--white);
-  border: 1px solid var(--medium-gray);
-  border-radius: var(--border-radius);
-  overflow: hidden;
-}
-
-.folder-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px;
-  background-color: var(--white);
-  border-bottom: 1px solid var(--medium-gray);
-}
-
-.folder-title {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-weight: 600;
-  font-size: 14px;
-}
-
-.folder-actions {
-  display: flex;
-  gap: 6px;
-}
-
-.folder-icon {
-  color: var(--folder-pink);
-  font-size: 16px;
-}
-
-.group-icon {
-  color: var(--folder-blue);
-  font-size: 16px;
-}
-
-.group-item {
-  display: flex;
-  flex-direction: column;
-  padding: 10px;
-  border-top: 1px solid var(--medium-gray);
-}
-
-.group-title {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 3px;
-}
-
-.group-title-text {
-  font-weight: 600;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.group-meta {
-  color: #666;
-  font-size: 11px;
-  margin-bottom: 8px;
-}
-
-.group-buttons {
-  display: flex;
-  gap: 8px;
-}
-
-.group-button {
-  padding: 5px 10px;
-  border: 1px solid var(--medium-gray);
-  border-radius: var(--border-radius);
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  background-color: var(--white);
-  font-weight: 500;
-  font-size: 11px;
-  transition: var(--transition);
-}
-
-.group-button:hover {
-  background-color: var(--light-gray);
-}
-
-.group-button.primary {
-  background-color: var(--secondary-color);
-  color: var(--white);
-  border: none;
-}
-
-.group-button.primary:hover {
-  background-color: darken(var(--secondary-color), 10%);
-}
-
-/* -------------------------------- 
-   Navigation Tabs
--------------------------------- */
-.nav-tabs {
-  display: flex;
-  justify-content: space-between;
-  margin-top: auto;
-  background-color: var(--white);
-  border-top: 1px solid var(--medium-gray);
-  position: sticky;
-  bottom: 0;
-  padding: 2px 0;
-}
-
-.nav-tab {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 3.5px 0;
-  color: #666;
-  font-size: 10px;
-  gap: 3px;
-  position: relative;
-}
-
-.nav-tab i {
-  font-size: 14px;
-}
-
-.nav-tab.active {
-  color: var(--primary-color);
-  font-weight: 600;
-}
-
-.nav-tab.active::before {
-  content: '';
-  position: absolute;
-  top: -7px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 6px;
-  height: 6px;
-  background-color: var(--primary-color);
-  border-radius: 50%;
-}
-
-
-/* -------------------------------- 
-   Modal Styles
--------------------------------- */
-.dropdown-panel {
-  position: absolute;
-  top: 50px;
-  left: 12px;
-  right: 12px;
-  background-color: var(--white);
-  border-radius: var(--border-radius);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  z-index: 100;
-  display: none;
-  flex-direction: column;
-  overflow: hidden;
-  max-height: 80%;
-}
-
-.dropdown-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px;
-  border-bottom: 1px solid var(--medium-gray);
-}
-
-.dropdown-header h3 {
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.close-btn {
-  font-size: 14px;
-  color: #666;
-}
-
-.dropdown-content {
-  padding: 10px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.full-width-input {
-  width: 100%;
-  padding: 6px 10px;
-  border-radius: var(--border-radius);
-  border: 1px solid var(--medium-gray);
-  font-size: 12px;
-}
-
-.tabs-checklist-container, .group-selection-container {
-  max-height: 200px;
-  overflow-y: auto;
-  border: 1px solid var(--medium-gray);
-  border-radius: var(--border-radius);
-}
-
-.tabs-checklist, .group-selection {
-  padding: 8px;
-}
-
-.dropdown-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  padding: 10px;
-  border-top: 1px solid var(--medium-gray);
-}
-
-.primary-btn {
-  background-color: var(--primary-color);
-  color: var(--white);
-  padding: 5px 10px;
-  border-radius: var(--border-radius);
-  font-weight: 500;
-  font-size: 12px;
-}
-
-.secondary-btn {
-  background-color: var(--light-gray);
-  color: var(--dark-gray);
-  padding: 5px 10px;
-  border-radius: var(--border-radius);
-  font-weight: 500;
-  font-size: 12px;
-}
-
-.modal-overlay {
-  position: fixed;      /* stays locked to the viewport */
-  inset: 0;             /* shorthand for top:0; right:0; bottom:0; left:0 */
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;        /* flex container */
-  align-items: center;  /* vertical center */
-  justify-content: center; /* horizontal center */
-  z-index: 1000;
-}
-
-.modal-content {
-  background: #fff;
-  border-radius: 8px;
-  padding: 1.5rem;
-  max-width: 90%;
-  max-height: 90%;
-  overflow-y: auto;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-.modal-dialog{
-  background: var(--light-gray);
-  padding: 25px;
-  border-radius: 2px solid var(--primary-color);
-  border-radius: 4px ;
-}
-
-
-.wide-dialog {
-  max-width: 320px;
-}
-
-.modal-message {
-  margin: 10px 0;
-  font-size: 12px;
-}
-
-.modal-input {
-  width: 100%;
-  margin-bottom: 15px;
-}
-
-.modal-buttons {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-}
-
-.modal-button {
-  padding: 5px 10px;
-  border-radius: var(--border-radius);
-  font-weight: 500;
-  font-size: 12px;
-}
-
-.modal-button.cancel {
-  background-color: var(--light-gray);
-  color: var(--dark-gray);
-}
-
-.modal-button.confirm {
-  background-color: var(--primary-color);
-  color: var(--white);
-}
-
-/* -------------------------------- 
-   Custom Alert/Confirm Styles
--------------------------------- */
-.custom-confirm-overlay, .custom-alert-overlay, .custom-choice-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  display: flex;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.custom-confirm-dialog, .custom-alert-dialog, .custom-choice-dialog {
-  background-color: var(--white);
-  border-radius: var(--border-radius);
-  width: 90%;
-  max-width: 300px;
-  padding: 15px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  font-size: 12px;
-   top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-
-
-}
-
-.custom-confirm-buttons, .custom-alert-buttons, .custom-choice-buttons {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-top: 15px;
-}
-
-.custom-confirm-button, .custom-alert-button, .custom-choice-button {
-  padding: 5px 10px;
-  border-radius: var(--border-radius);
-  font-weight: 500;
-  font-size: 12px;
-}
-
-.custom-confirm-button.cancel, .custom-choice-button.cancel {
-  background-color: var(--light-gray);
-  color: var(--dark-gray);
-}
-
-.custom-confirm-button.confirm, .custom-alert-button.ok {
-  background-color: var(--primary-color);
-  color: var(--white);
-}
-
-.custom-choice-button.choice1 {
-  background-color: var(--primary-color);
-  color: var(--white);
-}
-
-.custom-choice-button.choice2 {
-  background-color: var(--secondary-color);
-  color: var(--white);
-}
-
-/* -------------------------------- 
-   Edit Tabs List
--------------------------------- */
-.edit-tabs-list-container {
-  max-height: 200px;
-  overflow-y: auto;
-  border: 1px solid var(--medium-gray);
-  border-radius: var(--border-radius);
-  padding: 8px;
-}
-
-.edit-tabs-list-container li {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 0;
-  border-bottom: 1px solid var(--medium-gray);
-  font-size: 12px;
-}
-
-.edit-tabs-list-container li:last-child {
-  border-bottom: none;
-}
-
-/* -------------------------------- 
-   Action Buttons
--------------------------------- */
-.action-button {
-  background-color: transparent;
-  color: #666;
-  border-radius: var(--border-radius);
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-}
-
-.action-button:hover {
-  background-color: var(--light-gray);
-}
-
-/* -------------------------------- 
-   Settings Styles
--------------------------------- */
-.settings-content {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.settings-item {
-  background-color: var(--white);
-  border: 1px solid var(--medium-gray);
-  border-radius: var(--border-radius);
-  padding: 10px;
-}
-
-.settings-item h3 {
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 6px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.settings-item p {
-  font-size: 12px;
-  line-height: 1.4;
-}
-
-.settings-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 10px;
-}
-
-.settings-note {
-  font-size: 10px;
-  color: #666;
-  margin-top: 6px;
-}
-
-.danger-zone {
-  border-color: var(--danger-color);
-}
-
-.danger-zone h3 {
-  color: var(--danger-color);
-}
-
-.danger-btn {
-  background-color: var(--danger-color);
-  color: var(--white);
-  padding: 5px 10px;
-  border-radius: var(--border-radius);
-  font-weight: 500;
-  font-size: 12px;
-}
-
-.shortcuts-list-container {
-  border: 1px solid var(--medium-gray);
-  border-radius: var(--border-radius);
-  padding: 8px;
-  max-height: 120px;
-  overflow-y: auto;
-  font-size: 11px;
-}
-
-/* -------------------------------- 
-   Todo List Styles
--------------------------------- */
-.todo-list {
-  margin-bottom: 10px;
-}
-
-.add-todo-form {
-  display: flex;
-  gap: 8px;
-}
-
-.add-todo-form input {
-  flex: 1;
-}
-
-.add-todo-form button {
-  background-color: var(--primary-color);
-  color: var(--white);
-  padding: 5px 15px;
-  border-radius: var(--border-radius);
-  font-weight: 500;
-  font-size: 12px;
-}
-
-/* -------------------------------- 
-   Responsive Adjustments
--------------------------------- */
-@media (max-width: 350px) {
-  .header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-  
-  .section-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-  
-  .dropdown-footer {
-    flex-direction: column;
-  }
-  
-  .modal-buttons {
-    flex-direction: column;
-  }
-}
-
-
-
-
-/* -------------------------------- 
-   Folder & Group Styles
--------------------------------- */
-
-/* --- Folder Styling --- */
-
+/* --- Folder Item --- */
 .folder-item {
   background-color: var(--white);
   border: 1px solid var(--medium-gray);
   border-radius: var(--border-radius);
-  margin-bottom: 10px;
+  margin-bottom: 10px; /* Keep separation */
   overflow: hidden;
   box-shadow: var(--box-shadow);
   transition: var(--transition);
 }
-
 .folder-item:hover {
-  border-color: var(--secondary-color);
+  border-color: var(--secondary-color); /* Highlight on hover */
 }
 
 .folder-header {
@@ -848,9 +440,8 @@ input:focus {
   background-color: var(--light-gray);
   border-bottom: 1px solid var(--medium-gray);
   cursor: pointer;
-  transition: var(--transition);
+  transition: background-color 0.15s ease; /* Faster transition for background */
 }
-
 .folder-header:hover {
   background-color: #ebebeb;
 }
@@ -864,16 +455,19 @@ input:focus {
   color: var(--dark-gray);
 }
 
-.folder-title .fas.fa-folder {
-  color: var(--danger-color);
-  font-size: 16px;
+.folder-title .folder-icon { /* Using specific class for folder icon */
+  color: var(--info-color); /* Use info blue for folder icon */
+  font-size: var(--large-font-size);
 }
 
 .folder-count {
-  font-size: 11px;
+  font-size: var(--small-font-size);
   font-weight: 500;
-  color: #555;
+  color: var(--subtle-text-color);
   margin-left: 4px;
+  background-color: var(--medium-gray);
+  padding: 1px 5px;
+  border-radius: 10px;
 }
 
 .folder-header-actions {
@@ -883,29 +477,17 @@ input:focus {
 }
 
 .folder-header-actions .action-button {
-  width: 26px;
-  height: 26px;
-  font-size: 13px;
-  color: #555;
+    /* Inherits base .action-button styles */
+    color: var(--subtle-text-color);
 }
-
-.folder-header-actions .action-button:hover {
-  background-color: var(--medium-gray);
-  color: var(--dark-gray);
-}
-
 .folder-header-actions .action-button.edit {
-  color: var(--secondary-color);
+    color: var(--secondary-color); /* Specific edit color */
 }
+/* Hover states inherited from .action-button */
 
-.folder-header-actions .action-button.edit:hover {
-  background-color: rgba(108, 92, 231, 0.1);
-}
-
-.toggle-folder-btn i {
+.toggle-folder-btn i { /* chevron rotation */
   transition: transform 0.2s ease;
 }
-
 .toggle-folder-btn i.rotated {
   transform: rotate(180deg);
 }
@@ -917,14 +499,13 @@ input:focus {
   padding: 0 12px;
   background-color: var(--white);
 }
-
 .folder-content.expanded {
-  max-height: 1000px;
+  max-height: 1000px; /* Large enough max-height */
   padding: 10px 12px;
   border-top: 1px solid var(--light-gray);
 }
 
-.folder-content ul {
+.folder-content ul { /* List inside folder */
   padding: 0;
   margin: 0;
   list-style: none;
@@ -933,7 +514,7 @@ input:focus {
   gap: 8px;
 }
 
-.folder-actions {
+.folder-actions { /* Actions within expanded folder (like delete folder) */
   margin-top: 10px;
   padding-top: 10px;
   border-top: 1px dashed var(--medium-gray);
@@ -941,48 +522,67 @@ input:focus {
   justify-content: flex-end;
 }
 
-.folder-actions .delete-folder-btn {
-  padding: 4px 8px;
-  font-size: 11px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
+.delete-folder-btn { /* Animated delete button (Style the base state above) */
+  width: 24px; /* Initial width */
+  height: 24px;
+  border-radius: 50%;
+  background-color: var(--primary-color); /* Initial color */
+  overflow: hidden; /* Needed for text animation */
+  position: relative; /* Needed for pseudo-element */
 }
-
-.folder-actions .delete-folder-btn i {
-  font-size: 10px;
-}
-
-.empty-folder {
-  font-style: italic;
-  color: #777;
-  font-size: 12px;
-  padding: 10px 0;
-  text-align: center;
-}
-
-/* --- Standalone Group List --- */
-
-.standalone-groups-list {
-  margin-top: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-/* --- Group List Item (Shared between folder and standalone) --- */
-
-.group-list-item {
-  background-color: var(--white);
-  border: 1px solid #eee;
-  border-radius: calc(var(--border-radius) - 2px);
-  overflow: hidden;
+.delete-svgIcon {
+  width: 10px;
   transition: var(--transition);
 }
+.delete-svgIcon path {
+  fill: var(--white);
+}
+.delete-folder-btn:hover {
+  width: 80px; /* Expanded width */
+  border-radius: var(--border-radius);
+  background-color: var(--danger-color); /* Hover color */
+  filter: none; /* Override brightness filter if applied */
+}
+.delete-folder-btn:hover .delete-svgIcon {
+  width: 14px; /* Slightly larger icon */
+  transform: translateX(-15px); /* Move icon left */
+}
+.delete-folder-btn::before { /* Text appears on hover */
+  content: "Delete";
+  color: var(--white);
+  font-size: 0; /* Hidden initially */
+  position: absolute;
+  right: 10px; /* Position text */
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0;
+  transition: all 0.15s ease 0.1s; /* Delay text appearance */
+  white-space: nowrap;
+}
+.delete-folder-btn:hover::before {
+  font-size: var(--small-font-size);
+  opacity: 1;
+}
 
+/* --- Group List Item (Shared) --- */
+.group-list-item {
+  background-color: var(--white);
+  border: 1px solid #eee; /* Lighter border for items within folder */
+  border-radius: var(--small-border-radius);
+  overflow: hidden;
+  transition: var(--transition);
+  display: flex; /* Use flex for main item structure */
+  flex-direction: column; /* Stack main info and tab list */
+}
 .group-list-item:hover {
   border-color: var(--primary-color);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+/* Standalone groups might have slightly different outer border */
+.standalone-groups-list .group-list-item {
+    border: 1px solid var(--medium-gray);
+    border-radius: var(--border-radius);
 }
 
 .group-item-main {
@@ -990,17 +590,25 @@ input:focus {
   justify-content: space-between;
   align-items: center;
   padding: 8px 12px;
-  cursor: default;
+  cursor: default; /* Main area not clickable */
 }
 
 .group-info {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  flex-grow: 1;
+  display: block;
+margin-bottom:2px;
   margin-right: 10px;
+  overflow: hidden; /* Prevent long names pushing buttons out */
 }
-
+.group-info button{
+  padding: 4px;
+  border-radius: var(--border-radius);
+}
+.group-info button:hover{
+  margin-top: 3px;
+  background: var(--subtle-text-color);
+  color: var(--white);
+  
+}
 .group-name {
   font-weight: 600;
   font-size: 14px;
@@ -1008,140 +616,67 @@ input:focus {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 180px;
 }
 
 .group-status {
-  font-size: 11px;
-  color: #666;
+  font-size: var(--small-font-size);
+  color: var(--subtle-text-color);
 }
-
-.group-status span {
+.group-status span { /* Separator for status details */
   margin: 0 3px;
-}
-
-.open-group-button.subtle-button {
-  background: none;
-  border: 1px solid var(--medium-gray);
-  color: var(--secondary-color);
-  padding: 3px 8px;
-  border-radius: var(--border-radius);
-  font-size: 10px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: var(--transition);
-  margin-top: 4px;
-  align-self: flex-start;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.open-group-button.subtle-button i {
-  font-size: 9px;
-}
-
-.open-group-button.subtle-button:hover {
-  background-color: var(--light-gray);
-  border-color: var(--secondary-color);
-  color: var(--secondary-color);
 }
 
 .group-actions {
   display: flex;
   align-items: center;
   gap: 4px;
-  flex-shrink: 0;
+  flex-shrink: 0; /* Don't shrink buttons */
 }
-
 .group-actions .icon-button {
-  width: 24px;
-  height: 24px;
-  font-size: 12px;
-  border-radius: 50%;
-  color: #555;
-  transition: var(--transition);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid transparent;
+    /* Inherits base .icon-button styles */
+    width: 24px;
+    height: 24px;
+    font-size: 12px;
 }
+/* Icon colors and hovers defined in button variations */
 
-.group-actions .icon-button:hover {
-  background-color: var(--light-gray);
-  color: var(--dark-gray);
-  border-color: var(--medium-gray);
-}
-
-.group-actions .icon-button.edit {
-  color: var(--secondary-color);
-}
-
-.group-actions .icon-button.rename {
-  color: #f39c12;
-}
-
-.group-actions .icon-button.danger {
-  color: var(--danger-color);
-}
-
-.group-actions .icon-button.edit:hover {
-  background-color: rgba(108, 92, 231, 0.1);
-  border-color: rgba(108, 92, 231, 0.3);
-}
-
-.group-actions .icon-button.rename:hover {
-  background-color: rgba(243, 156, 18, 0.1);
-  border-color: rgba(243, 156, 18, 0.3);
-}
-
-.group-actions .icon-button.danger:hover {
-  background-color: rgba(255, 77, 77, 0.1);
-  border-color: rgba(255, 77, 77, 0.3);
-}
-
-.expand-group-button i {
+.expand-group-button i { /* Chevron rotation for group */
   transition: transform 0.2s ease;
 }
-
 .expand-group-button i.rotated {
   transform: rotate(180deg);
 }
 
-/* --- Tab List within a Group --- */
-
+/* --- Tab List (Inside Group) --- */
 .tab-list {
   max-height: 0;
   overflow: hidden;
   transition: max-height 0.3s ease-out, padding 0.3s ease-out, border-top-width 0.3s ease-out;
-  background-color: #fafafa;
+  background-color: #fafafa; /* Slightly off-white background */
   padding: 0 12px;
-  border-top: 0px solid var(--medium-gray);
+  border-top: 0px solid var(--medium-gray); /* Border added when expanded */
   list-style: none;
   margin: 0;
 }
-
 .tab-list.expanded {
-  max-height: 250px;
+  max-height: 250px; /* Limit height and enable scroll */
   overflow-y: auto;
-  padding: 7px 9px;
+  padding: 8px 12px;
   border-top: 1px solid var(--medium-gray);
 }
 
 .tab-list-item {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 3px 0;
+  gap: 8px; /* Increased gap */
+  padding: 5px 0; /* Vertical padding */
   border-bottom: 1px solid #eee;
   cursor: pointer;
   transition: background-color 0.15s ease;
 }
-
 .tab-list-item:last-child {
   border-bottom: none;
 }
-
 .tab-list-item:hover {
   background-color: #f0f0f0;
 }
@@ -1150,12 +685,13 @@ input:focus {
   width: 16px;
   height: 16px;
   flex-shrink: 0;
+  object-fit: contain; /* Ensure favicon scales nicely */
 }
 
 .tab-details {
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: hidden; /* Required for text-overflow */
   flex-grow: 1;
 }
 
@@ -1169,258 +705,396 @@ input:focus {
 }
 
 .tab-url {
-  font-size: 6px;
-  color: #777;
+  font-size: 10px; /* Smaller URL font */
+  color: var(--subtle-text-color);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   line-height: 1;
 }
 
-.empty-group-message {
-  font-style: italic;
-  color: #777;
-  font-size: 12px;
-  padding: 10px 0;
-  text-align: center;
+
+
+
+/* ----------------------------------------
+   Navigation Tabs (Bottom Bar)
+---------------------------------------- */
+
+.nav-tabs {
+  display: flex;
+  justify-content: space-around; /* Distribute space evenly */
+  margin-top: auto; /* Push to bottom */
+  background-color: var(--white);
+  border-top: 1px solid var(--medium-gray);
+  position: sticky;
+  bottom: 0;
+  padding: 2px 0; /* Minimal vertical padding */
+  z-index: 20; /* Above section headers */
 }
 
-/* --- Modal Content Styling (Checklist items) --- */
+.nav-tab {
+  flex: 1; /* Each tab takes equal width */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center; /* Center content vertically */
+  padding: 4px 0; /* Adjusted padding */
+  color: var(--subtle-text-color);
+  font-size: 10px;
+  gap: 3px;
+  position: relative; /* For active indicator */
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+.nav-tab:hover {
+    color: var(--dark-gray); /* Darken on hover */
+}
 
-.tab-item {
+.nav-tab i {
+  font-size: 14px; /* Icon size */
+  margin-bottom: 2px; /* Space between icon and text */
+}
+
+.nav-tab.active {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+.nav-tab.active::before { /* Active indicator (dot) */
+  content: '';
+  position: absolute;
+  top: -5px; /* Position above the tab */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 6px;
+  height: 6px;
+  background-color: var(--primary-color);
+  border-radius: 50%;
+}
+
+/* ----------------------------------------
+   Modals & Overlays
+---------------------------------------- */
+
+.modal-overlay,
+.custom-confirm-overlay,
+.custom-alert-overlay,
+.custom-choice-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000; /* High z-index */
+  padding: 15px; /* Padding for smaller screens */
+}
+.custom-alert-overlay{
+  z-index: 2000;
+}
+
+.modal-content,
+.custom-confirm-dialog,
+.custom-alert-dialog,
+.custom-choice-dialog {
+  background: var(--white);
+  border-radius: var(--border-radius);
+  padding: 1.5rem; /* More padding inside modal */
+  max-width: 90%;
+  width: auto; /* Allow content to dictate width up to max */
+  min-width: 280px; /* Minimum width */
+  max-height: 90vh; /* Max height relative to viewport */
+  overflow-y: auto; /* Scroll if content exceeds height */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* Space between modal elements */
+}
+
+.modal-dialog { /* General dialog styling, might be same as modal-content */
+  background: var(--white); /* Use white background */
+  padding: 25px;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--medium-gray); /* Standard border */
+}
+.wide-dialog {
+  max-width: 320px; /* Specific width for wide dialogs */
+}
+
+.modal-header,
+.dropdown-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--medium-gray);
+}
+.modal-header h3,
+.dropdown-header h3 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0; /* Remove default margin */
+}
+
+.close-btn { /* Generic close button */
+  font-size: 16px;
+  color: var(--subtle-text-color);
+  padding: 5px; /* Easier click target */
+}
+.close-btn:hover {
+    color: var(--danger-color);
+}
+#closeEditFolderBtn { /* Specific styling if needed */
+    font-size: 20px;
+    color: var(--danger-color);
+}
+#closeFolderBtn {
+    font-size: 18px;
+}
+#closeFolderBtn .fa-times {
+    color: var(--danger-color);
+}
+
+
+.modal-body,
+.dropdown-content { /* Main content area */
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 0; /* Vertical padding for content area */
+}
+
+.modal-message,
+.custom-confirm-message, /* Message text styles */
+.custom-alert-message,
+.custom-choice-message {
+  margin: 10px 0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.modal-input { /* Input specifically inside a modal */
+  width: 100%;
+  margin-bottom: 15px; /* Space below input */
+}
+
+.modal-footer,
+.dropdown-footer,
+.custom-confirm-buttons,
+.custom-alert-buttons,
+.custom-choice-buttons {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end; /* Align buttons right */
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--medium-gray);
+}
+.custom-choice-buttons{
+flex-direction: column;
+text-align: center;
+justify-content: center;
+}
+.custom-choice-buttons button{
+  display: block;
+  justify-content:center;
+}
+
+.dropdown-footer .primary-btn{
+  justify-content: center;
+}
+/* Button styles inherited from base button classes */
+
+/* --- Dropdown Panel (Specific Modal Type) --- */
+.dropdown-panel {
+  position: absolute; /* Position relative to trigger */
+  top: 50px; /* Example positioning */
+  left: 12px;
+  right: 12px;
+  background-color: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  display: none; /* Controlled by JS */
+  flex-direction: column;
+  overflow: hidden;
+  max-height: 80%; /* Limit height */
+  border: 1px solid var(--medium-gray);
+}
+#saveDropdown { /* Override if needed */
+  display: block; /* Example override */
+  border: 1px solid var(--secondary-color); /* Specific border */
+}
+#editFolderDialog { /* Positioning for specific dialog */
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%; /* Example width */
+  /* Other styles inherited from modal-content or defined here */
+}
+#folderDialog { /* Example specific dialog style */
+    background: var(--white);
+    justify-content: unset;
+}
+#folderDialog .dropdown-header {
+    justify-content: space-between;
+    width: 100%;
+}
+
+
+/* --- Checklists / Selection Lists (Inside Modals/Dropdowns) --- */
+.tabs-checklist-container,
+.group-selection-container,
+.edit-tabs-list-container,
+.shortcuts-list-container {
+  max-height: 200px; /* Limit height and scroll */
+  overflow-y: auto;
+  border: 1px solid var(--medium-gray);
+  border-radius: var(--border-radius);
+  padding: 8px 12px; /* Padding inside container */
+  background-color: var(--white); /* Ensure background */
+}
+
+.tabs-checklist, .group-selection, .edit-tabs-list-container ul {
+  padding: 0; /* Remove padding if container has it */
+  margin: 0;
+  list-style: none;
+}
+
+.tab-item, /* Style for items in tab selection checklist */
+.group-check-item, /* Style for items in group selection checklist */
+.edit-tab-item { /* Style for items in edit tabs list */
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 7px 16px;
-  border-bottom: 1px solid var(--light-gray);
-}
-
-.tab-item:last-child {
-  border-bottom: none;
-}
-
-.tab-item .tab-checkbox {
-  margin-right: 5px;
-  cursor: pointer;
-}
-
-.tab-item .favicon {
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0;
-}
-
-.tab-item .tab-title {
-  font-size: 10px;
-  color: var(--dark-gray);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  flex-grow: 1;
-  cursor: pointer;
-}
-
-/* Folder Dialog Group Selection */
-
-.group-check-item {
-  display: flex;
-  align-items: center;
-  padding: 6px 10px;
-  border-bottom: 1px solid var(--light-gray);
-  gap: 8px;
-}
-
-.group-check-item:last-child {
-  border-bottom: none;
-}
-
-.group-check-item .group-checkbox {
-  cursor: pointer;
-}
-
-.group-check-item .group-name {
-  font-size: 12px;
-  flex-grow: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  cursor: pointer;
-}
-
-.origin-folder {
-  font-size: 10px;
-  color: #888;
-  font-style: italic;
-  margin-left: auto;
-  padding-left: 10px;
-}
-
-.empty-selection {
-  font-style: italic;
-  color: #777;
-  font-size: 12px;
-  padding: 15px;
-  text-align: center;
-}
-
-/* --- Edit Tabs Dialog List --- */
-
-.edit-tabs-list-container {
-  padding: 8px 12px;
-}
-
-.edit-tab-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 0;
+  padding: 8px 0; /* Vertical padding */
   border-bottom: 1px solid var(--light-gray);
   font-size: 12px;
 }
-
+.tab-item:last-child,
+.group-check-item:last-child,
 .edit-tab-item:last-child {
   border-bottom: none;
 }
 
+.tab-item .tab-checkbox,
+.group-check-item .group-checkbox {
+  margin-right: 5px;
+  cursor: pointer;
+  flex-shrink: 0; /* Prevent checkbox shrinking */
+}
+
+.tab-item .favicon,
 .edit-tab-favicon {
   width: 16px;
   height: 16px;
   flex-shrink: 0;
 }
 
+.tab-item .tab-title,
+.group-check-item .group-name,
 .edit-tab-title {
-  flex-grow: 1;
+  font-size: 12px;
+  color: var(--dark-gray);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: var(--dark-gray);
+  flex-grow: 1; /* Allow text to take available space */
+  cursor: pointer; /* Indicate clickable label */
 }
 
-.remove-tab-btn {
-  width: 20px;
-  height: 20px;
-  font-size: 11px;
+.origin-folder { /* Specific style for group selection */
+  font-size: 10px;
+  color: var(--subtle-text-color);
+  font-style: italic;
+  margin-left: auto; /* Push to right */
+  padding-left: 10px;
   flex-shrink: 0;
+}
+
+.remove-tab-btn { /* Button specific to edit tabs list */
+    /* Inherits .icon-button and .danger styles */
+    width: 20px;
+    height: 20px;
+    font-size: 11px;
+    flex-shrink: 0;
+}
+
+/* ----------------------------------------
+   Settings Section
+---------------------------------------- */
+
+.settings-content {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.settings-item {
+  background-color: var(--white);
+  border: 1px solid var(--medium-gray);
+  border-radius: var(--border-radius);
+  padding: 12px; /* Slightly more padding */
+}
+
+.settings-item h3 {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.settings-item p,
+.settings-note {
+  font-size: 12px;
+  color: var(--subtle-text-color); /* Use subtle color for descriptions */
+  line-height: 1.4;
+  margin-bottom: 10px;
+}
+.settings-note {
+    font-size: 10px;
+    margin-top: 6px;
+    margin-bottom: 0; /* No extra space below note */
+}
+
+.settings-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+/* Buttons use standard .primary-btn, .secondary-btn, .danger-btn */
+
+.danger-zone { /* Specific styling for danger zone container */
+  border-color: var(--danger-color);
+  border-left-width: 3px; /* Emphasize border */
+}
+.danger-zone h3 {
   color: var(--danger-color);
 }
 
-.remove-tab-btn:hover {
-  background-color: rgba(255, 77, 77, 0.1);
-}
-
-/* --- Search & Empty States --- */
-
-.clear-search {
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s ease;
-}
-
-.clear-search.visible {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.no-results,
-.empty-message {
-  text-align: center;
-  padding: 30px 15px;
-  font-size: 13px;
-  color: #777;
-  line-height: 1.5;
-}
-
-.empty-message {
-  font-size: 14px;
-}
-
-/* --- Sort Controls --- */
-
-.group-sort-controls {
-  display: none;
-  align-items: center;
-  gap: 6px;
-  margin-left: auto;
-}
-
-.group-sort-controls label {
-  font-size: 11px;
-  font-weight: 500;
-  color: #555;
-}
-
-.group-sort-controls select {
-  padding: 4px 8px;
-  border-radius: var(--border-radius);
-  border: 1px solid var(--medium-gray);
-  background-color: var(--white);
-  cursor: pointer;
-  font-size: 11px;
-  outline: none;
-}
-
-.group-sort-controls select:focus {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 2px rgba(255, 99, 132, 0.1);
-}
-
-
-/* --------------------------------
-   Bookmarks List Container (Assuming a parent container exists)
--------------------------------- */
-/* Style for the main list holding bookmark items (Example - adjust selector if needed) */
-#bookmarks-list { /* Assuming this is the ID used in your HTML */
-  display: flex;
-  flex-direction: column;
-  gap: 10px; /* Spacing between bookmark items */
-  padding: 10px 0; /* Add some padding if needed */
-}
-
-/* --------------------------------
-   Empty State Message
--------------------------------- */
-.empty-message {
-  padding: 20px;
-  text-align: center;
-  color: #666; /* Softer color for informational text */
-  font-size: 13px;
-  border: 1px dashed var(--medium-gray); /* Optional: visual cue */
-  border-radius: var(--border-radius);
-  background-color: var(--light-gray);
-}
-/* -------------------------------- 
-   Bookmark List Styles
--------------------------------- */
-#bookmarks-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 12px;
-  overflow-y: auto;
-  
-}
+/* ----------------------------------------
+   Bookmarks List
+---------------------------------------- */
+/* Uses #bookmarks-list common list styling */
 
 .bookmark-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 10px;
+  padding: 8px 12px; /* Adjusted padding */
   background-color: var(--white);
   border: 1px solid var(--medium-gray);
   border-radius: var(--border-radius);
   transition: var(--transition);
-  cursor: pointer; /* Indicate the item is clickable */
-  margin: 4px;
-
+  cursor: pointer;
 }
-
-.bookmark-item:last-child {
-  margin-bottom: 0;
-}
-
 .bookmark-item:hover {
   box-shadow: var(--box-shadow);
   border-color: var(--primary-color);
+  background-color: var(--light-gray); /* Subtle hover background */
 }
 
 .bookmark-favicon {
@@ -1428,6 +1102,7 @@ input:focus {
   height: 16px;
   margin-right: 10px;
   object-fit: contain;
+  flex-shrink: 0;
 }
 
 .bookmark-content {
@@ -1435,11 +1110,12 @@ input:focus {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  gap: 2px; /* Small gap between title and URL */
 }
 
 .bookmark-title {
   font-weight: 600;
-  font-size: 13px;
+  font-size: var(--base-font-size);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1447,27 +1123,29 @@ input:focus {
 }
 
 .bookmark-url {
-  font-size: 11px;
-  color: #666;
+  font-size: var(--small-font-size);
+  color: var(--subtle-text-color);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.empty-message {
-  text-align: center;
-  padding: 20px 0;
-  color: #666;
-  font-size: 13px;
-  font-style: italic;
-  background-color: var(--light-gray);
-  border-radius: var(--border-radius);
-  margin: 10px 0;
-}
+/* ----------------------------------------
+   Todo List
+---------------------------------------- */
 
-/* -------------------------------- 
-   Todo List Item Styles
--------------------------------- */
+.add-todo-form {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 15px; /* Space below add form */
+}
+.add-todo-form input {
+  flex: 1; /* Input takes most space */
+}
+/* Add button uses .primary-btn style */
+
+/* .todo-list uses common list container styling */
+
 .todo-item {
   display: flex;
   align-items: center;
@@ -1476,18 +1154,16 @@ input:focus {
   background-color: var(--white);
   border: 1px solid var(--medium-gray);
   border-radius: var(--border-radius);
-  margin: 3px;
-  margin-bottom: 8px;
   transition: var(--transition);
 }
-
 .todo-item:hover {
-  border-color: var(--secondary-color);
+  border-color: var(--secondary-color); /* Use success color border */
+  background-color: var(--light-gray);
 }
-
 .todo-item.completed {
   background-color: var(--light-gray);
-  border-color: var(--medium-gray);
+  border-color: #e9e9e9; /* Lighter border when completed */
+  opacity: 0.7; /* Slightly fade completed items */
 }
 
 .todo-content {
@@ -1495,24 +1171,27 @@ input:focus {
   align-items: center;
   flex: 1;
   overflow: hidden;
+  gap: 10px; /* Gap between checkbox and text */
+  cursor: pointer; /* Allow clicking anywhere on content to toggle */
 }
 
-.todo-checkbox {
+.todo-checkbox { /* Wrapper for custom checkbox */
   position: relative;
   display: flex;
   align-items: center;
-  margin-right: 10px;
+  flex-shrink: 0;
 }
-
-.todo-checkbox input[type="checkbox"] {
+.todo-checkbox input[type="checkbox"] { /* Hide actual checkbox */
   position: absolute;
   opacity: 0;
   cursor: pointer;
+  height: 0;
+  width: 0;
 }
 
-.checkmark {
-  height: 16px;
-  width: 16px;
+.checkmark { /* Custom checkmark style */
+  height: 18px;
+  width: 18px;
   background-color: var(--white);
   border: 1.5px solid var(--medium-gray);
   border-radius: 3px;
@@ -1520,251 +1199,107 @@ input:focus {
   align-items: center;
   justify-content: center;
   transition: var(--transition);
+  cursor: pointer;
 }
-
 .todo-checkbox input[type="checkbox"]:checked ~ .checkmark {
   background-color: var(--secondary-color);
   border-color: var(--secondary-color);
 }
-
-.checkmark:after {
+.checkmark:after { /* The check symbol */
   content: '';
-  display: none;
-  width: 4px;
-  height: 8px;
+  display: none; /* Hidden by default */
+  width: 5px;
+  height: 10px;
   border: solid white;
   border-width: 0 2px 2px 0;
   transform: rotate(45deg);
 }
-
 .todo-checkbox input[type="checkbox"]:checked ~ .checkmark:after {
   display: block;
 }
 
 .todo-text {
-  font-size: 13px;
+  font-size: var(--base-font-size);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   transition: var(--transition);
+  color: var(--dark-gray);
 }
-
 .todo-item.completed .todo-text {
   text-decoration: line-through;
-  color: #666;
+  color: var(--subtle-text-color);
 }
 
-.delete-todo {
-  color: #666;
-  background-color: var(--light-gray);
-  transition: var(--transition);
+.delete-todo { /* Inherits .action-button styles, specific color */
+    color: var(--subtle-text-color);
 }
-
 .delete-todo:hover {
-  color: var(--danger-color);
-  background-color: rgba(255, 77, 77, 0.1);
-}
-/* //v2
-
-*/
-
-section-header {
-  display: flex;
-  flex-wrap: wrap; /* Allow wrapping on smaller widths if needed */
-  justify-content: space-between; /* Space between title and controls block */
-  align-items: flex-start; /* Align items to the top */
-  margin-bottom: 15px; /* Increased bottom margin for spacing */
-  padding-bottom: 10px; /* Add some padding below */
-  border-bottom: 1px solid var(--light-gray); /* Add separator */
+    color: var(--danger-color);
+    background-color: rgba(255, 77, 77, 0.1);
 }
 
-.section-header h2 {
-  font-size: 16px;
-  font-weight: 700;
-  margin-right: 10px; /* Add some space between title and controls */
-  line-height: 1.3; /* Ensure title aligns well if it wraps */
-  margin-bottom: 5px; /* Add margin below title if controls wrap */
-}
 
-/* Container for right-side controls (Create Folder, Sort) */
-.section-controls {
-    display: flex;
-    flex-direction: column; /* Stack controls vertically */
-    align-items: flex-end; /* Align controls to the right */
-    gap: 8px; /* Space between button and sort */
-    flex-shrink: 0; /* Prevent controls from shrinking */
-}
+/* ----------------------------------------
+   Empty States & Helper Classes
+---------------------------------------- */
 
-/* Create Folder Button (in header) - Style moved here */
-.create-folder-header-btn {
-  display: inline-flex; /* Use inline-flex */
-  align-items: center;
-  gap: 4px;
-  padding: 5px 10px; /* Slightly more padding */
+.empty-folder,
+.empty-group-message,
+.no-results,
+.empty-message,
+.empty-selection {
+  text-align: center;
+  padding: 20px 15px;
+  font-size: var(--base-font-size);
+  color: var(--subtle-text-color);
+  line-height: 1.5;
+  font-style: italic;
+  background-color: var(--light-gray);
+  border: 1px dashed var(--medium-gray);
   border-radius: var(--border-radius);
-  background-color: var(--primary-color);
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--light-gray);
-  border: 0px solid var(--secondary-color); /* Add subtle border */
-
-  width: 50%;
-}
-.create-folder-header-btn:hover {
-  width: 51%;
-  border: 1px solid var(--primary-color); /* Add subtle border */
-  color: var(--primary-color);
-  background-color: var(--white);
-
+  margin: 10px 0; /* Add some margin */
 }
 
-
-.group-sort-controls {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.group-sort-controls label {
-  font-size: 11px;
-  color: #555; /* Slightly darker label */
-}
-
-.group-sort-controls select {
-  padding: 4px 8px;
-  border-radius: var(--border-radius);
-  border: 1px solid var(--medium-gray);
-  background-color: var(--white);
-  cursor: pointer;
-  font-size: 11px;
-}
-.header {
-  display: flex !important;             /* ensure flex is on */
-  flex-direction: row !important;       /* force left-to-right layout */
-  justify-content: space-between !important;
-  align-items: center !important;
-  width: 100%;
-  box-sizing: border-box;
-  padding: 0 16px;
-  margin-bottom: 12px;
-  gap: 0;                               /* optional: remove any extra gap */
-}
-
-.header h1 {
-  margin: 0;
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--dark-gray);
-  flex: 1;                              /* push button to the far right */
-}
-
-
-
-.add-button:hover {
-  filter: brightness(0.9);
-  transform: translateY(-1px);
-}
-.shortcut-key{
-font-weight: bold ;
-padding-left: 2px;
-
-}
-#saveDropdown{
-  display: block;
-  background: white;
-    
-  border: 1px solid var(--secondary-color);
-  border-radius: var(--border-radius);
-  box-shadow: var(--box-shadow);
-}
-#editFolderDialog {
-  position: fixed;          /* or absolute, if inside a full-screen relative parent */
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  
-  width: 80%;
-  background: white;
-  border: 1px solid var(--secondary-color);
-  border-radius: var(--border-radius);
-  box-shadow: var(--box-shadow);
-  
-  display: flex;
-  flex-direction: column;   /* or row, whatever your layout needs */
-}
-#closeEditFolderBtn{
-  margin-left: 60px;
-  font-size: 20px;
-  color: var(--danger-color);
-}
-
-.delete-folder-btn {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background-color: var(--primary-color);
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: var(--box-shadow);
-  cursor: pointer;
-  transition: var(--transition);
-  overflow: hidden;
-  position: relative;
-}
-
-.delete-svgIcon {
-  width: 10px;
-  transition: var(--transition);
-}
-
-.delete-svgIcon path {
-  fill: var(--white);
-}
-
-.delete-folder-btn:hover {
-  width: 48px;
-  border-radius: var(--border-radius);
-  background-color: var(--danger-color);
-}
-
-.delete-folder-btn:hover .delete-svgIcon {
-  width: 14px;
-  transform: rotate(360deg) translateY(30%);
-  transition: var(--transition);
-}
-
-.delete-folder-btn::before {
-  display: none;
-  content: "Delete";
-  color: var(--white);
-  font-size: 0;
-  transition: var(--transition);
-}
-
-.delete-folder-btn:hover::before {
-  display: block;
-  padding-right: 6px;
+.shortcut-key { /* Style for keyboard shortcut hints */
+  font-weight: bold;
+  padding: 1px 4px;
+  background-color: var(--medium-gray);
+  border-radius: var(--small-border-radius);
   font-size: 10px;
-  opacity: 1;
-  transform: translateY(0);
-  transition: var(--transition);
+  margin-left: 4px;
+  color: var(--dark-gray);
 }
 
-#folderDialog{
-  background: var(--white);
-  justify-content: unset;
-}
-#closeFolderBtn{
-  margin-left: 20px;
-  font-size: 18px;
-}
-#closeFolderBtn .fa-times{
-  color: red;
+
+/* ----------------------------------------
+   Responsive Adjustments (If Needed)
+---------------------------------------- */
+
+/* Adjust header layout on very narrow screens */
+@media (max-width: 320px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .header-buttons {
+      width: 100%; /* Make buttons full width */
+      justify-content: flex-start; /* Align buttons left */
+  }
+  .section-header {
+    align-items: flex-start;
+  }
+  .section-controls {
+      align-items: flex-start; /* Align controls left on wrap */
+      width: 100%;
+  }
+  .modal-footer,
+  .dropdown-footer,
+  .modal-buttons {
+    flex-direction: column; /* Stack buttons vertically */
+    align-items: stretch; /* Make buttons full width */
+  }
 }
 
-#folderDialog .dropdown-header{
-  justify-content: space-between;
-  width: 100%; 
-}
+
