@@ -67,7 +67,7 @@ app.utils.showModal = function (modalId) {
       
         // Add overlay click listener to hide modal (optional, can be added per modal if needed)
         // Be cautious adding generic listeners here if some modals shouldn't close on overlay click.
-    console.log("Model Called")
+
     } else {
         console.error(`Modal element with ID "${modalId}" not found.`);
     }

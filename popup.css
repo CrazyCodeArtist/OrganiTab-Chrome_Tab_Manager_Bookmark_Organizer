@@ -564,6 +564,10 @@ input::placeholder {
   opacity: 1;
 }
 
+
+.folder-actions .delete-folder-btn{
+padding: 2px 6px;
+}
 /* --- Group List Item (Shared) --- */
 .group-list-item {
   background-color: var(--white);
@@ -943,6 +947,8 @@ justify-content: center;
 }
 
 
+
+
 /* --- Checklists / Selection Lists (Inside Modals/Dropdowns) --- */
 .tabs-checklist-container,
 .group-selection-container,
@@ -1271,6 +1277,21 @@ justify-content: center;
   color: var(--dark-gray);
 }
 
+#createFolderHeaderBtn{
+  border-radius: var(--border-radius);
+  width: 110%;
+
+}
+#createFolderHeaderBtn *{
+  margin: 2px;
+}
+
+#createFolderHeaderBtn:hover{
+
+  border-radius: var(--border-radius);
+  background: var(--primary-color);
+color: var(--white);
+}
 
 /* ----------------------------------------
    Responsive Adjustments (If Needed)

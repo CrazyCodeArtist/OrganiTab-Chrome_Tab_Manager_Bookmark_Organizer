@@ -1,11 +1,10 @@
 /**
- * main.js - Main application entry point, initialization, and coordination.
+Main application entry point, initialization, and coordination.
  */
 
 var app = app || {};
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM Loaded - Initializing App");
 
     // --- Cache DOM Elements (Centralized) ---
     app.elements = {
@@ -95,7 +94,6 @@ document.addEventListener('DOMContentLoaded', () => {
         editTabsCancelBtn: document.getElementById('edit-tabs-cancel-btn'),
 
     };
-    console.log("Elements cached");
 
     // --- State (Centralized) ---
     app.state = {
@@ -104,7 +102,6 @@ document.addEventListener('DOMContentLoaded', () => {
         activeSection: 'groups', // Default section
         groupSortOrder: 'dateDesc'
     };
-    console.log("State initialized");
 
 
     // --- Core Logic Functions (Main Application Flow) ---
@@ -113,7 +110,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     function switchSection(sectionName) {
-        console.log("Switching section to:", sectionName);
         if (app.utils && app.utils.hideAllModalDialogs) {
             app.utils.hideAllModalDialogs();
         } else {
@@ -180,7 +176,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Renamed from loadSectionContent to avoid conflict with global variable if any
     app.loadSectionContent = function (section) {
-        console.log("Loading content for section:", section);
 
         switch (section) {
             case 'groups':
@@ -196,7 +191,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 else console.error("app.todo.renderTodos not available!");
                 break;
             case 'settings':
-                console.log("Settings section activated.");
                 // Refresh shortcut display when switching to settings
                 if (app.settings && app.settings.displayShortcuts) {
                     app.settings.displayShortcuts();
@@ -209,7 +203,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Event Listeners Setup ---
     function setupEventListeners() {
-        console.log("Setting up Event Listeners");
 
         // Navigation Tabs
         app.elements.navTabs.forEach(tab => {
@@ -236,7 +229,6 @@ document.addEventListener('DOMContentLoaded', () => {
         else console.error("app.settings.setupEventListeners not found!");
 
 
-        console.log("Base Event Listeners setup complete.");
     }
 
     // --- Add button disabling for Save/Folder dialogs ---
@@ -271,11 +263,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Initialization ---
     function init() {
-        console.log("Initializing...");
         if (app.utils && app.utils.updateTabCount && app.utils.updateSavedItemsCount) {
             app.utils.updateTabCount();
             app.utils.updateSavedItemsCount();
-            console.log("Counts updated.");
         } else {
             console.error("Count update utilities not available!");
         }
@@ -295,7 +285,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (canLoadDefault) {
             switchSection(defaultSection); // This will also call app.loadSectionContent
-            console.log(`Initial section '${defaultSection}' set.`);
         } else {
             console.error(`Cannot load default section '${defaultSection}', required functions missing.`);
             // Fallback to groups if possible
@@ -308,7 +297,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        console.log("Initialization Complete.");
     }
 
     // Start the application
