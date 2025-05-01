@@ -1,5 +1,5 @@
 {
-  "manifest_version": 2,
+  "manifest_version": 3,
   "name": "OrganiTab - Chrome Tab Manager & Organizer",
   "version": "1.2",
   "description": "Save/manage tabs, groups, folders, bookmarks, todos. Includes export/import, shortcuts, and data management.",
@@ -7,7 +7,6 @@
     "tabs",
     "storage",
     "contextMenus",
-    "downloads",
     "windows"
   ],
   "background": {

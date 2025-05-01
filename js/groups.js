@@ -596,7 +596,14 @@ app.groups.populateGroupSelection = function (containerElement, selectedGroups =
 
 app.groups.createNewFolder = function () {
     const folderName = app.elements.folderNameInput.value.trim();
-    if (!folderName) { app.utils.showCustomAlert("Please enter a name for the folder."); app.elements.folderNameInput.focus(); return; }
+    if (!folderName) { 
+        app.utils.showCustomAlert("Please enter a name for the folder.");
+        
+        
+        
+        app.elements.folderNameInput.focus();
+         return;
+         }
 
     const selectedGroupNames = Array.from(app.elements.groupSelection.querySelectorAll('.group-checkbox:checked')).map(checkbox => checkbox.dataset.name);
 

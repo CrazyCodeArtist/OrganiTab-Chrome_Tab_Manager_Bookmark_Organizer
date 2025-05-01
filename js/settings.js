@@ -5,10 +5,8 @@
 var app = app || {};
 app.settings = {};
 
-// --- Data Management ---
 
 app.settings.exportData = function () {
-
     chrome.storage.local.get(
     ["tabGroups", "folders", "bookmarks", "todos"],
     (data) => {
@@ -42,27 +40,21 @@ app.settings.exportData = function () {
           .replace(/[:T]/g, "-");
         const filename = `organitab-backup-${timestamp}.json`;
 
-        chrome.downloads.download(
-          {
-            url: url,
-            filename: filename,
-            saveAs: true,
-          },
-          (downloadId) => {
-            // Clean up the object URL after a short delay
-            setTimeout(() => URL.revokeObjectURL(url), 1000);
-            if (chrome.runtime.lastError) {
-              console.error(
-                "Download initiation failed:",
-                chrome.runtime.lastError
-              );
-              app.utils.showCustomAlert(
-                "Failed to initiate download. Check browser permissions."
-              );
-            } 
-            
-          }
-        );
+        // Create a temporary link element
+        const downloadLink = document.createElement('a');
+        downloadLink.href = url;
+        downloadLink.download = filename; // Set the download filename
+
+        // Append the link to the body (required for Firefox)
+        document.body.appendChild(downloadLink);
+
+        // Programmatically click the link to trigger the download
+        downloadLink.click();
+
+        // Clean up the temporary link and object URL
+        document.body.removeChild(downloadLink);
+        URL.revokeObjectURL(url);
+
       } catch (error) {
         console.error("Error creating export file:", error);
         app.utils.showCustomAlert("Error creating export file.");
@@ -112,7 +104,7 @@ app.settings.importData = function (event) {
       }
 
 
-      
+
       // --- Ask User: Merge or Overwrite? ---
       app.utils.showCustomChoiceDialog(
         "Choose how to import the data:",
@@ -254,7 +246,7 @@ app.settings.mergeData = function (importedData, fileInput) {
         importedData.bookmarks.forEach((bookmark) => {
           if (!existingUrls.has(bookmark.url)) {
             mergedData.bookmarks.push(bookmark);
-          } 
+          }
         });
       }
 
@@ -264,7 +256,7 @@ app.settings.mergeData = function (importedData, fileInput) {
         importedData.todos.forEach((todo) => {
           if (!existingTexts.has(todo.text)) {
             mergedData.todos.push(todo);
-          } 
+          }
         });
       }
 
@@ -453,8 +445,6 @@ app.settings.setupEventListeners = function () {
     });
   }
 
-  // Initial display of shortcuts when settings tab is loaded/activated
-  // This might also need to be called from main.js when switching to the settings tab
   app.settings.displayShortcuts();
 };
 
