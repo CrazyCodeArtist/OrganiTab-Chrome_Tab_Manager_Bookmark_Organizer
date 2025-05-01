@@ -1,4 +1,6 @@
 // --- Utility Functions ---
+let isSavingTabs = false;
+
 
 // Helper to get current timestamp string for group names
 function getTimestampGroupName() {
@@ -68,14 +70,16 @@ chrome.commands.onCommand.addListener((command, tab) => {
 // --- Action Logic Implementation ---
 
 function handleSaveAllTabs() {
-  chrome.windows.getCurrent({ populate: true }, (currentWindow) => {
+    if (isSavingTabs) {
+        showBadgeNotification("…", "#FFA500");  // “already in progress”
+        return;
+      }
+      isSavingTabs = true;
+    chrome.windows.getCurrent({ populate: true }, (currentWindow) => {
       if (chrome.runtime.lastError) {
-          console.error("Error getting current window:", chrome.runtime.lastError);
           return;
       }
       if (!currentWindow || !currentWindow.tabs || currentWindow.tabs.length === 0) {
-          console.warn("No tabs found in the current window to save.");
-          // Optionally show a badge notification
           showBadgeNotification("!", "#FFA500"); // Orange badge for warning
           return;
       }
@@ -86,11 +90,10 @@ function handleSaveAllTabs() {
           favIconUrl: tab.favIconUrl || '' // Ensure favicon is included
       }));
 
-      const groupName = getTimestampGroupName();
+      let groupName = getTimestampGroupName();
 
       chrome.storage.local.get(['tabGroups'], ({ tabGroups = {} }) => {
           if (tabGroups[groupName]) {
-              // Highly unlikely due to timestamp, but handle just in case
               console.warn(`Group name "${groupName}" already exists. Appending timestamp.`);
               // Append milliseconds or a counter if needed, though collision is rare.
                groupName += `-${Date.now()}`;
@@ -99,6 +102,8 @@ function handleSaveAllTabs() {
           tabGroups[groupName] = { tabs: tabsToSave, dateAdded: Date.now() };
 
           chrome.storage.local.set({ tabGroups }, () => {
+            isSavingTabs = false;  
+
               if (chrome.runtime.lastError) {
                   console.error("Error saving tab group:", chrome.runtime.lastError);
                   showBadgeNotification("Err", "#FF0000"); // Red badge for error

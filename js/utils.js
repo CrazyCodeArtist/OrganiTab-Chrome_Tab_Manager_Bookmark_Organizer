@@ -367,7 +367,7 @@ app.utils.toggleSelectAll = function (container, buttonElement, checkboxSelector
     const checkboxes = container.querySelectorAll(checkboxSelector);
     if (checkboxes.length === 0) {
         buttonElement.textContent = 'Select All';
-        buttonElement.disabled = true;
+        // buttonElement.disabled = true;
         return;
     }
     buttonElement.disabled = false;
@@ -396,7 +396,7 @@ app.utils.updateSelectAllButtonState = function (container, buttonElement, check
     const checkboxes = container.querySelectorAll(checkboxSelector);
     if (checkboxes.length === 0) {
         buttonElement.textContent = 'Select All';
-        buttonElement.disabled = true; // Disable if no items
+        // buttonElement.disabled = true; // Disable if no items
         return;
     }
     buttonElement.disabled = false; // Enable if items exist

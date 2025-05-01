@@ -934,8 +934,8 @@ justify-content: center;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 80%; /* Example width */
-  /* Other styles inherited from modal-content or defined here */
+  width: 95%;
+    height: 100%;
 }
 #folderDialog { /* Example specific dialog style */
     background: var(--white);
